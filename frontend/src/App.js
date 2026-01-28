@@ -479,8 +479,7 @@ const TalentForgotPasswordPage = () => {
               <p className="text-green-400 text-3xl font-bold text-center my-2">{generatedCode || "Loading..."}</p>
               <p className="text-green-400 text-xs text-center">(Copy this code and enter below)</p>
             </div>
-              </div>
-            )}
+            </div>
             <div>
               <label className="block text-sm text-[#A0A5B0] mb-2">Reset Code</label>
               <input type="text" required value={resetCode} onChange={(e) => setResetCode(e.target.value)}
