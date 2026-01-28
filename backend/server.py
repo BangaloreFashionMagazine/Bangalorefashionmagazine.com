@@ -452,6 +452,11 @@ async def update_talent(talent_id: str, talent_data: TalentUpdate):
     
     update_data = {k: v for k, v in talent_data.model_dump().items() if v is not None}
     
+    # Limit portfolio images to 7
+    if "portfolio_images" in update_data and update_data["portfolio_images"]:
+        if len(update_data["portfolio_images"]) > 7:
+            update_data["portfolio_images"] = update_data["portfolio_images"][:7]
+    
     if update_data:
         await db.talents.update_one({"id": talent_id}, {"$set": update_data})
     
