@@ -258,7 +258,7 @@ def test_auth_register():
 
 def test_get_status():
     """Test GET /api/status - Get status checks"""
-    print("\n4. Testing Get Status Checks (GET /api/status)")
+    print("\n6. Testing Get Status Checks (GET /api/status)")
     try:
         response = requests.get(f"{BASE_API_URL}/status", timeout=10)
         print(f"   Status Code: {response.status_code}")
@@ -278,7 +278,7 @@ def test_get_status():
 
 def test_post_status():
     """Test POST /api/status - Create status check"""
-    print("\n5. Testing Create Status Check (POST /api/status)")
+    print("\n7. Testing Create Status Check (POST /api/status)")
     try:
         test_data = {
             "client_name": "Fashion Magazine Test Client"
