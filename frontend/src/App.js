@@ -1249,6 +1249,7 @@ function App() {
           <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
           <Route path="/talent-login" element={<TalentLoginPage onTalentLogin={handleTalentLogin} />} />
           <Route path="/talent-register" element={<TalentRegisterPage />} />
+          <Route path="/talent-forgot-password" element={<TalentForgotPasswordPage />} />
           <Route path="/talent-dashboard" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><TalentDashboard talent={talent} onTalentUpdate={handleTalentUpdate} /></>} />
           <Route path="/dashboard" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><UserDashboard user={user} onLogout={handleLogout} /></>} />
           <Route path="/admin" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><AdminDashboard /></>} />
