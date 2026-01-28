@@ -542,11 +542,71 @@ const RegisterPage = () => {
   );
 };
 
-// Home Page
-const Home = () => {
+// Dashboard Page for Logged In Users
+const DashboardPage = ({ user, onLogout }) => {
   return (
     <div className="min-h-screen bg-[#050A14]">
-      <Navbar />
+      <Navbar user={user} onLogout={onLogout} />
+      <div className="pt-24 pb-16 px-4">
+        <div className="container mx-auto max-w-4xl">
+          <div className="bg-[#0A1628] border border-[#D4AF37]/20 rounded-2xl p-8">
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-[#D4AF37] rounded-full mb-4">
+                <User className="text-[#050A14]" size={40} />
+              </div>
+              <h1 className="text-3xl font-serif font-bold text-[#F5F5F0] mb-2">Welcome, {user?.name}!</h1>
+              <p className="text-[#A0A5B0]">{user?.email}</p>
+            </div>
+            
+            <div className="grid md:grid-cols-2 gap-6 mb-8">
+              <div className="bg-[#050A14] border border-[#D4AF37]/20 rounded-xl p-6">
+                <h3 className="text-[#D4AF37] font-serif text-lg mb-2">Account Status</h3>
+                <p className="text-[#F5F5F0] text-2xl font-bold">Active</p>
+              </div>
+              <div className="bg-[#050A14] border border-[#D4AF37]/20 rounded-xl p-6">
+                <h3 className="text-[#D4AF37] font-serif text-lg mb-2">Member Since</h3>
+                <p className="text-[#F5F5F0] text-2xl font-bold">2025</p>
+              </div>
+            </div>
+            
+            <div className="bg-[#050A14] border border-[#D4AF37]/20 rounded-xl p-6">
+              <h3 className="text-[#D4AF37] font-serif text-xl mb-4">Quick Actions</h3>
+              <div className="grid md:grid-cols-3 gap-4">
+                <Link to="/" className="flex items-center gap-3 p-4 bg-[#0A1628] rounded-lg hover:bg-[#D4AF37]/10 transition-colors">
+                  <Camera className="text-[#D4AF37]" size={24} />
+                  <span className="text-[#F5F5F0]">Browse Talents</span>
+                </Link>
+                <Link to="/services" className="flex items-center gap-3 p-4 bg-[#0A1628] rounded-lg hover:bg-[#D4AF37]/10 transition-colors">
+                  <Briefcase className="text-[#D4AF37]" size={24} />
+                  <span className="text-[#F5F5F0]">Our Services</span>
+                </Link>
+                <Link to="/contact" className="flex items-center gap-3 p-4 bg-[#0A1628] rounded-lg hover:bg-[#D4AF37]/10 transition-colors">
+                  <Mail className="text-[#D4AF37]" size={24} />
+                  <span className="text-[#F5F5F0]">Contact Us</span>
+                </Link>
+              </div>
+            </div>
+            
+            <div className="mt-8 text-center">
+              <button 
+                onClick={onLogout}
+                className="px-8 py-3 border border-red-500 text-red-500 font-serif text-sm uppercase tracking-[0.15em] hover:bg-red-500 hover:text-white transition-all rounded-lg"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Home Page
+const HomeWithAuth = ({ user, onLogout }) => {
+  return (
+    <div className="min-h-screen bg-[#050A14]">
+      <Navbar user={user} onLogout={onLogout} />
       <HeroSlider />
       <TalentSection />
       <VotingSection />
@@ -557,17 +617,41 @@ const Home = () => {
 };
 
 function App() {
+  const [user, setUser] = useState(null);
+
+  // Check for logged in user on app load
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user") || sessionStorage.getItem("user");
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (e) {
+        console.error("Error parsing user data:", e);
+      }
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("user");
+    setUser(null);
+    window.location.href = "/";
+  };
+
   return (
     <div className="App">
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<HomeWithAuth user={user} onLogout={handleLogout} />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="/talents" element={<Home />} />
-          <Route path="/services" element={<Home />} />
-          <Route path="/about" element={<Home />} />
-          <Route path="/contact" element={<Home />} />
+          <Route path="/dashboard" element={<DashboardPage user={user} onLogout={handleLogout} />} />
+          <Route path="/talents" element={<HomeWithAuth user={user} onLogout={handleLogout} />} />
+          <Route path="/services" element={<HomeWithAuth user={user} onLogout={handleLogout} />} />
+          <Route path="/about" element={<HomeWithAuth user={user} onLogout={handleLogout} />} />
+          <Route path="/contact" element={<HomeWithAuth user={user} onLogout={handleLogout} />} />
           <Route path="/forgot-password" element={<LoginPage />} />
         </Routes>
       </BrowserRouter>
