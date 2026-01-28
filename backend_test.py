@@ -225,6 +225,37 @@ def test_auth_register():
         print(f"   ❌ Register endpoint error: {str(e)}")
         return False
 
+def test_auth_register():
+    """Test POST /api/auth/register - Register endpoint"""
+    print("\n3. Testing Auth Register (POST /api/auth/register)")
+    try:
+        test_data = {
+            "name": "Fashion Model",
+            "email": "newmodel@bangalore.com",
+            "password": "modelpass123",
+            "phone": "+91-9876543210"
+        }
+        
+        response = requests.post(f"{BASE_API_URL}/auth/register", 
+                               json=test_data, 
+                               timeout=10)
+        print(f"   Status Code: {response.status_code}")
+        print(f"   Response: {response.text}")
+        
+        if response.status_code == 404:
+            print("   ❌ Register endpoint NOT IMPLEMENTED (404 Not Found)")
+            return False
+        elif response.status_code == 200 or response.status_code == 201:
+            print("   ✅ Register endpoint exists and responding")
+            return True
+        else:
+            print(f"   ⚠️ Register endpoint exists but returned {response.status_code}")
+            return False
+            
+    except Exception as e:
+        print(f"   ❌ Register endpoint error: {str(e)}")
+        return False
+
 def test_get_status():
     """Test GET /api/status - Get status checks"""
     print("\n4. Testing Get Status Checks (GET /api/status)")
