@@ -809,6 +809,18 @@ const TalentDashboard = ({ talent, onTalentUpdate }) => {
                       <p className="text-[#F5F5F0]">{talent.bio}</p>
                     </div>
                   )}
+                  
+                  {/* Portfolio Images Display */}
+                  {portfolioImages.length > 0 && (
+                    <div className="mt-6">
+                      <p className="text-[#A0A5B0] text-sm mb-3">Portfolio ({portfolioImages.length} images)</p>
+                      <div className="grid grid-cols-4 gap-2">
+                        {portfolioImages.map((img, index) => (
+                          <img key={index} src={img} alt={`Portfolio ${index + 1}`} className="w-full h-24 object-cover rounded-lg" />
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
             </div>
