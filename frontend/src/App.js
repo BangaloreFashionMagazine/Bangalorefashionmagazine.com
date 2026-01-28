@@ -613,11 +613,15 @@ const TalentRegisterPage = () => {
 const TalentDashboard = ({ talent, onTalentUpdate }) => {
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState(talent || {});
+  const [portfolioImages, setPortfolioImages] = useState([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (talent) setFormData(talent);
+    if (talent) {
+      setFormData(talent);
+      setPortfolioImages(talent.portfolio_images || []);
+    }
   }, [talent]);
 
   const handleImageChange = (e) => {
@@ -629,6 +633,29 @@ const TalentDashboard = ({ talent, onTalentUpdate }) => {
     }
   };
 
+  const handlePortfolioImageAdd = (e) => {
+    const files = Array.from(e.target.files);
+    if (portfolioImages.length + files.length > 7) {
+      toast({ title: "Error", description: "Maximum 7 portfolio images allowed", variant: "destructive" });
+      return;
+    }
+    
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPortfolioImages(prev => {
+          if (prev.length >= 7) return prev;
+          return [...prev, reader.result];
+        });
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removePortfolioImage = (index) => {
+    setPortfolioImages(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleSave = async () => {
     setLoading(true);
     try {
@@ -638,7 +665,8 @@ const TalentDashboard = ({ talent, onTalentUpdate }) => {
         instagram_id: formData.instagram_id,
         category: formData.category,
         bio: formData.bio,
-        profile_image: formData.profile_image
+        profile_image: formData.profile_image,
+        portfolio_images: portfolioImages
       });
       localStorage.setItem("talent", JSON.stringify(response.data));
       if (onTalentUpdate) onTalentUpdate(response.data);
@@ -675,7 +703,10 @@ const TalentDashboard = ({ talent, onTalentUpdate }) => {
                 <img src={formData.profile_image || "https://via.placeholder.com/300?text=No+Image"} alt="Profile" className="w-full h-full object-cover" />
               </div>
               {editing && (
-                <input type="file" accept="image/*" onChange={handleImageChange} className="mt-4 text-[#A0A5B0] text-sm" />
+                <div className="mt-4">
+                  <label className="block text-sm text-[#A0A5B0] mb-2">Profile Image</label>
+                  <input type="file" accept="image/*" onChange={handleImageChange} className="text-[#A0A5B0] text-sm" />
+                </div>
               )}
             </div>
             <div className="md:col-span-2 space-y-4">
