@@ -479,13 +479,13 @@ const TalentForgotPasswordPage = () => {
           <form className="space-y-5" onSubmit={handleResetPassword}>
             <div className="p-4 bg-green-500/20 border border-green-500/40 rounded-lg mb-4">
               <p className="text-green-400 text-sm text-center">Your Reset Code:</p>
-              <p className="text-green-400 text-3xl font-bold text-center my-2">{generatedCode || "Loading..."}</p>
-              <p className="text-green-400 text-xs text-center">(Copy this code and enter below)</p>
+              <p className="text-green-400 text-4xl font-bold text-center my-3 tracking-widest">{generatedCode}</p>
+              <p className="text-green-400 text-xs text-center">(Code has been auto-filled below)</p>
             </div>
             <div>
               <label className="block text-sm text-[#A0A5B0] mb-2">Reset Code</label>
               <input type="text" required value={resetCode} onChange={(e) => setResetCode(e.target.value)}
-                className="w-full px-4 py-3 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0] focus:border-[#D4AF37] outline-none"
+                className="w-full px-4 py-3 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0] focus:border-[#D4AF37] outline-none text-center text-xl tracking-widest"
                 placeholder="Enter 6-digit code" />
             </div>
             <div>
