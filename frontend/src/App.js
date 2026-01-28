@@ -635,6 +635,10 @@ function App() {
     }
   }, []);
 
+  const handleLogin = (userData) => {
+    setUser(userData);
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -649,14 +653,14 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<HomeWithAuth user={user} onLogout={handleLogout} />} />
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/dashboard" element={<DashboardPage user={user} onLogout={handleLogout} />} />
           <Route path="/talents" element={<HomeWithAuth user={user} onLogout={handleLogout} />} />
           <Route path="/services" element={<HomeWithAuth user={user} onLogout={handleLogout} />} />
           <Route path="/about" element={<HomeWithAuth user={user} onLogout={handleLogout} />} />
           <Route path="/contact" element={<HomeWithAuth user={user} onLogout={handleLogout} />} />
-          <Route path="/forgot-password" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<LoginPage onLogin={handleLogin} />} />
         </Routes>
       </BrowserRouter>
       <Toaster />
