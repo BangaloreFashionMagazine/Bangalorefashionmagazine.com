@@ -420,8 +420,11 @@ const TalentForgotPasswordPage = () => {
     setLoading(true);
     try {
       const response = await axios.post(`${API}/talent/forgot-password`, { email });
-      setGeneratedCode(response.data.reset_code || "");
-      toast({ title: "Success", description: "Reset code generated! Check below." });
+      const code = response.data.reset_code || "";
+      setGeneratedCode(code);
+      // Also auto-fill the reset code field
+      setResetCode(code);
+      toast({ title: "Success", description: `Your reset code is: ${code}` });
       setStep(2);
     } catch (error) {
       toast({ title: "Error", description: error.response?.data?.detail || "Failed to request reset", variant: "destructive" });
