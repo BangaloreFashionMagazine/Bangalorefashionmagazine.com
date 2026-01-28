@@ -292,7 +292,7 @@ const VotingSection = () => {
 };
 
 // Login Page - Enhanced with Remember Me and Social Login
-const LoginPage = () => {
+const LoginPage = ({ onLogin }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
@@ -313,8 +313,12 @@ const LoginPage = () => {
           sessionStorage.setItem("token", response.data.token);
           sessionStorage.setItem("user", JSON.stringify(response.data.user));
         }
+        // Update app state immediately
+        if (onLogin) {
+          onLogin(response.data.user);
+        }
         toast({ title: "Success", description: "Login successful!" });
-        navigate("/");
+        navigate("/dashboard");
       }
     } catch (error) {
       toast({ 
