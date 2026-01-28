@@ -45,13 +45,53 @@ def test_root_endpoint():
         print(f"   ❌ Root endpoint error: {str(e)}")
         return False
 
-def test_auth_login():
-    """Test POST /api/auth/login - Login endpoint"""
-    print("\n2. Testing Auth Login (POST /api/auth/login)")
+def test_auth_register():
+    """Test POST /api/auth/register - Register endpoint with new user"""
+    print("\n2. Testing Auth Register (POST /api/auth/register)")
     try:
         test_data = {
-            "email": "fashionista@bangalore.com",
-            "password": "fashionpass123"
+            "name": "Test User",
+            "email": "test@example.com",
+            "password": "password123",
+            "confirmPassword": "password123"
+        }
+        
+        response = requests.post(f"{BASE_API_URL}/auth/register", 
+                               json=test_data, 
+                               timeout=10)
+        print(f"   Status Code: {response.status_code}")
+        print(f"   Response: {response.text}")
+        
+        if response.status_code == 404:
+            print("   ❌ Register endpoint NOT IMPLEMENTED (404 Not Found)")
+            return False
+        elif response.status_code == 200:
+            data = response.json()
+            if 'id' in data and 'name' in data and 'email' in data:
+                print("   ✅ Register endpoint working - user created successfully")
+                return True
+            else:
+                print("   ❌ Register endpoint returned invalid response format")
+                return False
+        elif response.status_code == 400:
+            print("   ⚠️ Register endpoint returned 400 - might be validation error or user exists")
+            return False
+        else:
+            print(f"   ❌ Register endpoint failed with status {response.status_code}")
+            return False
+            
+    except Exception as e:
+        print(f"   ❌ Register endpoint error: {str(e)}")
+        return False
+
+def test_auth_login():
+    """Test POST /api/auth/login - Login endpoint with registered user"""
+    print("\n3. Testing Auth Login (POST /api/auth/login)")
+    try:
+        test_data = {
+            "email": "test@example.com",
+            "password": "password123",
+            "rememberMe": True
         }
         
         response = requests.post(f"{BASE_API_URL}/auth/login", 
@@ -64,14 +104,94 @@ def test_auth_login():
             print("   ❌ Login endpoint NOT IMPLEMENTED (404 Not Found)")
             return False
         elif response.status_code == 200:
-            print("   ✅ Login endpoint exists and responding")
-            return True
+            data = response.json()
+            if 'token' in data and 'user' in data and 'message' in data:
+                print("   ✅ Login endpoint working - authentication successful")
+                return True
+            else:
+                print("   ❌ Login endpoint returned invalid response format")
+                return False
+        elif response.status_code == 401:
+            print("   ❌ Login failed - Invalid credentials (401)")
+            return False
         else:
-            print(f"   ⚠️ Login endpoint exists but returned {response.status_code}")
+            print(f"   ❌ Login endpoint failed with status {response.status_code}")
             return False
             
     except Exception as e:
         print(f"   ❌ Login endpoint error: {str(e)}")
+        return False
+
+def test_auth_login_wrong_password():
+    """Test POST /api/auth/login - Login with wrong password (should fail)"""
+    print("\n4. Testing Auth Login with Wrong Password (POST /api/auth/login)")
+    try:
+        test_data = {
+            "email": "test@example.com",
+            "password": "wrongpassword",
+            "rememberMe": False
+        }
+        
+        response = requests.post(f"{BASE_API_URL}/auth/login", 
+                               json=test_data, 
+                               timeout=10)
+        print(f"   Status Code: {response.status_code}")
+        print(f"   Response: {response.text}")
+        
+        if response.status_code == 401:
+            print("   ✅ Login correctly rejected wrong password (401)")
+            return True
+        elif response.status_code == 404:
+            print("   ❌ Login endpoint NOT IMPLEMENTED (404 Not Found)")
+            return False
+        elif response.status_code == 200:
+            print("   ❌ Login incorrectly accepted wrong password")
+            return False
+        else:
+            print(f"   ⚠️ Login endpoint returned unexpected status {response.status_code}")
+            return False
+            
+    except Exception as e:
+        print(f"   ❌ Login wrong password test error: {str(e)}")
+        return False
+
+def test_auth_register_existing_email():
+    """Test POST /api/auth/register - Register with existing email (should fail)"""
+    print("\n5. Testing Auth Register with Existing Email (POST /api/auth/register)")
+    try:
+        test_data = {
+            "name": "Another User",
+            "email": "test@example.com",  # Same email as before
+            "password": "newpassword123",
+            "confirmPassword": "newpassword123"
+        }
+        
+        response = requests.post(f"{BASE_API_URL}/auth/register", 
+                               json=test_data, 
+                               timeout=10)
+        print(f"   Status Code: {response.status_code}")
+        print(f"   Response: {response.text}")
+        
+        if response.status_code == 400:
+            data = response.json()
+            if 'detail' in data and 'already' in data['detail'].lower():
+                print("   ✅ Register correctly rejected existing email (400)")
+                return True
+            else:
+                print("   ⚠️ Register returned 400 but with unexpected error message")
+                return False
+        elif response.status_code == 404:
+            print("   ❌ Register endpoint NOT IMPLEMENTED (404 Not Found)")
+            return False
+        elif response.status_code == 200:
+            print("   ❌ Register incorrectly accepted existing email")
+            return False
+        else:
+            print(f"   ⚠️ Register endpoint returned unexpected status {response.status_code}")
+            return False
+            
+    except Exception as e:
+        print(f"   ❌ Register existing email test error: {str(e)}")
         return False
 
 def test_auth_register():
