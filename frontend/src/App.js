@@ -1218,6 +1218,10 @@ const AdminDashboard = () => {
 const UserDashboard = ({ user, onLogout }) => {
   if (!user) return <div className="min-h-screen bg-[#050A14] pt-24 text-center text-[#F5F5F0]">Please login first</div>;
   
+  // Check if this is the main admin email
+  const isMainAdmin = user.email === "admin@bangalorefashionmag.com";
+  const showAdminAccess = user.is_admin || isMainAdmin;
+  
   return (
     <div className="min-h-screen bg-[#050A14] pt-24 pb-12 px-4">
       <div className="max-w-4xl mx-auto">
@@ -1228,9 +1232,9 @@ const UserDashboard = ({ user, onLogout }) => {
             </div>
             <h1 className="text-3xl font-serif font-bold text-[#F5F5F0]">Welcome, {user.name}!</h1>
             <p className="text-[#A0A5B0]">{user.email}</p>
-            {user.is_admin && <span className="inline-block mt-2 px-3 py-1 bg-[#D4AF37]/20 text-[#D4AF37] rounded-full text-sm">Admin</span>}
+            {showAdminAccess && <span className="inline-block mt-2 px-3 py-1 bg-[#D4AF37]/20 text-[#D4AF37] rounded-full text-sm">Admin</span>}
           </div>
-          {user.is_admin && (
+          {showAdminAccess && (
             <div className="text-center">
               <Link to="/admin" className="inline-flex items-center gap-2 px-6 py-3 bg-[#D4AF37] text-[#050A14] rounded-lg font-bold hover:bg-[#F5F5F0] transition-colors">
                 <Shield size={20} />
