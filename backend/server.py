@@ -39,6 +39,61 @@ class StatusCheck(BaseModel):
 class StatusCheckCreate(BaseModel):
     client_name: str
 
+
+# ============== Authentication Models ==============
+class UserCreate(BaseModel):
+    name: str
+    email: EmailStr
+    password: str
+    confirmPassword: Optional[str] = None
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+    rememberMe: Optional[bool] = False
+
+class User(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    email: EmailStr
+    password_hash: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    is_active: bool = True
+
+class UserResponse(BaseModel):
+    id: str
+    name: str
+    email: str
+
+class LoginResponse(BaseModel):
+    token: str
+    user: UserResponse
+    message: str
+
+
+# ============== Helper Functions ==============
+def hash_password(password: str) -> str:
+    """Hash password using SHA-256 with salt"""
+    salt = secrets.token_hex(16)
+    password_hash = hashlib.sha256((password + salt).encode()).hexdigest()
+    return f"{salt}:{password_hash}"
+
+def verify_password(password: str, stored_hash: str) -> bool:
+    """Verify password against stored hash"""
+    try:
+        salt, password_hash = stored_hash.split(":")
+        return hashlib.sha256((password + salt).encode()).hexdigest() == password_hash
+    except ValueError:
+        return False
+
+def generate_token(user_id: str) -> str:
+    """Generate a simple token for authentication"""
+    token_data = f"{user_id}:{secrets.token_hex(32)}:{datetime.now(timezone.utc).isoformat()}"
+    return hashlib.sha256(token_data.encode()).hexdigest()
+
+
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
 async def root():
