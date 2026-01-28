@@ -35,6 +35,13 @@ app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
 
+# ============== Health Check Endpoint (Required for Kubernetes) ==============
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for Kubernetes liveness/readiness probes"""
+    return {"status": "healthy", "message": "Service is running"}
+
+
 # Define Models
 class StatusCheck(BaseModel):
     model_config = ConfigDict(extra="ignore")  # Ignore MongoDB's _id field
