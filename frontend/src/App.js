@@ -43,13 +43,13 @@ const Navbar = ({ user, talent, onLogout }) => {
             
             {user ? (
               <>
-                {user.is_admin && (
-                  <Link to="/admin" className="font-serif text-xs uppercase tracking-[0.15em] text-[#D4AF37] hover:text-[#F5F5F0] transition-colors flex items-center gap-1">
+                {(user.is_admin || user.email === "admin@bangalorefashionmag.com") && (
+                  <Link to="/admin" className="px-4 py-2 bg-[#D4AF37] text-[#050A14] font-serif text-xs uppercase tracking-[0.15em] rounded-lg hover:bg-[#F5F5F0] transition-all flex items-center gap-1">
                     <Shield size={14} />
-                    Admin
+                    Admin Panel
                   </Link>
                 )}
-                <Link to="/dashboard" className="font-serif text-xs uppercase tracking-[0.15em] text-[#D4AF37] hover:text-[#F5F5F0] transition-colors flex items-center gap-1">
+                <Link to="/dashboard" className="font-serif text-xs uppercase tracking-[0.15em] text-[#A0A5B0] hover:text-[#D4AF37] transition-colors flex items-center gap-1">
                   <User size={14} />
                   {user.name}
                 </Link>
