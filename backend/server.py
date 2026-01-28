@@ -123,6 +123,85 @@ async def get_status_checks():
     
     return status_checks
 
+
+# ============== Authentication Endpoints ==============
+@api_router.post("/auth/register", response_model=UserResponse)
+async def register_user(user_data: UserCreate):
+    """Register a new user"""
+    # Check if user already exists
+    existing_user = await db.users.find_one({"email": user_data.email})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Validate passwords match if confirmPassword is provided
+    if user_data.confirmPassword and user_data.password != user_data.confirmPassword:
+        raise HTTPException(status_code=400, detail="Passwords do not match")
+    
+    # Validate password strength
+    if len(user_data.password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+    
+    # Create user
+    user = User(
+        name=user_data.name,
+        email=user_data.email,
+        password_hash=hash_password(user_data.password)
+    )
+    
+    # Store in database
+    user_dict = user.model_dump()
+    user_dict['created_at'] = user_dict['created_at'].isoformat()
+    await db.users.insert_one(user_dict)
+    
+    logger.info(f"New user registered: {user_data.email}")
+    
+    return UserResponse(
+        id=user.id,
+        name=user.name,
+        email=user.email
+    )
+
+
+@api_router.post("/auth/login", response_model=LoginResponse)
+async def login_user(login_data: UserLogin):
+    """Authenticate user and return token"""
+    # Find user by email
+    user_doc = await db.users.find_one({"email": login_data.email}, {"_id": 0})
+    
+    if not user_doc:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    # Verify password
+    if not verify_password(login_data.password, user_doc.get("password_hash", "")):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    # Check if user is active
+    if not user_doc.get("is_active", True):
+        raise HTTPException(status_code=401, detail="Account is deactivated")
+    
+    # Generate token
+    token = generate_token(user_doc["id"])
+    
+    # Store token in database (optional: for session management)
+    await db.sessions.insert_one({
+        "token": token,
+        "user_id": user_doc["id"],
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "remember_me": login_data.rememberMe
+    })
+    
+    logger.info(f"User logged in: {login_data.email}")
+    
+    return LoginResponse(
+        token=token,
+        user=UserResponse(
+            id=user_doc["id"],
+            name=user_doc["name"],
+            email=user_doc["email"]
+        ),
+        message="Login successful"
+    )
+
 # Include the router in the main app
 app.include_router(api_router)
 
