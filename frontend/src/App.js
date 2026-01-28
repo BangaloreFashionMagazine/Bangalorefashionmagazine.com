@@ -394,8 +394,119 @@ const TalentLoginPage = ({ onTalentLogin }) => {
           </button>
         </form>
         <div className="mt-6 text-center space-y-2">
+          <p className="text-[#A0A5B0]"><Link to="/talent-forgot-password" className="text-[#D4AF37] hover:underline">Forgot Password?</Link></p>
           <p className="text-[#A0A5B0]">Don't have an account? <Link to="/talent-register" className="text-[#D4AF37] hover:underline">Register here</Link></p>
           <p className="text-[#A0A5B0]">Are you an admin? <Link to="/login" className="text-[#D4AF37] hover:underline">Admin Login</Link></p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Talent Forgot Password Page
+const TalentForgotPasswordPage = () => {
+  const [step, setStep] = useState(1); // 1 = enter email, 2 = enter code & new password
+  const [email, setEmail] = useState("");
+  const [resetCode, setResetCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [generatedCode, setGeneratedCode] = useState("");
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
+  const handleRequestReset = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const response = await axios.post(`${API}/talent/forgot-password`, { email });
+      setGeneratedCode(response.data.reset_code || "");
+      toast({ title: "Success", description: "Reset code generated! Check below." });
+      setStep(2);
+    } catch (error) {
+      toast({ title: "Error", description: error.response?.data?.detail || "Failed to request reset", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      toast({ title: "Error", description: "Passwords do not match", variant: "destructive" });
+      return;
+    }
+    setLoading(true);
+    try {
+      await axios.post(`${API}/talent/reset-password`, { email, reset_code: resetCode, new_password: newPassword });
+      toast({ title: "Success", description: "Password reset successful! You can now login." });
+      navigate("/talent-login");
+    } catch (error) {
+      toast({ title: "Error", description: error.response?.data?.detail || "Failed to reset password", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#050A14] py-12 px-4">
+      <div className="max-w-md w-full bg-[#0A1628] rounded-2xl p-8 border border-[#D4AF37]/20">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-[#D4AF37] rounded-full mb-4">
+            <Lock className="text-[#050A14]" size={32} />
+          </div>
+          <h2 className="text-3xl font-serif font-bold text-[#F5F5F0] mb-2">Reset Password</h2>
+          <p className="text-[#A0A5B0]">{step === 1 ? "Enter your email to get reset code" : "Enter reset code and new password"}</p>
+        </div>
+
+        {step === 1 ? (
+          <form className="space-y-5" onSubmit={handleRequestReset}>
+            <div>
+              <label className="block text-sm text-[#A0A5B0] mb-2">Email</label>
+              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-3 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0] focus:border-[#D4AF37] outline-none"
+                placeholder="your@email.com" />
+            </div>
+            <button type="submit" disabled={loading}
+              className="w-full bg-[#D4AF37] text-[#050A14] py-3 rounded-lg font-bold hover:bg-[#F5F5F0] transition-colors disabled:opacity-50">
+              {loading ? "Requesting..." : "Get Reset Code"}
+            </button>
+          </form>
+        ) : (
+          <form className="space-y-5" onSubmit={handleResetPassword}>
+            {generatedCode && (
+              <div className="p-4 bg-green-500/20 border border-green-500/40 rounded-lg mb-4">
+                <p className="text-green-400 text-sm">Your reset code: <strong className="text-xl">{generatedCode}</strong></p>
+                <p className="text-green-400 text-xs mt-1">(In production, this would be sent to your email)</p>
+              </div>
+            )}
+            <div>
+              <label className="block text-sm text-[#A0A5B0] mb-2">Reset Code</label>
+              <input type="text" required value={resetCode} onChange={(e) => setResetCode(e.target.value)}
+                className="w-full px-4 py-3 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0] focus:border-[#D4AF37] outline-none"
+                placeholder="Enter 6-digit code" />
+            </div>
+            <div>
+              <label className="block text-sm text-[#A0A5B0] mb-2">New Password</label>
+              <input type="password" required value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full px-4 py-3 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0] focus:border-[#D4AF37] outline-none"
+                placeholder="Enter new password" />
+            </div>
+            <div>
+              <label className="block text-sm text-[#A0A5B0] mb-2">Confirm Password</label>
+              <input type="password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full px-4 py-3 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0] focus:border-[#D4AF37] outline-none"
+                placeholder="Confirm new password" />
+            </div>
+            <button type="submit" disabled={loading}
+              className="w-full bg-[#D4AF37] text-[#050A14] py-3 rounded-lg font-bold hover:bg-[#F5F5F0] transition-colors disabled:opacity-50">
+              {loading ? "Resetting..." : "Reset Password"}
+            </button>
+          </form>
+        )}
+
+        <div className="mt-6 text-center">
+          <Link to="/talent-login" className="text-[#D4AF37] hover:underline">Back to Login</Link>
         </div>
       </div>
     </div>
