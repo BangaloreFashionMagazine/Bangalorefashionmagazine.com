@@ -208,6 +208,16 @@ class AwardUpdate(BaseModel):
     is_active: Optional[bool] = None
 
 
+# ============== Password Reset Models ==============
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class ResetPasswordRequest(BaseModel):
+    email: EmailStr
+    reset_code: str
+    new_password: str
+
+
 # ============== Helper Functions ==============
 def hash_password(password: str) -> str:
     """Hash password using SHA-256 with salt"""
