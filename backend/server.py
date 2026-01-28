@@ -442,6 +442,78 @@ async def login_talent(login_data: UserLogin):
     )
 
 
+# ============== Talent Password Reset Endpoints ==============
+@api_router.post("/talent/forgot-password")
+async def talent_forgot_password(request: ForgotPasswordRequest):
+    """Request password reset - generates a reset code"""
+    talent = await db.talents.find_one({"email": request.email}, {"_id": 0})
+    
+    if not talent:
+        # Don't reveal if email exists or not for security
+        return {"message": "If the email exists, a reset code has been generated"}
+    
+    # Generate a 6-digit reset code
+    reset_code = ''.join([str(secrets.randbelow(10)) for _ in range(6)])
+    
+    # Store reset code with expiry (15 minutes)
+    await db.password_resets.delete_many({"email": request.email})  # Remove old codes
+    await db.password_resets.insert_one({
+        "email": request.email,
+        "code": reset_code,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "expires_at": (datetime.now(timezone.utc) + timedelta(minutes=15)).isoformat()
+    })
+    
+    logger.info(f"Password reset requested for: {request.email}, Code: {reset_code}")
+    
+    # In production, you would send an email here
+    # For now, return the code (in production, never do this!)
+    return {
+        "message": "Reset code generated. Check your email.",
+        "reset_code": reset_code  # Remove this in production - only for demo
+    }
+
+
+@api_router.post("/talent/reset-password")
+async def talent_reset_password(request: ResetPasswordRequest):
+    """Reset password using the reset code"""
+    # Find the reset code
+    reset_doc = await db.password_resets.find_one({
+        "email": request.email,
+        "code": request.reset_code
+    })
+    
+    if not reset_doc:
+        raise HTTPException(status_code=400, detail="Invalid or expired reset code")
+    
+    # Check if code is expired
+    expires_at = datetime.fromisoformat(reset_doc["expires_at"].replace("Z", "+00:00"))
+    if datetime.now(timezone.utc) > expires_at:
+        await db.password_resets.delete_one({"email": request.email})
+        raise HTTPException(status_code=400, detail="Reset code has expired")
+    
+    # Validate new password
+    if len(request.new_password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+    
+    # Update the password
+    new_hash = hash_password(request.new_password)
+    result = await db.talents.update_one(
+        {"email": request.email},
+        {"$set": {"password_hash": new_hash}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Talent not found")
+    
+    # Delete the reset code
+    await db.password_resets.delete_one({"email": request.email})
+    
+    logger.info(f"Password reset successful for: {request.email}")
+    
+    return {"message": "Password reset successful. You can now login with your new password."}
+
+
 @api_router.put("/talent/{talent_id}", response_model=TalentResponse)
 async def update_talent(talent_id: str, talent_data: TalentUpdate):
     """Update talent profile"""
