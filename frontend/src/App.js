@@ -16,7 +16,7 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 // Navigation Component
-const Navbar = () => {
+const Navbar = ({ user, onLogout }) => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-[#050A14]/90 backdrop-blur-md border-b border-[#D4AF37]/20">
       <div className="container mx-auto px-4 lg:px-8">
@@ -31,8 +31,26 @@ const Navbar = () => {
             <Link to="/services" className="font-serif text-xs uppercase tracking-[0.15em] text-[#A0A5B0] hover:text-[#D4AF37] transition-colors">Services</Link>
             <Link to="/about" className="font-serif text-xs uppercase tracking-[0.15em] text-[#A0A5B0] hover:text-[#D4AF37] transition-colors">Our Story</Link>
             <Link to="/contact" className="font-serif text-xs uppercase tracking-[0.15em] text-[#A0A5B0] hover:text-[#D4AF37] transition-colors">Inquire</Link>
-            <Link to="/login" className="font-serif text-xs uppercase tracking-[0.15em] text-[#D4AF37] hover:text-[#F5F5F0] transition-colors">Login</Link>
-            <Link to="/register" className="px-6 py-2 border border-[#D4AF37] text-[#D4AF37] font-serif text-xs uppercase tracking-[0.15em] hover:bg-[#D4AF37] hover:text-[#050A14] transition-all">Join Us</Link>
+            
+            {user ? (
+              <>
+                <Link to="/dashboard" className="font-serif text-xs uppercase tracking-[0.15em] text-[#D4AF37] hover:text-[#F5F5F0] transition-colors flex items-center gap-2">
+                  <User size={16} />
+                  {user.name}
+                </Link>
+                <button 
+                  onClick={onLogout}
+                  className="px-6 py-2 border border-[#D4AF37] text-[#D4AF37] font-serif text-xs uppercase tracking-[0.15em] hover:bg-[#D4AF37] hover:text-[#050A14] transition-all"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className="font-serif text-xs uppercase tracking-[0.15em] text-[#D4AF37] hover:text-[#F5F5F0] transition-colors">Login</Link>
+                <Link to="/register" className="px-6 py-2 border border-[#D4AF37] text-[#D4AF37] font-serif text-xs uppercase tracking-[0.15em] hover:bg-[#D4AF37] hover:text-[#050A14] transition-all">Join Us</Link>
+              </>
+            )}
           </div>
         </div>
       </div>
