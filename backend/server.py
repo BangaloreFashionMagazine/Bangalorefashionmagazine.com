@@ -355,6 +355,11 @@ async def register_talent(talent_data: TalentCreate):
     if len(talent_data.password) < 6:
         raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
     
+    # Limit portfolio images to 7
+    portfolio_images = talent_data.portfolio_images or []
+    if len(portfolio_images) > 7:
+        portfolio_images = portfolio_images[:7]
+    
     talent = Talent(
         name=talent_data.name,
         email=talent_data.email,
@@ -364,7 +369,7 @@ async def register_talent(talent_data: TalentCreate):
         category=talent_data.category,
         bio=talent_data.bio or "",
         profile_image=talent_data.profile_image or "",
-        portfolio_images=talent_data.portfolio_images or [],
+        portfolio_images=portfolio_images,
         is_approved=False,
         rank=999
     )
