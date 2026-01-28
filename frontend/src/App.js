@@ -741,6 +741,35 @@ const TalentDashboard = ({ talent, onTalentUpdate }) => {
                     <textarea value={formData.bio || ""} onChange={(e) => setFormData({...formData, bio: e.target.value})}
                       className="w-full px-4 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0] h-24" />
                   </div>
+                  
+                  {/* Portfolio Images Section */}
+                  <div>
+                    <label className="block text-sm text-[#A0A5B0] mb-2">Portfolio Images ({portfolioImages.length}/7)</label>
+                    <div className="grid grid-cols-4 gap-2 mb-3">
+                      {portfolioImages.map((img, index) => (
+                        <div key={index} className="relative group">
+                          <img src={img} alt={`Portfolio ${index + 1}`} className="w-full h-24 object-cover rounded-lg" />
+                          <button 
+                            onClick={() => removePortfolioImage(index)}
+                            className="absolute top-1 right-1 p-1 bg-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X size={14} className="text-white" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    {portfolioImages.length < 7 && (
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        multiple 
+                        onChange={handlePortfolioImageAdd} 
+                        className="text-[#A0A5B0] text-sm" 
+                      />
+                    )}
+                    <p className="text-xs text-[#A0A5B0] mt-1">Upload up to 7 portfolio images</p>
+                  </div>
+
                   <button onClick={handleSave} disabled={loading}
                     className="px-6 py-2 bg-[#D4AF37] text-[#050A14] rounded-lg font-bold hover:bg-[#F5F5F0] transition-colors">
                     {loading ? "Saving..." : "Save Changes"}
