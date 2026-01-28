@@ -313,8 +313,10 @@ def main():
     
     results = {
         'root_endpoint': test_root_endpoint(),
-        'auth_login': test_auth_login(),
         'auth_register': test_auth_register(),
+        'auth_login': test_auth_login(),
+        'auth_login_wrong_password': test_auth_login_wrong_password(),
+        'auth_register_existing_email': test_auth_register_existing_email(),
         'get_status': test_get_status(),
         'post_status': test_post_status()
     }
