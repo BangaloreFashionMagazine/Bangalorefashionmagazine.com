@@ -8,15 +8,25 @@ import 'swiper/css';
 import 'swiper/css/effect-fade';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
-import { LogIn, ChevronLeft, ChevronRight, Users, Palette, Sparkles, Camera, Briefcase, Calendar, ArrowRight, Mail, Lock, Vote, User } from "lucide-react";
+import { LogIn, ChevronLeft, ChevronRight, Users, Palette, Sparkles, Camera, Briefcase, Calendar, ArrowRight, Mail, Lock, Vote, User, Shield, Award, Image, Download, Star, Check, X, Phone, Instagram, Edit, Trash2, Plus, Save } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+const TALENT_CATEGORIES = ["Model", "Photographer", "Designer", "Makeup Artist", "Stylist", "Other"];
+
+// Default hero slides (used when no custom images)
+const DEFAULT_SLIDES = [
+  { image: "https://images.unsplash.com/photo-1700150594432-7024e06005c4?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NzB8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwbW9kZWwlMjBlZGl0b3JpYWx8ZW58MHx8fHwxNzY5NTE1OTYwfDA&ixlib=rb-4.1.0&q=85", category: "Editorial", title: "Spring Collection 2025", subtitle: "Editorial Fashion Photography" },
+  { image: "https://images.unsplash.com/photo-1700150624576-c6c0641e54fe?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NzB8MHwxfHNlYXJjaHwzfHxmYXNoaW9uJTIwbW9kZWwlMjBlZGl0b3JpYWx8ZW58MHx8fHwxNzY5NTE1OTYwfDA&ixlib=rb-4.1.0&q=85", category: "Haute Couture", title: "Haute Couture Series", subtitle: "Luxury Fashion Campaign" },
+  { image: "https://images.unsplash.com/photo-1611232657592-dedbfa563955?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzNzl8MHwxfHNlYXJjaHwxfHxoaWdoJTIwZmFzaGlvbiUyMHBob3RvZ3JhcGh5fGVufDB8fHx8MTc2OTUxNTk2Nnww&ixlib=rb-4.1.0&q=85", category: "Contemporary", title: "Modern Elegance", subtitle: "Contemporary Fashion" },
+  { image: "https://images.unsplash.com/photo-1679503350214-b435e5e11813?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzNzl8MHwxfHNlYXJjaHwzfHxoaWdoJTIwZmFzaGlvbiUyMHBob3RvZ3JhcGh5fGVufDB8fHx8MTc2OTUxNTk2Nnww&ixlib=rb-4.1.0&q=85", category: "Classic", title: "Timeless Beauty", subtitle: "Classic Fashion Photography" }
+];
+
 // Navigation Component
-const Navbar = ({ user, onLogout }) => {
+const Navbar = ({ user, talent, onLogout }) => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-[#050A14]/90 backdrop-blur-md border-b border-[#D4AF37]/20">
       <div className="container mx-auto px-4 lg:px-8">
@@ -25,30 +35,45 @@ const Navbar = ({ user, onLogout }) => {
             <span className="font-serif text-xl font-bold text-[#F5F5F0]">Bangalore Fashion</span>
             <span className="font-serif text-xl text-[#D4AF37]">Magazine</span>
           </Link>
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-6">
             <Link to="/" className="font-serif text-xs uppercase tracking-[0.15em] text-[#F5F5F0] hover:text-[#D4AF37] transition-colors">Home</Link>
-            <Link to="/talents" className="font-serif text-xs uppercase tracking-[0.15em] text-[#A0A5B0] hover:text-[#D4AF37] transition-colors">Associated Talents</Link>
+            <Link to="/talents" className="font-serif text-xs uppercase tracking-[0.15em] text-[#A0A5B0] hover:text-[#D4AF37] transition-colors">Talents</Link>
             <Link to="/services" className="font-serif text-xs uppercase tracking-[0.15em] text-[#A0A5B0] hover:text-[#D4AF37] transition-colors">Services</Link>
             <Link to="/about" className="font-serif text-xs uppercase tracking-[0.15em] text-[#A0A5B0] hover:text-[#D4AF37] transition-colors">Our Story</Link>
-            <Link to="/contact" className="font-serif text-xs uppercase tracking-[0.15em] text-[#A0A5B0] hover:text-[#D4AF37] transition-colors">Inquire</Link>
             
             {user ? (
               <>
-                <Link to="/dashboard" className="font-serif text-xs uppercase tracking-[0.15em] text-[#D4AF37] hover:text-[#F5F5F0] transition-colors flex items-center gap-2">
-                  <User size={16} />
+                {user.is_admin && (
+                  <Link to="/admin" className="font-serif text-xs uppercase tracking-[0.15em] text-[#D4AF37] hover:text-[#F5F5F0] transition-colors flex items-center gap-1">
+                    <Shield size={14} />
+                    Admin
+                  </Link>
+                )}
+                <Link to="/dashboard" className="font-serif text-xs uppercase tracking-[0.15em] text-[#D4AF37] hover:text-[#F5F5F0] transition-colors flex items-center gap-1">
+                  <User size={14} />
                   {user.name}
                 </Link>
-                <button 
-                  onClick={onLogout}
-                  className="px-6 py-2 border border-[#D4AF37] text-[#D4AF37] font-serif text-xs uppercase tracking-[0.15em] hover:bg-[#D4AF37] hover:text-[#050A14] transition-all"
-                >
+                <button onClick={onLogout} className="px-4 py-2 border border-[#D4AF37] text-[#D4AF37] font-serif text-xs uppercase tracking-[0.15em] hover:bg-[#D4AF37] hover:text-[#050A14] transition-all">
+                  Logout
+                </button>
+              </>
+            ) : talent ? (
+              <>
+                <Link to="/talent-dashboard" className="font-serif text-xs uppercase tracking-[0.15em] text-[#D4AF37] hover:text-[#F5F5F0] transition-colors flex items-center gap-1">
+                  <Camera size={14} />
+                  {talent.name}
+                </Link>
+                <button onClick={onLogout} className="px-4 py-2 border border-[#D4AF37] text-[#D4AF37] font-serif text-xs uppercase tracking-[0.15em] hover:bg-[#D4AF37] hover:text-[#050A14] transition-all">
                   Logout
                 </button>
               </>
             ) : (
               <>
-                <Link to="/login" className="font-serif text-xs uppercase tracking-[0.15em] text-[#D4AF37] hover:text-[#F5F5F0] transition-colors">Login</Link>
-                <Link to="/register" className="px-6 py-2 border border-[#D4AF37] text-[#D4AF37] font-serif text-xs uppercase tracking-[0.15em] hover:bg-[#D4AF37] hover:text-[#050A14] transition-all">Join Us</Link>
+                <Link to="/login" className="font-serif text-xs uppercase tracking-[0.15em] text-[#D4AF37] hover:text-[#F5F5F0] transition-colors">Admin Login</Link>
+                <Link to="/talent-login" className="font-serif text-xs uppercase tracking-[0.15em] text-[#A0A5B0] hover:text-[#D4AF37] transition-colors">Talent Login</Link>
+                <Link to="/talent-register" className="px-4 py-2 border border-[#D4AF37] text-[#D4AF37] font-serif text-xs uppercase tracking-[0.15em] hover:bg-[#D4AF37] hover:text-[#050A14] transition-all">
+                  Join as Talent
+                </Link>
               </>
             )}
           </div>
@@ -59,33 +84,13 @@ const Navbar = ({ user, onLogout }) => {
 };
 
 // Hero Slider Component
-const HeroSlider = () => {
-  const slides = [
-    {
-      image: "https://images.unsplash.com/photo-1700150594432-7024e06005c4?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NzB8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwbW9kZWwlMjBlZGl0b3JpYWx8ZW58MHx8fHwxNzY5NTE1OTYwfDA&ixlib=rb-4.1.0&q=85",
-      category: "Editorial",
-      title: "Spring Collection 2025",
-      subtitle: "Editorial Fashion Photography"
-    },
-    {
-      image: "https://images.unsplash.com/photo-1700150624576-c6c0641e54fe?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NzB8MHwxfHNlYXJjaHwzfHxmYXNoaW9uJTIwbW9kZWwlMjBlZGl0b3JpYWx8ZW58MHx8fHwxNzY5NTE1OTYwfDA&ixlib=rb-4.1.0&q=85",
-      category: "Haute Couture",
-      title: "Haute Couture Series",
-      subtitle: "Luxury Fashion Campaign"
-    },
-    {
-      image: "https://images.unsplash.com/photo-1611232657592-dedbfa563955?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzNzl8MHwxfHNlYXJjaHwxfHxoaWdoJTIwZmFzaGlvbiUyMHBob3RvZ3JhcGh5fGVufDB8fHx8MTc2OTUxNTk2Nnww&ixlib=rb-4.1.0&q=85",
-      category: "Contemporary",
-      title: "Modern Elegance",
-      subtitle: "Contemporary Fashion"
-    },
-    {
-      image: "https://images.unsplash.com/photo-1679503350214-b435e5e11813?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzNzl8MHwxfHNlYXJjaHwzfHxoaWdoJTIwZmFzaGlvbiUyMHBob3RvZ3JhcGh5fGVufDB8fHx8MTc2OTUxNTk2Nnww&ixlib=rb-4.1.0&q=85",
-      category: "Classic",
-      title: "Timeless Beauty",
-      subtitle: "Classic Fashion Photography"
-    }
-  ];
+const HeroSlider = ({ customSlides }) => {
+  const slides = customSlides && customSlides.length > 0 ? customSlides.map(s => ({
+    image: s.image_data || s.image,
+    category: s.category,
+    title: s.title,
+    subtitle: s.subtitle
+  })) : DEFAULT_SLIDES;
 
   return (
     <div className="relative w-full h-screen">
@@ -100,10 +105,7 @@ const HeroSlider = () => {
         {slides.map((slide, index) => (
           <SwiperSlide key={index}>
             <div className="relative h-full w-full flex items-center justify-center bg-[#050A14]">
-              <div 
-                className="absolute inset-0 bg-cover bg-center"
-                style={{ backgroundImage: `url("${slide.image}")` }}
-              >
+              <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url("${slide.image}")` }}>
                 <div className="absolute inset-0 bg-gradient-to-r from-[#050A14] via-[#050A14]/70 to-transparent"></div>
                 <div className="absolute inset-0 bg-gradient-to-t from-[#050A14] via-transparent to-[#050A14]/30"></div>
               </div>
@@ -116,186 +118,161 @@ const HeroSlider = () => {
                   <p className="font-accent text-xl md:text-2xl lg:text-3xl mb-10 text-[#A0A5B0] italic">{slide.subtitle}</p>
                 </div>
               </div>
-              <div className="absolute top-24 right-8 w-32 h-32 border-t border-r border-[#D4AF37]/20"></div>
-              <div className="absolute bottom-24 left-8 w-32 h-32 border-b border-l border-[#D4AF37]/20"></div>
-              <div className="absolute bottom-8 right-8 font-serif text-6xl md:text-8xl lg:text-9xl font-bold uppercase opacity-5 pointer-events-none text-[#D4AF37]">BFM</div>
             </div>
           </SwiperSlide>
         ))}
       </Swiper>
-      <button className="swiper-button-prev-custom absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-20 w-14 h-14 border border-[#D4AF37]/40 flex items-center justify-center hover:bg-[#D4AF37] hover:border-[#D4AF37] transition-all duration-500 group">
-        <ChevronLeft className="text-[#D4AF37] group-hover:text-[#050A14] group-hover:scale-110 transition-all" />
+      <div className="swiper-pagination-custom absolute bottom-8 left-0 right-0 z-20 flex justify-center gap-3"></div>
+      <button className="swiper-button-prev-custom absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 flex items-center justify-center border border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#050A14] transition-all">
+        <ChevronLeft size={24} />
       </button>
-      <button className="swiper-button-next-custom absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-20 w-14 h-14 border border-[#D4AF37]/40 flex items-center justify-center hover:bg-[#D4AF37] hover:border-[#D4AF37] transition-all duration-500 group">
-        <ChevronRight className="text-[#D4AF37] group-hover:text-[#050A14] group-hover:scale-110 transition-all" />
+      <button className="swiper-button-next-custom absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 flex items-center justify-center border border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#050A14] transition-all">
+        <ChevronRight size={24} />
       </button>
-      <div className="swiper-pagination-custom absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2"></div>
     </div>
+  );
+};
+
+// Awards Section
+const AwardsSection = ({ awards }) => {
+  if (!awards || awards.length === 0) return null;
+  
+  return (
+    <section className="py-20 bg-gradient-to-b from-[#050A14] to-[#0A1628]">
+      <div className="container mx-auto px-4 lg:px-8">
+        <div className="text-center mb-12">
+          <span className="font-serif text-xs uppercase tracking-[0.3em] text-[#D4AF37]">Recognition</span>
+          <h2 className="font-serif text-4xl md:text-5xl font-bold text-[#F5F5F0] mt-4">Awards & Achievements</h2>
+        </div>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {awards.map((award, index) => (
+            <div key={index} className="bg-[#050A14] border border-[#D4AF37]/20 rounded-xl overflow-hidden hover:border-[#D4AF37]/50 transition-all">
+              {award.winner_image && (
+                <div className="h-64 overflow-hidden">
+                  <img src={award.winner_image} alt={award.winner_name} className="w-full h-full object-cover" />
+                </div>
+              )}
+              <div className="p-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <Award className="text-[#D4AF37]" size={20} />
+                  <span className="text-[#D4AF37] font-serif text-sm uppercase tracking-wider">{award.title}</span>
+                </div>
+                <h3 className="text-[#F5F5F0] font-serif text-2xl font-bold mb-2">{award.winner_name}</h3>
+                {award.description && <p className="text-[#A0A5B0]">{award.description}</p>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// Talent Section with real data
+const TalentSection = ({ talents }) => {
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  
+  const filteredTalents = selectedCategory === "All" 
+    ? talents 
+    : talents.filter(t => t.category === selectedCategory);
+
+  return (
+    <section className="py-20 bg-[#050A14]">
+      <div className="container mx-auto px-4 lg:px-8">
+        <div className="text-center mb-12">
+          <span className="font-serif text-xs uppercase tracking-[0.3em] text-[#D4AF37]">Our Network</span>
+          <h2 className="font-serif text-4xl md:text-5xl font-bold text-[#F5F5F0] mt-4">Associated Talents</h2>
+        </div>
+        
+        <div className="flex flex-wrap justify-center gap-4 mb-12">
+          <button
+            onClick={() => setSelectedCategory("All")}
+            className={`px-6 py-2 font-serif text-xs uppercase tracking-[0.15em] border transition-all ${selectedCategory === "All" ? "bg-[#D4AF37] text-[#050A14] border-[#D4AF37]" : "border-[#D4AF37]/40 text-[#A0A5B0] hover:text-[#D4AF37]"}`}
+          >
+            All
+          </button>
+          {TALENT_CATEGORIES.map(cat => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-6 py-2 font-serif text-xs uppercase tracking-[0.15em] border transition-all ${selectedCategory === cat ? "bg-[#D4AF37] text-[#050A14] border-[#D4AF37]" : "border-[#D4AF37]/40 text-[#A0A5B0] hover:text-[#D4AF37]"}`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+        
+        {filteredTalents.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-[#A0A5B0]">No talents available in this category yet.</p>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {filteredTalents.map((talent, index) => (
+              <div key={index} className="group relative overflow-hidden rounded-xl bg-[#0A1628] border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all">
+                <div className="aspect-[3/4] overflow-hidden">
+                  <img 
+                    src={talent.profile_image || "https://via.placeholder.com/300x400?text=No+Image"} 
+                    alt={talent.name} 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                  />
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-[#050A14] via-transparent to-transparent"></div>
+                <div className="absolute bottom-0 left-0 right-0 p-6">
+                  <span className="inline-block px-3 py-1 bg-[#D4AF37]/20 text-[#D4AF37] font-serif text-xs uppercase tracking-wider mb-2">{talent.category}</span>
+                  <h3 className="font-serif text-xl font-bold text-[#F5F5F0]">{talent.name}</h3>
+                  {talent.instagram_id && (
+                    <p className="text-[#A0A5B0] text-sm flex items-center gap-1 mt-1">
+                      <Instagram size={14} />
+                      @{talent.instagram_id}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
   );
 };
 
 // Services Section
 const ServicesSection = () => {
   const services = [
-    { icon: Users, title: "Model Management", desc: "Professional representation and career development for aspiring and established models" },
-    { icon: Palette, title: "Designer Showcase", desc: "Platform for emerging and established designers to display their collections" },
-    { icon: Sparkles, title: "Makeup & Hair Artistry", desc: "Expert makeup and hair styling services for fashion shows, editorials, and shoots" },
-    { icon: Camera, title: "Photography & Videography", desc: "Professional photography and video production for fashion campaigns and content" },
-    { icon: Briefcase, title: "Fashion Styling & Consulting", desc: "Expert styling services and fashion consultancy for brands and individuals" },
-    { icon: Calendar, title: "Event Management", desc: "Organization and management of fashion shows, launches, and industry events" }
+    { icon: Users, title: "Model Management", description: "Professional model representation and career development" },
+    { icon: Palette, title: "Designer Showcase", description: "Platform for emerging and established designers" },
+    { icon: Sparkles, title: "Makeup & Hair", description: "Expert beauty services for photoshoots and events" },
+    { icon: Camera, title: "Photography", description: "High-end fashion photography services" },
+    { icon: Briefcase, title: "Styling", description: "Personal and editorial styling services" },
+    { icon: Calendar, title: "Event Management", description: "Fashion shows and industry events" }
   ];
 
   return (
-    <section className="py-20 bg-black text-white">
+    <section className="py-20 bg-gradient-to-b from-[#0A1628] to-[#050A14]">
       <div className="container mx-auto px-4 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">Our Services</h2>
-          <p className="text-xl text-gray-400 max-w-3xl mx-auto">Comprehensive solutions for fashion industry professionals</p>
+        <div className="text-center mb-12">
+          <span className="font-serif text-xs uppercase tracking-[0.3em] text-[#D4AF37]">What We Offer</span>
+          <h2 className="font-serif text-4xl md:text-5xl font-bold text-[#F5F5F0] mt-4">Our Services</h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {services.map((service, index) => (
-            <div key={index} className="p-8 bg-white/5 backdrop-blur-sm rounded-lg hover:bg-white/10 transition-all duration-300 group cursor-pointer">
-              <div className="mb-4 text-[#D4AF37] group-hover:scale-110 transition-transform duration-300">
-                <service.icon size={32} />
-              </div>
-              <h3 className="text-2xl font-bold mb-3">{service.title}</h3>
-              <p className="text-gray-400 leading-relaxed">{service.desc}</p>
+            <div key={index} className="group p-8 bg-[#050A14] border border-[#D4AF37]/10 rounded-xl hover:border-[#D4AF37]/40 transition-all">
+              <service.icon className="w-12 h-12 text-[#D4AF37] mb-6" />
+              <h3 className="font-serif text-xl font-bold text-[#F5F5F0] mb-3">{service.title}</h3>
+              <p className="text-[#A0A5B0]">{service.description}</p>
             </div>
           ))}
         </div>
-        <div className="text-center mt-12">
-          <Link to="/services" className="inline-flex items-center gap-2 px-8 py-3 bg-white text-black rounded-full text-sm uppercase tracking-wider font-medium hover:bg-[#D4AF37] hover:text-white transition-all duration-300 group">
-            Learn More
-            <ArrowRight className="group-hover:translate-x-1 transition-transform" size={20} />
-          </Link>
-        </div>
       </div>
     </section>
   );
 };
 
-// CTA Section
-const CTASection = () => {
-  return (
-    <section className="py-20 bg-gradient-to-br from-[#8B1538] to-[#5a0d23] text-white">
-      <div className="container mx-auto px-4 lg:px-8 text-center">
-        <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">Ready to Start Your Fashion Journey?</h2>
-        <p className="text-xl md:text-2xl mb-8 text-white/90 max-w-3xl mx-auto">Join India's leading fashion talent management agency and take your career to new heights</p>
-        <div className="flex flex-wrap justify-center gap-4">
-          <Link to="/register" className="inline-flex items-center gap-2 px-10 py-4 bg-white text-black rounded-full text-sm uppercase tracking-wider font-medium hover:bg-[#D4AF37] hover:text-white transition-all duration-300 group">
-            Join As Talent
-            <ArrowRight className="group-hover:translate-x-1 transition-transform" size={20} />
-          </Link>
-          <Link to="/contact" className="inline-flex items-center gap-2 px-10 py-4 border-2 border-white text-white rounded-full text-sm uppercase tracking-wider font-medium hover:bg-white hover:text-black transition-all duration-300 group">
-            Contact Us
-            <ArrowRight className="group-hover:translate-x-1 transition-transform" size={20} />
-          </Link>
-        </div>
-      </div>
-    </section>
-  );
-};
-
-// Talent Section
-const TalentSection = () => {
-  const categories = [
-    "All Talent", "Models (Male)", "Models (Female)", "Designers", "Makeup Artists", 
-    "Photographers", "Videographers", "Hair Stylists", "Stylists", "Fashion Consultants",
-    "Creative Directors", "Agencies", "Event Organisers"
-  ];
-  const [activeCategory, setActiveCategory] = useState("All Talent");
-
-  return (
-    <section className="py-24 md:py-32 bg-[#050A14]">
-      <div className="container mx-auto px-4 lg:px-8">
-        <div className="text-center mb-16">
-          <p className="font-serif text-[#D4AF37] text-sm tracking-[0.3em] uppercase mb-4">Curated Excellence</p>
-          <h2 className="font-serif text-5xl md:text-6xl lg:text-7xl font-bold mb-6 text-[#F5F5F0] tracking-tight">Featured Artists</h2>
-          <p className="font-accent text-xl md:text-2xl text-[#A0A5B0] max-w-3xl mx-auto italic">Discover the best of the best among fashion's finest artisans</p>
-        </div>
-        <div className="flex flex-wrap justify-center gap-3 mb-16">
-          {categories.map((cat, index) => (
-            <button
-              key={index}
-              onClick={() => setActiveCategory(cat)}
-              className={`px-6 py-3 rounded-full font-serif text-xs uppercase tracking-[0.15em] transition-all duration-500 border ${
-                activeCategory === cat 
-                  ? "bg-[#D4AF37] text-[#050A14] border-[#D4AF37] shadow-[0_0_20px_rgba(212,175,55,0.3)]"
-                  : "bg-transparent text-[#A0A5B0] border-[#A0A5B0]/30 hover:border-[#D4AF37] hover:text-[#D4AF37]"
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="group relative overflow-hidden rounded-lg cursor-pointer transition-all duration-300 hover:shadow-2xl bg-[#F5F5F5]">
-            <div className="aspect-[3/4] overflow-hidden">
-              <img alt="John Model" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src="https://via.placeholder.com/400x533" />
-            </div>
-            <div className="absolute bottom-0 left-0 right-0 p-6 text-white bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="p-2 bg-white/20 backdrop-blur-sm rounded-full">
-                  <User size={20} />
-                </div>
-                <span className="text-sm uppercase tracking-wide font-medium">Model</span>
-              </div>
-              <h3 className="text-2xl font-bold mb-1">John Model</h3>
-              <p className="text-sm font-light mb-2 opacity-90">Professional</p>
-            </div>
-          </div>
-        </div>
-        <div className="text-center mt-16">
-          <Link to="/talents" data-testid="view-portfolio-btn" className="inline-flex items-center gap-3 px-10 py-4 bg-gradient-to-r from-[#D4AF37] via-[#E5C168] to-[#D4AF37] text-[#050A14] rounded-full font-serif text-sm uppercase tracking-[0.15em] font-semibold hover:shadow-[0_0_30px_rgba(212,175,55,0.4)] transition-all duration-500 group">
-            Explore Our Talents
-            <ArrowRight className="group-hover:translate-x-2 transition-transform duration-300" size={18} />
-          </Link>
-        </div>
-      </div>
-    </section>
-  );
-};
-
-// Voting Section
-const VotingSection = () => {
-  return (
-    <section className="py-24 md:py-32 bg-[#0A101E] text-[#F5F5F0] relative overflow-hidden">
-      <div className="absolute top-20 left-10 w-32 h-32 bg-[#D4AF37]/10 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-20 right-10 w-48 h-48 bg-[#D4AF37]/10 rounded-full blur-3xl"></div>
-      <div className="container mx-auto px-4 lg:px-8 relative z-10">
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-3 px-6 py-3 bg-[#D4AF37]/10 border border-[#D4AF37]/30 mb-6">
-            <Vote className="text-[#D4AF37]" size={18} />
-            <span className="text-[#D4AF37] font-serif text-xs uppercase tracking-[0.3em] animate-pulse">The People's Choice</span>
-          </div>
-          <h2 className="font-serif text-5xl md:text-6xl lg:text-7xl font-bold mb-6 text-[#F5F5F0] tracking-tight">Curate the Season</h2>
-          <p className="font-accent text-xl md:text-2xl text-[#A0A5B0] max-w-2xl mx-auto italic">Vote for your favorite fashion talent!</p>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-          <div className="relative bg-white/10 backdrop-blur-sm rounded-2xl overflow-hidden group transition-all duration-300 hover:bg-white/20">
-            <div className="absolute top-3 left-3 z-10 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm bg-yellow-400 text-black">1</div>
-            <div className="aspect-square bg-gray-800">
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-900">
-                <Users className="text-gray-600" size={48} />
-              </div>
-            </div>
-            <div className="p-4">
-              <h3 className="font-bold text-lg truncate">Top Model</h3>
-              <p className="text-sm text-gray-400 mb-3">0 votes</p>
-              <button className="w-full py-2 px-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg font-medium transition-all duration-300 transform hover:scale-105">Vote Now</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-};
-
-// Login Page - Enhanced with Remember Me and Social Login
+// Admin Login Page
 const LoginPage = ({ onLogin }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -304,178 +281,153 @@ const LoginPage = ({ onLogin }) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await axios.post(`${API}/auth/login`, { email, password, rememberMe });
+      const response = await axios.post(`${API}/auth/login`, { email, password });
       if (response.data.token) {
-        if (rememberMe) {
-          localStorage.setItem("token", response.data.token);
-          localStorage.setItem("user", JSON.stringify(response.data.user));
-        } else {
-          sessionStorage.setItem("token", response.data.token);
-          sessionStorage.setItem("user", JSON.stringify(response.data.user));
-        }
-        // Update app state immediately
-        if (onLogin) {
-          onLogin(response.data.user);
-        }
+        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("user", JSON.stringify(response.data.user));
+        if (onLogin) onLogin(response.data.user);
         toast({ title: "Success", description: "Login successful!" });
-        navigate("/dashboard");
+        navigate(response.data.user.is_admin ? "/admin" : "/dashboard");
       }
     } catch (error) {
-      toast({ 
-        title: "Error", 
-        description: error.response?.data?.detail || "Login failed. Please check your credentials.",
-        variant: "destructive"
-      });
+      toast({ title: "Error", description: error.response?.data?.detail || "Login failed", variant: "destructive" });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSocialLogin = (provider) => {
-    toast({ 
-      title: "Coming Soon", 
-      description: `${provider} login will be available soon!`
-    });
-  };
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4">
-      <div className="max-w-md w-full">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-black rounded-full mb-4">
-              <LogIn className="text-white" size={32} />
-            </div>
-            <h2 className="text-3xl font-bold text-black mb-2">Welcome Back</h2>
-            <p className="text-gray-600">Sign in to your account</p>
+    <div className="min-h-screen flex items-center justify-center bg-[#050A14] py-12 px-4">
+      <div className="max-w-md w-full bg-[#0A1628] rounded-2xl p-8 border border-[#D4AF37]/20">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-[#D4AF37] rounded-full mb-4">
+            <Shield className="text-[#050A14]" size={32} />
           </div>
-          
-          {/* Social Login Buttons */}
-          <div className="space-y-3 mb-6">
-            <button 
-              type="button"
-              onClick={() => handleSocialLogin("Google")}
-              className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-300"
-              data-testid="google-login-btn"
-            >
-              <svg className="w-5 h-5" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-              </svg>
-              <span className="text-gray-700 font-medium">Continue with Google</span>
-            </button>
-            
-            <button 
-              type="button"
-              onClick={() => handleSocialLogin("Facebook")}
-              className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-300"
-              data-testid="facebook-login-btn"
-            >
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="#1877F2">
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-              </svg>
-              <span className="text-gray-700 font-medium">Continue with Facebook</span>
-            </button>
-          </div>
-          
-          {/* Divider */}
-          <div className="relative mb-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white text-gray-500">Or continue with email</span>
+          <h2 className="text-3xl font-serif font-bold text-[#F5F5F0] mb-2">Admin Login</h2>
+          <p className="text-[#A0A5B0]">Sign in to manage the platform</p>
+        </div>
+        <form className="space-y-5" onSubmit={handleSubmit}>
+          <div>
+            <label className="block text-sm text-[#A0A5B0] mb-2">Email</label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-[#A0A5B0]" size={20} />
+              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0] focus:border-[#D4AF37] outline-none"
+                placeholder="admin@example.com" />
             </div>
           </div>
-          
-          <form className="space-y-5" onSubmit={handleSubmit}>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                <input 
-                  id="email" 
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent outline-none transition-all text-black"
-                  placeholder="your@email.com"
-                  data-testid="login-email-input"
-                />
-              </div>
+          <div>
+            <label className="block text-sm text-[#A0A5B0] mb-2">Password</label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#A0A5B0]" size={20} />
+              <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0] focus:border-[#D4AF37] outline-none"
+                placeholder="Enter password" />
             </div>
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                <input 
-                  id="password" 
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent outline-none transition-all text-black"
-                  placeholder="Enter your password"
-                  data-testid="login-password-input"
-                />
-              </div>
-            </div>
-            
-            {/* Remember Me Checkbox */}
-            <div className="flex items-center justify-between">
-              <label className="flex items-center cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 text-[#D4AF37] border-gray-300 rounded focus:ring-[#D4AF37] cursor-pointer"
-                  data-testid="remember-me-checkbox"
-                />
-                <span className="ml-2 text-sm text-gray-600">Remember me</span>
-              </label>
-              <Link to="/forgot-password" className="text-sm text-[#D4AF37] font-medium hover:underline">Forgot password?</Link>
-            </div>
-            
-            <button 
-              type="submit" 
-              disabled={loading}
-              className="w-full bg-black text-white py-3 px-4 rounded-lg font-medium hover:bg-[#D4AF37] transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-              data-testid="login-submit-btn"
-            >
-              {loading ? "Signing In..." : "Sign In"}
-            </button>
-          </form>
-          
-          <div className="mt-6 text-center">
-            <p className="text-gray-600">Don't have an account? <Link to="/register" className="text-[#D4AF37] font-medium hover:underline">Create Account</Link></p>
           </div>
+          <button type="submit" disabled={loading}
+            className="w-full bg-[#D4AF37] text-[#050A14] py-3 rounded-lg font-bold hover:bg-[#F5F5F0] transition-colors disabled:opacity-50">
+            {loading ? "Signing In..." : "Sign In"}
+          </button>
+        </form>
+        <div className="mt-6 text-center">
+          <p className="text-[#A0A5B0]">Are you a talent? <Link to="/talent-login" className="text-[#D4AF37] hover:underline">Login here</Link></p>
         </div>
       </div>
     </div>
   );
 };
 
-// Register Page
-const RegisterPage = () => {
-  const [formData, setFormData] = useState({ name: "", email: "", password: "", confirmPassword: "" });
+// Talent Login Page
+const TalentLoginPage = ({ onTalentLogin }) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      toast({ title: "Error", description: "Passwords do not match", variant: "destructive" });
-      return;
-    }
     setLoading(true);
     try {
-      await axios.post(`${API}/auth/register`, formData);
-      toast({ title: "Success", description: "Account created! Please login." });
-      navigate("/login");
+      const response = await axios.post(`${API}/talent/login`, { email, password });
+      if (response.data.token) {
+        localStorage.setItem("talentToken", response.data.token);
+        localStorage.setItem("talent", JSON.stringify(response.data.talent));
+        if (onTalentLogin) onTalentLogin(response.data.talent);
+        toast({ title: "Success", description: "Login successful!" });
+        navigate("/talent-dashboard");
+      }
+    } catch (error) {
+      toast({ title: "Error", description: error.response?.data?.detail || "Login failed", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#050A14] py-12 px-4">
+      <div className="max-w-md w-full bg-[#0A1628] rounded-2xl p-8 border border-[#D4AF37]/20">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-[#D4AF37] rounded-full mb-4">
+            <Camera className="text-[#050A14]" size={32} />
+          </div>
+          <h2 className="text-3xl font-serif font-bold text-[#F5F5F0] mb-2">Talent Login</h2>
+          <p className="text-[#A0A5B0]">Access your portfolio</p>
+        </div>
+        <form className="space-y-5" onSubmit={handleSubmit}>
+          <div>
+            <label className="block text-sm text-[#A0A5B0] mb-2">Email</label>
+            <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-3 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0] focus:border-[#D4AF37] outline-none"
+              placeholder="your@email.com" />
+          </div>
+          <div>
+            <label className="block text-sm text-[#A0A5B0] mb-2">Password</label>
+            <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-3 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0] focus:border-[#D4AF37] outline-none"
+              placeholder="Enter password" />
+          </div>
+          <button type="submit" disabled={loading}
+            className="w-full bg-[#D4AF37] text-[#050A14] py-3 rounded-lg font-bold hover:bg-[#F5F5F0] transition-colors disabled:opacity-50">
+            {loading ? "Signing In..." : "Sign In"}
+          </button>
+        </form>
+        <div className="mt-6 text-center space-y-2">
+          <p className="text-[#A0A5B0]">Don't have an account? <Link to="/talent-register" className="text-[#D4AF37] hover:underline">Register here</Link></p>
+          <p className="text-[#A0A5B0]">Are you an admin? <Link to="/login" className="text-[#D4AF37] hover:underline">Admin Login</Link></p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Talent Registration Page
+const TalentRegisterPage = () => {
+  const [formData, setFormData] = useState({
+    name: "", email: "", password: "", phone: "", instagram_id: "", category: "Model", bio: ""
+  });
+  const [profileImage, setProfileImage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setProfileImage(reader.result);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await axios.post(`${API}/talent/register`, { ...formData, profile_image: profileImage });
+      toast({ title: "Success", description: "Registration successful! Please wait for admin approval." });
+      navigate("/talent-login");
     } catch (error) {
       toast({ title: "Error", description: error.response?.data?.detail || "Registration failed", variant: "destructive" });
     } finally {
@@ -484,61 +436,211 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4">
-      <div className="max-w-md w-full">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-black mb-2">Join Us</h2>
-            <p className="text-gray-600">Create your account</p>
+    <div className="min-h-screen bg-[#050A14] py-24 px-4">
+      <div className="max-w-2xl mx-auto bg-[#0A1628] rounded-2xl p-8 border border-[#D4AF37]/20">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-serif font-bold text-[#F5F5F0] mb-2">Join as Talent</h2>
+          <p className="text-[#A0A5B0]">Register your profile and get discovered</p>
+        </div>
+        <form className="space-y-5" onSubmit={handleSubmit}>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm text-[#A0A5B0] mb-2">Full Name *</label>
+              <input type="text" required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})}
+                className="w-full px-4 py-3 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0] focus:border-[#D4AF37] outline-none" />
+            </div>
+            <div>
+              <label className="block text-sm text-[#A0A5B0] mb-2">Email *</label>
+              <input type="email" required value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})}
+                className="w-full px-4 py-3 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0] focus:border-[#D4AF37] outline-none" />
+            </div>
+            <div>
+              <label className="block text-sm text-[#A0A5B0] mb-2">Password *</label>
+              <input type="password" required value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})}
+                className="w-full px-4 py-3 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0] focus:border-[#D4AF37] outline-none" />
+            </div>
+            <div>
+              <label className="block text-sm text-[#A0A5B0] mb-2">Phone *</label>
+              <input type="tel" required value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                className="w-full px-4 py-3 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0] focus:border-[#D4AF37] outline-none" />
+            </div>
+            <div>
+              <label className="block text-sm text-[#A0A5B0] mb-2">Instagram ID *</label>
+              <input type="text" required value={formData.instagram_id} onChange={(e) => setFormData({...formData, instagram_id: e.target.value})}
+                className="w-full px-4 py-3 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0] focus:border-[#D4AF37] outline-none" placeholder="username (without @)" />
+            </div>
+            <div>
+              <label className="block text-sm text-[#A0A5B0] mb-2">Category *</label>
+              <select value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})}
+                className="w-full px-4 py-3 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0] focus:border-[#D4AF37] outline-none">
+                {TALENT_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+              </select>
+            </div>
           </div>
-          <form className="space-y-4" onSubmit={handleSubmit}>
-            <input 
-              type="text" 
-              placeholder="Full Name" 
-              required
-              value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D4AF37] outline-none text-black"
-              data-testid="register-name-input"
-            />
-            <input 
-              type="email" 
-              placeholder="Email" 
-              required
-              value={formData.email}
-              onChange={(e) => setFormData({...formData, email: e.target.value})}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D4AF37] outline-none text-black"
-              data-testid="register-email-input"
-            />
-            <input 
-              type="password" 
-              placeholder="Password" 
-              required
-              value={formData.password}
-              onChange={(e) => setFormData({...formData, password: e.target.value})}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D4AF37] outline-none text-black"
-              data-testid="register-password-input"
-            />
-            <input 
-              type="password" 
-              placeholder="Confirm Password" 
-              required
-              value={formData.confirmPassword}
-              onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D4AF37] outline-none text-black"
-              data-testid="register-confirm-password-input"
-            />
-            <button 
-              type="submit" 
-              disabled={loading}
-              className="w-full bg-black text-white py-3 px-4 rounded-lg font-medium hover:bg-[#D4AF37] transition-colors"
-              data-testid="register-submit-btn"
-            >
-              {loading ? "Creating Account..." : "Create Account"}
+          <div>
+            <label className="block text-sm text-[#A0A5B0] mb-2">Bio</label>
+            <textarea value={formData.bio} onChange={(e) => setFormData({...formData, bio: e.target.value})}
+              className="w-full px-4 py-3 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0] focus:border-[#D4AF37] outline-none h-24" placeholder="Tell us about yourself..." />
+          </div>
+          <div>
+            <label className="block text-sm text-[#A0A5B0] mb-2">Profile Image</label>
+            <input type="file" accept="image/*" onChange={handleImageChange} className="w-full text-[#A0A5B0]" />
+            {profileImage && <img src={profileImage} alt="Preview" className="mt-2 h-32 w-32 object-cover rounded-lg" />}
+          </div>
+          <button type="submit" disabled={loading}
+            className="w-full bg-[#D4AF37] text-[#050A14] py-3 rounded-lg font-bold hover:bg-[#F5F5F0] transition-colors disabled:opacity-50">
+            {loading ? "Registering..." : "Register"}
+          </button>
+        </form>
+        <p className="mt-4 text-center text-[#A0A5B0] text-sm">Already registered? <Link to="/talent-login" className="text-[#D4AF37] hover:underline">Login here</Link></p>
+      </div>
+    </div>
+  );
+};
+
+// Talent Dashboard
+const TalentDashboard = ({ talent, onTalentUpdate }) => {
+  const [editing, setEditing] = useState(false);
+  const [formData, setFormData] = useState(talent || {});
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (talent) setFormData(talent);
+  }, [talent]);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setFormData({...formData, profile_image: reader.result});
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.put(`${API}/talent/${talent.id}`, {
+        name: formData.name,
+        phone: formData.phone,
+        instagram_id: formData.instagram_id,
+        category: formData.category,
+        bio: formData.bio,
+        profile_image: formData.profile_image
+      });
+      localStorage.setItem("talent", JSON.stringify(response.data));
+      if (onTalentUpdate) onTalentUpdate(response.data);
+      toast({ title: "Success", description: "Profile updated!" });
+      setEditing(false);
+    } catch (error) {
+      toast({ title: "Error", description: "Update failed", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!talent) return <div className="min-h-screen bg-[#050A14] pt-24 text-center text-[#F5F5F0]">Please login first</div>;
+
+  return (
+    <div className="min-h-screen bg-[#050A14] pt-24 pb-12 px-4">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-[#0A1628] rounded-2xl p-8 border border-[#D4AF37]/20">
+          <div className="flex justify-between items-start mb-8">
+            <div>
+              <h1 className="text-3xl font-serif font-bold text-[#F5F5F0]">My Profile</h1>
+              <p className="text-[#A0A5B0] mt-1">
+                Status: {talent.is_approved ? <span className="text-green-500">Approved ✓</span> : <span className="text-yellow-500">Pending Approval</span>}
+              </p>
+            </div>
+            <button onClick={() => setEditing(!editing)} className="px-4 py-2 border border-[#D4AF37] text-[#D4AF37] rounded-lg hover:bg-[#D4AF37] hover:text-[#050A14] transition-all">
+              {editing ? "Cancel" : "Edit Profile"}
             </button>
-          </form>
-          <div className="mt-6 text-center">
-            <p className="text-gray-600">Already have an account? <Link to="/login" className="text-[#D4AF37] font-medium hover:underline">Sign In</Link></p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="md:col-span-1">
+              <div className="aspect-square rounded-xl overflow-hidden bg-[#050A14]">
+                <img src={formData.profile_image || "https://via.placeholder.com/300?text=No+Image"} alt="Profile" className="w-full h-full object-cover" />
+              </div>
+              {editing && (
+                <input type="file" accept="image/*" onChange={handleImageChange} className="mt-4 text-[#A0A5B0] text-sm" />
+              )}
+            </div>
+            <div className="md:col-span-2 space-y-4">
+              {editing ? (
+                <>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm text-[#A0A5B0] mb-1">Name</label>
+                      <input type="text" value={formData.name || ""} onChange={(e) => setFormData({...formData, name: e.target.value})}
+                        className="w-full px-4 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0]" />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-[#A0A5B0] mb-1">Phone</label>
+                      <input type="tel" value={formData.phone || ""} onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                        className="w-full px-4 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0]" />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-[#A0A5B0] mb-1">Instagram</label>
+                      <input type="text" value={formData.instagram_id || ""} onChange={(e) => setFormData({...formData, instagram_id: e.target.value})}
+                        className="w-full px-4 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0]" />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-[#A0A5B0] mb-1">Category</label>
+                      <select value={formData.category || ""} onChange={(e) => setFormData({...formData, category: e.target.value})}
+                        className="w-full px-4 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0]">
+                        {TALENT_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-[#A0A5B0] mb-1">Bio</label>
+                    <textarea value={formData.bio || ""} onChange={(e) => setFormData({...formData, bio: e.target.value})}
+                      className="w-full px-4 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0] h-24" />
+                  </div>
+                  <button onClick={handleSave} disabled={loading}
+                    className="px-6 py-2 bg-[#D4AF37] text-[#050A14] rounded-lg font-bold hover:bg-[#F5F5F0] transition-colors">
+                    {loading ? "Saving..." : "Save Changes"}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="p-4 bg-[#050A14] rounded-lg">
+                      <p className="text-[#A0A5B0] text-sm">Name</p>
+                      <p className="text-[#F5F5F0] font-bold">{talent.name}</p>
+                    </div>
+                    <div className="p-4 bg-[#050A14] rounded-lg">
+                      <p className="text-[#A0A5B0] text-sm">Email</p>
+                      <p className="text-[#F5F5F0]">{talent.email}</p>
+                    </div>
+                    <div className="p-4 bg-[#050A14] rounded-lg">
+                      <p className="text-[#A0A5B0] text-sm">Phone</p>
+                      <p className="text-[#F5F5F0]">{talent.phone}</p>
+                    </div>
+                    <div className="p-4 bg-[#050A14] rounded-lg">
+                      <p className="text-[#A0A5B0] text-sm">Instagram</p>
+                      <p className="text-[#F5F5F0]">@{talent.instagram_id}</p>
+                    </div>
+                    <div className="p-4 bg-[#050A14] rounded-lg">
+                      <p className="text-[#A0A5B0] text-sm">Category</p>
+                      <p className="text-[#F5F5F0]">{talent.category}</p>
+                    </div>
+                    <div className="p-4 bg-[#050A14] rounded-lg">
+                      <p className="text-[#A0A5B0] text-sm">Rank</p>
+                      <p className="text-[#F5F5F0]">#{talent.rank}</p>
+                    </div>
+                  </div>
+                  {talent.bio && (
+                    <div className="p-4 bg-[#050A14] rounded-lg">
+                      <p className="text-[#A0A5B0] text-sm">Bio</p>
+                      <p className="text-[#F5F5F0]">{talent.bio}</p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -546,60 +648,413 @@ const RegisterPage = () => {
   );
 };
 
-// Dashboard Page for Logged In Users
-const DashboardPage = ({ user, onLogout }) => {
+// Admin Dashboard
+const AdminDashboard = () => {
+  const [activeTab, setActiveTab] = useState("pending");
+  const [pendingTalents, setPendingTalents] = useState([]);
+  const [allTalents, setAllTalents] = useState([]);
+  const [heroImages, setHeroImages] = useState([]);
+  const [awards, setAwards] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  // New hero image form
+  const [newHero, setNewHero] = useState({ title: "", subtitle: "", category: "", order: 1, image_data: "" });
+  // New award form
+  const [newAward, setNewAward] = useState({ title: "", winner_name: "", description: "", winner_image: "" });
+
+  const fetchData = async () => {
+    try {
+      const [pending, all, heroes, awardsList] = await Promise.all([
+        axios.get(`${API}/admin/talents/pending`),
+        axios.get(`${API}/talents?approved_only=false`),
+        axios.get(`${API}/hero-images`),
+        axios.get(`${API}/awards?active_only=false`)
+      ]);
+      setPendingTalents(pending.data);
+      setAllTalents(all.data);
+      setHeroImages(heroes.data);
+      setAwards(awardsList.data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
+  useEffect(() => { fetchData(); }, []);
+
+  const approveTalent = async (id) => {
+    try {
+      await axios.put(`${API}/admin/talent/${id}/approve`);
+      toast({ title: "Success", description: "Talent approved!" });
+      fetchData();
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to approve", variant: "destructive" });
+    }
+  };
+
+  const rejectTalent = async (id) => {
+    try {
+      await axios.put(`${API}/admin/talent/${id}/reject`);
+      toast({ title: "Success", description: "Talent rejected" });
+      fetchData();
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to reject", variant: "destructive" });
+    }
+  };
+
+  const updateRank = async (id, rank) => {
+    try {
+      await axios.put(`${API}/admin/talent/${id}/rank?rank=${rank}`);
+      toast({ title: "Success", description: "Rank updated!" });
+      fetchData();
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to update rank", variant: "destructive" });
+    }
+  };
+
+  const deleteTalent = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this talent?")) return;
+    try {
+      await axios.delete(`${API}/admin/talent/${id}`);
+      toast({ title: "Success", description: "Talent deleted" });
+      fetchData();
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to delete", variant: "destructive" });
+    }
+  };
+
+  const exportTalents = () => {
+    window.open(`${API}/admin/talents/export`, '_blank');
+  };
+
+  const handleHeroImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setNewHero({...newHero, image_data: reader.result});
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const addHeroImage = async () => {
+    if (!newHero.image_data || !newHero.title) {
+      toast({ title: "Error", description: "Please fill all fields and select an image", variant: "destructive" });
+      return;
+    }
+    setLoading(true);
+    try {
+      await axios.post(`${API}/admin/hero-images`, newHero);
+      toast({ title: "Success", description: "Hero image added!" });
+      setNewHero({ title: "", subtitle: "", category: "", order: heroImages.length + 1, image_data: "" });
+      fetchData();
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to add hero image", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteHeroImage = async (id) => {
+    try {
+      await axios.delete(`${API}/admin/hero-images/${id}`);
+      toast({ title: "Success", description: "Hero image deleted" });
+      fetchData();
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to delete", variant: "destructive" });
+    }
+  };
+
+  const handleAwardImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setNewAward({...newAward, winner_image: reader.result});
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const addAward = async () => {
+    if (!newAward.title || !newAward.winner_name) {
+      toast({ title: "Error", description: "Please fill title and winner name", variant: "destructive" });
+      return;
+    }
+    setLoading(true);
+    try {
+      await axios.post(`${API}/admin/awards`, newAward);
+      toast({ title: "Success", description: "Award created!" });
+      setNewAward({ title: "", winner_name: "", description: "", winner_image: "" });
+      fetchData();
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to create award", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteAward = async (id) => {
+    try {
+      await axios.delete(`${API}/admin/awards/${id}`);
+      toast({ title: "Success", description: "Award deleted" });
+      fetchData();
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to delete", variant: "destructive" });
+    }
+  };
+
+  const tabs = [
+    { id: "pending", label: "Pending Approvals", icon: Users },
+    { id: "talents", label: "All Talents", icon: Star },
+    { id: "hero", label: "Hero Images", icon: Image },
+    { id: "awards", label: "Awards", icon: Award },
+    { id: "export", label: "Export Data", icon: Download }
+  ];
+
   return (
-    <div className="min-h-screen bg-[#050A14]">
-      <Navbar user={user} onLogout={onLogout} />
-      <div className="pt-24 pb-16 px-4">
-        <div className="container mx-auto max-w-4xl">
-          <div className="bg-[#0A1628] border border-[#D4AF37]/20 rounded-2xl p-8">
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-[#D4AF37] rounded-full mb-4">
-                <User className="text-[#050A14]" size={40} />
+    <div className="min-h-screen bg-[#050A14] pt-24 pb-12 px-4">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-3xl font-serif font-bold text-[#F5F5F0] mb-8">Admin Dashboard</h1>
+        
+        {/* Tabs */}
+        <div className="flex flex-wrap gap-2 mb-8">
+          {tabs.map(tab => (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${activeTab === tab.id ? "bg-[#D4AF37] text-[#050A14]" : "bg-[#0A1628] text-[#A0A5B0] hover:text-[#D4AF37]"}`}>
+              <tab.icon size={18} />
+              {tab.label}
+              {tab.id === "pending" && pendingTalents.length > 0 && (
+                <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{pendingTalents.length}</span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Pending Approvals Tab */}
+        {activeTab === "pending" && (
+          <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20">
+            <h2 className="text-xl font-bold text-[#F5F5F0] mb-4">Pending Talent Approvals</h2>
+            {pendingTalents.length === 0 ? (
+              <p className="text-[#A0A5B0]">No pending approvals</p>
+            ) : (
+              <div className="space-y-4">
+                {pendingTalents.map(talent => (
+                  <div key={talent.id} className="flex items-center gap-4 p-4 bg-[#050A14] rounded-lg">
+                    <img src={talent.profile_image || "https://via.placeholder.com/60"} alt={talent.name} className="w-16 h-16 rounded-full object-cover" />
+                    <div className="flex-1">
+                      <h3 className="text-[#F5F5F0] font-bold">{talent.name}</h3>
+                      <p className="text-[#A0A5B0] text-sm">{talent.category} • {talent.email}</p>
+                      <p className="text-[#A0A5B0] text-sm">@{talent.instagram_id} • {talent.phone}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => approveTalent(talent.id)} className="p-2 bg-green-500/20 text-green-500 rounded-lg hover:bg-green-500 hover:text-white transition-all">
+                        <Check size={20} />
+                      </button>
+                      <button onClick={() => rejectTalent(talent.id)} className="p-2 bg-red-500/20 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all">
+                        <X size={20} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <h1 className="text-3xl font-serif font-bold text-[#F5F5F0] mb-2">Welcome, {user?.name}!</h1>
-              <p className="text-[#A0A5B0]">{user?.email}</p>
-            </div>
-            
-            <div className="grid md:grid-cols-2 gap-6 mb-8">
-              <div className="bg-[#050A14] border border-[#D4AF37]/20 rounded-xl p-6">
-                <h3 className="text-[#D4AF37] font-serif text-lg mb-2">Account Status</h3>
-                <p className="text-[#F5F5F0] text-2xl font-bold">Active</p>
-              </div>
-              <div className="bg-[#050A14] border border-[#D4AF37]/20 rounded-xl p-6">
-                <h3 className="text-[#D4AF37] font-serif text-lg mb-2">Member Since</h3>
-                <p className="text-[#F5F5F0] text-2xl font-bold">2025</p>
-              </div>
-            </div>
-            
-            <div className="bg-[#050A14] border border-[#D4AF37]/20 rounded-xl p-6">
-              <h3 className="text-[#D4AF37] font-serif text-xl mb-4">Quick Actions</h3>
-              <div className="grid md:grid-cols-3 gap-4">
-                <Link to="/" className="flex items-center gap-3 p-4 bg-[#0A1628] rounded-lg hover:bg-[#D4AF37]/10 transition-colors">
-                  <Camera className="text-[#D4AF37]" size={24} />
-                  <span className="text-[#F5F5F0]">Browse Talents</span>
-                </Link>
-                <Link to="/services" className="flex items-center gap-3 p-4 bg-[#0A1628] rounded-lg hover:bg-[#D4AF37]/10 transition-colors">
-                  <Briefcase className="text-[#D4AF37]" size={24} />
-                  <span className="text-[#F5F5F0]">Our Services</span>
-                </Link>
-                <Link to="/contact" className="flex items-center gap-3 p-4 bg-[#0A1628] rounded-lg hover:bg-[#D4AF37]/10 transition-colors">
-                  <Mail className="text-[#D4AF37]" size={24} />
-                  <span className="text-[#F5F5F0]">Contact Us</span>
-                </Link>
-              </div>
-            </div>
-            
-            <div className="mt-8 text-center">
-              <button 
-                onClick={onLogout}
-                className="px-8 py-3 border border-red-500 text-red-500 font-serif text-sm uppercase tracking-[0.15em] hover:bg-red-500 hover:text-white transition-all rounded-lg"
-              >
-                Logout
-              </button>
+            )}
+          </div>
+        )}
+
+        {/* All Talents Tab */}
+        {activeTab === "talents" && (
+          <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20">
+            <h2 className="text-xl font-bold text-[#F5F5F0] mb-4">All Talents (Rank & Manage)</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="text-left text-[#A0A5B0] text-sm">
+                    <th className="pb-4">Rank</th>
+                    <th className="pb-4">Name</th>
+                    <th className="pb-4">Category</th>
+                    <th className="pb-4">Status</th>
+                    <th className="pb-4">Contact</th>
+                    <th className="pb-4">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {allTalents.map(talent => (
+                    <tr key={talent.id} className="border-t border-[#D4AF37]/10">
+                      <td className="py-4">
+                        <input type="number" value={talent.rank} min="1"
+                          onChange={(e) => updateRank(talent.id, parseInt(e.target.value))}
+                          className="w-16 px-2 py-1 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-center" />
+                      </td>
+                      <td className="py-4">
+                        <div className="flex items-center gap-3">
+                          <img src={talent.profile_image || "https://via.placeholder.com/40"} alt={talent.name} className="w-10 h-10 rounded-full object-cover" />
+                          <span className="text-[#F5F5F0]">{talent.name}</span>
+                        </div>
+                      </td>
+                      <td className="py-4 text-[#A0A5B0]">{talent.category}</td>
+                      <td className="py-4">
+                        {talent.is_approved ? (
+                          <span className="px-2 py-1 bg-green-500/20 text-green-500 rounded text-sm">Approved</span>
+                        ) : (
+                          <span className="px-2 py-1 bg-yellow-500/20 text-yellow-500 rounded text-sm">Pending</span>
+                        )}
+                      </td>
+                      <td className="py-4 text-[#A0A5B0] text-sm">
+                        <div>@{talent.instagram_id}</div>
+                        <div>{talent.phone}</div>
+                      </td>
+                      <td className="py-4">
+                        <div className="flex gap-2">
+                          {!talent.is_approved && (
+                            <button onClick={() => approveTalent(talent.id)} className="p-1 text-green-500 hover:bg-green-500/20 rounded">
+                              <Check size={18} />
+                            </button>
+                          )}
+                          <button onClick={() => deleteTalent(talent.id)} className="p-1 text-red-500 hover:bg-red-500/20 rounded">
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
+        )}
+
+        {/* Hero Images Tab */}
+        {activeTab === "hero" && (
+          <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20">
+            <h2 className="text-xl font-bold text-[#F5F5F0] mb-4">Hero Slider Images</h2>
+            
+            {/* Add new hero image */}
+            <div className="mb-8 p-4 bg-[#050A14] rounded-lg">
+              <h3 className="text-[#D4AF37] font-bold mb-4">Add New Hero Image</h3>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <input type="text" placeholder="Title" value={newHero.title} onChange={(e) => setNewHero({...newHero, title: e.target.value})}
+                  className="px-4 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0]" />
+                <input type="text" placeholder="Subtitle" value={newHero.subtitle} onChange={(e) => setNewHero({...newHero, subtitle: e.target.value})}
+                  className="px-4 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0]" />
+                <input type="text" placeholder="Category" value={newHero.category} onChange={(e) => setNewHero({...newHero, category: e.target.value})}
+                  className="px-4 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0]" />
+                <input type="number" placeholder="Order" value={newHero.order} onChange={(e) => setNewHero({...newHero, order: parseInt(e.target.value)})}
+                  className="px-4 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0]" />
+              </div>
+              <div className="mt-4 flex items-center gap-4">
+                <input type="file" accept="image/*" onChange={handleHeroImageChange} className="text-[#A0A5B0]" />
+                {newHero.image_data && <img src={newHero.image_data} alt="Preview" className="h-20 rounded" />}
+                <button onClick={addHeroImage} disabled={loading}
+                  className="px-6 py-2 bg-[#D4AF37] text-[#050A14] rounded-lg font-bold hover:bg-[#F5F5F0] disabled:opacity-50">
+                  {loading ? "Adding..." : "Add Image"}
+                </button>
+              </div>
+            </div>
+
+            {/* Current hero images */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {heroImages.map((img, index) => (
+                <div key={img.id || index} className="relative group">
+                  <img src={img.image_data} alt={img.title} className="w-full h-48 object-cover rounded-lg" />
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
+                    <button onClick={() => deleteHeroImage(img.id)} className="p-2 bg-red-500 text-white rounded-lg">
+                      <Trash2 size={20} />
+                    </button>
+                  </div>
+                  <div className="mt-2">
+                    <p className="text-[#F5F5F0] font-bold text-sm">{img.title}</p>
+                    <p className="text-[#A0A5B0] text-xs">Order: {img.order}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {heroImages.length === 0 && <p className="text-[#A0A5B0]">No custom hero images. Using default images.</p>}
+          </div>
+        )}
+
+        {/* Awards Tab */}
+        {activeTab === "awards" && (
+          <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20">
+            <h2 className="text-xl font-bold text-[#F5F5F0] mb-4">Awards & Recognition</h2>
+            
+            {/* Add new award */}
+            <div className="mb-8 p-4 bg-[#050A14] rounded-lg">
+              <h3 className="text-[#D4AF37] font-bold mb-4">Create New Award</h3>
+              <div className="grid md:grid-cols-2 gap-4">
+                <input type="text" placeholder="Award Title (e.g., Model of the Week)" value={newAward.title} onChange={(e) => setNewAward({...newAward, title: e.target.value})}
+                  className="px-4 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0]" />
+                <input type="text" placeholder="Winner Name" value={newAward.winner_name} onChange={(e) => setNewAward({...newAward, winner_name: e.target.value})}
+                  className="px-4 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0]" />
+              </div>
+              <textarea placeholder="Description (optional)" value={newAward.description} onChange={(e) => setNewAward({...newAward, description: e.target.value})}
+                className="mt-4 w-full px-4 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0] h-20" />
+              <div className="mt-4 flex items-center gap-4">
+                <input type="file" accept="image/*" onChange={handleAwardImageChange} className="text-[#A0A5B0]" />
+                {newAward.winner_image && <img src={newAward.winner_image} alt="Preview" className="h-20 rounded" />}
+                <button onClick={addAward} disabled={loading}
+                  className="px-6 py-2 bg-[#D4AF37] text-[#050A14] rounded-lg font-bold hover:bg-[#F5F5F0] disabled:opacity-50">
+                  {loading ? "Creating..." : "Create Award"}
+                </button>
+              </div>
+            </div>
+
+            {/* Current awards */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {awards.map((award, index) => (
+                <div key={award.id || index} className="bg-[#050A14] rounded-lg overflow-hidden">
+                  {award.winner_image && <img src={award.winner_image} alt={award.winner_name} className="w-full h-48 object-cover" />}
+                  <div className="p-4">
+                    <p className="text-[#D4AF37] text-sm uppercase tracking-wider">{award.title}</p>
+                    <p className="text-[#F5F5F0] font-bold text-lg">{award.winner_name}</p>
+                    {award.description && <p className="text-[#A0A5B0] text-sm mt-1">{award.description}</p>}
+                    <button onClick={() => deleteAward(award.id)} className="mt-2 text-red-500 text-sm hover:underline">Delete Award</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {awards.length === 0 && <p className="text-[#A0A5B0]">No awards created yet.</p>}
+          </div>
+        )}
+
+        {/* Export Tab */}
+        {activeTab === "export" && (
+          <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20">
+            <h2 className="text-xl font-bold text-[#F5F5F0] mb-4">Export Talent Data</h2>
+            <p className="text-[#A0A5B0] mb-6">Download all talent information including Name, Email, Phone, Instagram ID, Category, Status, and Rank.</p>
+            <button onClick={exportTalents}
+              className="flex items-center gap-2 px-6 py-3 bg-[#D4AF37] text-[#050A14] rounded-lg font-bold hover:bg-[#F5F5F0] transition-colors">
+              <Download size={20} />
+              Download Excel (CSV)
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// User Dashboard
+const UserDashboard = ({ user, onLogout }) => {
+  if (!user) return <div className="min-h-screen bg-[#050A14] pt-24 text-center text-[#F5F5F0]">Please login first</div>;
+  
+  return (
+    <div className="min-h-screen bg-[#050A14] pt-24 pb-12 px-4">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-[#0A1628] rounded-2xl p-8 border border-[#D4AF37]/20">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-[#D4AF37] rounded-full mb-4">
+              <User className="text-[#050A14]" size={40} />
+            </div>
+            <h1 className="text-3xl font-serif font-bold text-[#F5F5F0]">Welcome, {user.name}!</h1>
+            <p className="text-[#A0A5B0]">{user.email}</p>
+            {user.is_admin && <span className="inline-block mt-2 px-3 py-1 bg-[#D4AF37]/20 text-[#D4AF37] rounded-full text-sm">Admin</span>}
+          </div>
+          {user.is_admin && (
+            <div className="text-center">
+              <Link to="/admin" className="inline-flex items-center gap-2 px-6 py-3 bg-[#D4AF37] text-[#050A14] rounded-lg font-bold hover:bg-[#F5F5F0] transition-colors">
+                <Shield size={20} />
+                Go to Admin Dashboard
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -607,44 +1062,68 @@ const DashboardPage = ({ user, onLogout }) => {
 };
 
 // Home Page
-const HomeWithAuth = ({ user, onLogout }) => {
+const HomePage = ({ user, talent, onLogout, talents, heroImages, awards }) => {
   return (
     <div className="min-h-screen bg-[#050A14]">
-      <Navbar user={user} onLogout={onLogout} />
-      <HeroSlider />
-      <TalentSection />
-      <VotingSection />
+      <Navbar user={user} talent={talent} onLogout={onLogout} />
+      <HeroSlider customSlides={heroImages} />
+      <AwardsSection awards={awards} />
+      <TalentSection talents={talents} />
       <ServicesSection />
-      <CTASection />
     </div>
   );
 };
 
+// Main App
 function App() {
   const [user, setUser] = useState(null);
+  const [talent, setTalent] = useState(null);
+  const [talents, setTalents] = useState([]);
+  const [heroImages, setHeroImages] = useState([]);
+  const [awards, setAwards] = useState([]);
 
-  // Check for logged in user on app load
   useEffect(() => {
-    const storedUser = localStorage.getItem("user") || sessionStorage.getItem("user");
+    // Check for logged in user
+    const storedUser = localStorage.getItem("user");
     if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (e) {
-        console.error("Error parsing user data:", e);
-      }
+      try { setUser(JSON.parse(storedUser)); } catch (e) {}
     }
+    // Check for logged in talent
+    const storedTalent = localStorage.getItem("talent");
+    if (storedTalent) {
+      try { setTalent(JSON.parse(storedTalent)); } catch (e) {}
+    }
+    // Fetch public data
+    fetchPublicData();
   }, []);
 
-  const handleLogin = (userData) => {
-    setUser(userData);
+  const fetchPublicData = async () => {
+    try {
+      const [talentsRes, heroRes, awardsRes] = await Promise.all([
+        axios.get(`${API}/talents?approved_only=true`),
+        axios.get(`${API}/hero-images`),
+        axios.get(`${API}/awards?active_only=true`)
+      ]);
+      setTalents(talentsRes.data);
+      setHeroImages(heroRes.data);
+      setAwards(awardsRes.data);
+    } catch (error) {
+      console.error("Error fetching public data:", error);
+    }
   };
+
+  const handleLogin = (userData) => setUser(userData);
+  const handleTalentLogin = (talentData) => setTalent(talentData);
+  const handleTalentUpdate = (talentData) => setTalent(talentData);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    sessionStorage.removeItem("token");
-    sessionStorage.removeItem("user");
+    localStorage.removeItem("talentToken");
+    localStorage.removeItem("talent");
+    sessionStorage.clear();
     setUser(null);
+    setTalent(null);
     window.location.href = "/";
   };
 
@@ -652,15 +1131,16 @@ function App() {
     <div className="App">
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<HomeWithAuth user={user} onLogout={handleLogout} />} />
+          <Route path="/" element={<HomePage user={user} talent={talent} onLogout={handleLogout} talents={talents} heroImages={heroImages} awards={awards} />} />
+          <Route path="/talents" element={<HomePage user={user} talent={talent} onLogout={handleLogout} talents={talents} heroImages={heroImages} awards={awards} />} />
+          <Route path="/services" element={<HomePage user={user} talent={talent} onLogout={handleLogout} talents={talents} heroImages={heroImages} awards={awards} />} />
+          <Route path="/about" element={<HomePage user={user} talent={talent} onLogout={handleLogout} talents={talents} heroImages={heroImages} awards={awards} />} />
           <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/dashboard" element={<DashboardPage user={user} onLogout={handleLogout} />} />
-          <Route path="/talents" element={<HomeWithAuth user={user} onLogout={handleLogout} />} />
-          <Route path="/services" element={<HomeWithAuth user={user} onLogout={handleLogout} />} />
-          <Route path="/about" element={<HomeWithAuth user={user} onLogout={handleLogout} />} />
-          <Route path="/contact" element={<HomeWithAuth user={user} onLogout={handleLogout} />} />
-          <Route path="/forgot-password" element={<LoginPage onLogin={handleLogin} />} />
+          <Route path="/talent-login" element={<TalentLoginPage onTalentLogin={handleTalentLogin} />} />
+          <Route path="/talent-register" element={<TalentRegisterPage />} />
+          <Route path="/talent-dashboard" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><TalentDashboard talent={talent} onTalentUpdate={handleTalentUpdate} /></>} />
+          <Route path="/dashboard" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><UserDashboard user={user} onLogout={handleLogout} /></>} />
+          <Route path="/admin" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><AdminDashboard /></>} />
         </Routes>
       </BrowserRouter>
       <Toaster />
