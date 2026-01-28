@@ -474,10 +474,11 @@ const TalentForgotPasswordPage = () => {
           </form>
         ) : (
           <form className="space-y-5" onSubmit={handleResetPassword}>
-            {generatedCode && (
-              <div className="p-4 bg-green-500/20 border border-green-500/40 rounded-lg mb-4">
-                <p className="text-green-400 text-sm">Your reset code: <strong className="text-xl">{generatedCode}</strong></p>
-                <p className="text-green-400 text-xs mt-1">(In production, this would be sent to your email)</p>
+            <div className="p-4 bg-green-500/20 border border-green-500/40 rounded-lg mb-4">
+              <p className="text-green-400 text-sm text-center">Your Reset Code:</p>
+              <p className="text-green-400 text-3xl font-bold text-center my-2">{generatedCode || "Loading..."}</p>
+              <p className="text-green-400 text-xs text-center">(Copy this code and enter below)</p>
+            </div>
               </div>
             )}
             <div>
