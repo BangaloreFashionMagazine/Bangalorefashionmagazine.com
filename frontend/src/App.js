@@ -1105,15 +1105,26 @@ const HomePage = ({ user, talent, onLogout, heroImages, awards, ads }) => (
   <div className="min-h-screen bg-[#050A14]">
     <Navbar user={user} talent={talent} onLogout={onLogout} />
     <HeroSlider customSlides={heroImages} />
-    <div className="flex">
-      <div className="flex-1">
-        <AwardsSection awards={awards} />
-      </div>
-      {ads && ads.length > 0 && (
-        <div className="hidden lg:block w-64 p-4">
-          <AdvertisementSidebar ads={ads} />
+    <div className="container mx-auto px-4">
+      <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex-1">
+          <ContestWinnersSection awards={awards} />
         </div>
-      )}
+        {ads && ads.length > 0 && (
+          <div className="w-full lg:w-72 py-8">
+            <div className="sticky top-20">
+              <p className="text-[#A0A5B0] text-xs uppercase tracking-wider text-center mb-4">Sponsored</p>
+              <div className="grid grid-cols-2 lg:grid-cols-1 gap-4">
+                {ads.map((ad, i) => (
+                  <a key={i} href={ad.link || "#"} target="_blank" rel="noopener noreferrer" className="block">
+                    <img src={ad.image_data} alt={ad.title || "Advertisement"} className="w-full rounded-lg border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all" />
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   </div>
 );
