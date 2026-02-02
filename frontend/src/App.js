@@ -920,7 +920,7 @@ const AdminDashboard = () => {
     { id: "pending", label: "Pending", icon: Users },
     { id: "talents", label: "All Talents", icon: Star },
     { id: "hero", label: "Hero Images", icon: Image },
-    { id: "awards", label: "Awards", icon: Award },
+    { id: "contests", label: "Contest & Winners", icon: Award },
     { id: "ads", label: "Advertisements", icon: ExternalLink },
     { id: "export", label: "Export", icon: Download }
   ];
