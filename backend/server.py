@@ -335,7 +335,8 @@ async def login_talent(login_data: UserLogin):
 # ============== Talent Password Reset ==============
 @api_router.post("/talent/forgot-password")
 async def talent_forgot_password(request: ForgotPasswordRequest):
-    talent = await db.talents.find_one({"email": request.email})
+    # Case-insensitive email search
+    talent = await db.talents.find_one({"email": {"$regex": f"^{request.email}$", "$options": "i"}})
     if not talent:
         raise HTTPException(status_code=404, detail="Email not found. Please register first.")
     
