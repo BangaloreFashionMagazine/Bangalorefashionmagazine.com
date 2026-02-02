@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 load_dotenv('/app/frontend/.env')
 
 # Get backend URL from frontend environment
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://blr-trend-mag.preview.emergentagent.com')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://bangfash-update.preview.emergentagent.com')
 BASE_API_URL = f"{BACKEND_URL}/api"
 
 print(f"Testing Authentication API at: {BASE_API_URL}")
