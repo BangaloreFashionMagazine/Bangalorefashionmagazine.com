@@ -362,25 +362,29 @@ async def talent_forgot_password(request: ForgotPasswordRequest):
 
 @api_router.post("/talent/reset-password")
 async def talent_reset_password(request: ResetPasswordRequest):
-    reset_doc = await db.password_resets.find_one({"email": request.email, "otp": request.reset_code})
+    # Case-insensitive email lookup
+    reset_doc = await db.password_resets.find_one({
+        "email": {"$regex": f"^{request.email}$", "$options": "i"}, 
+        "otp": request.reset_code
+    })
     if not reset_doc:
         raise HTTPException(status_code=400, detail="Invalid OTP")
     
     # Check expiry
     expires = datetime.fromisoformat(reset_doc["expires_at"].replace("Z", "+00:00"))
     if datetime.now(timezone.utc) > expires:
-        await db.password_resets.delete_one({"email": request.email})
+        await db.password_resets.delete_one({"email": reset_doc["email"]})
         raise HTTPException(status_code=400, detail="OTP has expired")
     
     if len(request.new_password) < 6:
         raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
     
-    # Update password
+    # Update password - case-insensitive
     await db.talents.update_one(
-        {"email": request.email},
+        {"email": {"$regex": f"^{request.email}$", "$options": "i"}},
         {"$set": {"password_hash": hash_password(request.new_password)}}
     )
-    await db.password_resets.delete_one({"email": request.email})
+    await db.password_resets.delete_one({"email": reset_doc["email"]})
     
     logger.info(f"Password reset for {request.email}")
     return {"message": "Password reset successful"}
