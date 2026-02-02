@@ -172,8 +172,8 @@ const HeroSlider = ({ customSlides }) => {
   );
 };
 
-// Awards Section (only shows if awards exist)
-const AwardsSection = ({ awards }) => {
+// Contest Winners Section (only shows if contests exist)
+const ContestWinnersSection = ({ awards }) => {
   if (!awards || awards.length === 0) return null;
   
   return (
@@ -181,7 +181,7 @@ const AwardsSection = ({ awards }) => {
       <div className="container mx-auto px-4">
         <div className="text-center mb-10">
           <span className="text-[#D4AF37] text-xs uppercase tracking-widest">Recognition</span>
-          <h2 className="font-serif text-3xl font-bold text-[#F5F5F0] mt-2">Awards & Achievements</h2>
+          <h2 className="font-serif text-3xl font-bold text-[#F5F5F0] mt-2">Contest Winners</h2>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {awards.map((award, i) => (
@@ -195,7 +195,8 @@ const AwardsSection = ({ awards }) => {
                   <span className="text-[#D4AF37] text-sm uppercase">{award.title}</span>
                 </div>
                 <h3 className="text-[#F5F5F0] font-bold text-xl">{award.winner_name}</h3>
-                {award.description && <p className="text-[#A0A5B0] text-sm mt-1">{award.description}</p>}
+                {award.category && <p className="text-[#A0A5B0] text-xs mt-1">{award.category}</p>}
+                {award.description && <p className="text-[#A0A5B0] text-sm mt-2">{award.description}</p>}
               </div>
             </div>
           ))}
