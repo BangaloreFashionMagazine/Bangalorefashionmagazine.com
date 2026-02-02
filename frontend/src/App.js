@@ -189,10 +189,13 @@ const AdvertisementSidebar = ({ ads }) => {
   );
 };
 
-// Talent Card with Voting
-const TalentCard = ({ talent, onVote }) => {
+// Talent Detail Modal
+const TalentDetailModal = ({ talent, onClose, onVote }) => {
   const [voting, setVoting] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
   
+  if (!talent) return null;
+
   const handleVote = async () => {
     setVoting(true);
     await onVote(talent.id);
@@ -200,7 +203,108 @@ const TalentCard = ({ talent, onVote }) => {
   };
 
   return (
-    <div className="group relative overflow-hidden rounded-xl bg-[#0A1628] border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80" onClick={onClose}>
+      <div className="bg-[#0A1628] rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-[#D4AF37]/20" onClick={e => e.stopPropagation()}>
+        {/* Close Button */}
+        <button onClick={onClose} className="absolute top-4 right-4 p-2 bg-[#050A14] rounded-full text-[#F5F5F0] hover:text-[#D4AF37] z-10">
+          <X size={24} />
+        </button>
+        
+        <div className="grid md:grid-cols-2 gap-6 p-6">
+          {/* Profile Image */}
+          <div>
+            <img 
+              src={talent.profile_image || "https://via.placeholder.com/400"} 
+              alt={talent.name} 
+              className="w-full aspect-[3/4] object-cover rounded-xl"
+            />
+          </div>
+          
+          {/* Details */}
+          <div className="space-y-4">
+            <div>
+              <span className="inline-block px-3 py-1 bg-[#D4AF37]/20 text-[#D4AF37] text-xs uppercase tracking-wider rounded">{talent.category}</span>
+            </div>
+            
+            <h2 className="font-serif text-3xl font-bold text-[#F5F5F0]">{talent.name}</h2>
+            
+            {talent.instagram_id && (
+              <a href={`https://instagram.com/${talent.instagram_id}`} target="_blank" rel="noopener noreferrer" 
+                className="inline-flex items-center gap-2 text-[#D4AF37] hover:underline">
+                <Instagram size={18} /> @{talent.instagram_id}
+              </a>
+            )}
+            
+            {talent.bio && (
+              <div>
+                <h3 className="text-[#D4AF37] text-sm uppercase tracking-wider mb-2">About</h3>
+                <p className="text-[#A0A5B0]">{talent.bio}</p>
+              </div>
+            )}
+            
+            {/* Voting */}
+            <div className="flex items-center gap-4 pt-4 border-t border-[#D4AF37]/20">
+              <span className="text-[#F5F5F0]"><strong className="text-[#D4AF37] text-2xl">{talent.votes || 0}</strong> votes</span>
+              <button 
+                onClick={handleVote} 
+                disabled={voting}
+                className="px-6 py-2 bg-[#D4AF37] text-[#050A14] rounded-lg font-bold hover:bg-[#F5F5F0] disabled:opacity-50 flex items-center gap-2"
+              >
+                <Vote size={18} />
+                {voting ? "Voting..." : "Vote"}
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        {/* Portfolio Section */}
+        {talent.portfolio_images && talent.portfolio_images.length > 0 && (
+          <div className="p-6 pt-0">
+            <h3 className="text-[#D4AF37] text-sm uppercase tracking-wider mb-4">Portfolio</h3>
+            <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
+              {talent.portfolio_images.map((img, i) => (
+                <img 
+                  key={i} 
+                  src={img} 
+                  alt={`Portfolio ${i + 1}`} 
+                  className="w-full aspect-square object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                  onClick={() => setSelectedImage(img)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* Full Image View */}
+        {selectedImage && (
+          <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/90 p-4" onClick={() => setSelectedImage(null)}>
+            <img src={selectedImage} alt="Full view" className="max-w-full max-h-full object-contain rounded-lg" />
+            <button onClick={() => setSelectedImage(null)} className="absolute top-4 right-4 p-2 bg-white/20 rounded-full text-white">
+              <X size={24} />
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Talent Card with Voting
+const TalentCard = ({ talent, onVote, onClick }) => {
+  const [voting, setVoting] = useState(false);
+  
+  const handleVote = async (e) => {
+    e.stopPropagation();
+    setVoting(true);
+    await onVote(talent.id);
+    setVoting(false);
+  };
+
+  return (
+    <div 
+      className="group relative overflow-hidden rounded-xl bg-[#0A1628] border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all cursor-pointer"
+      onClick={() => onClick(talent)}
+    >
       <div className="aspect-[3/4] overflow-hidden">
         <img src={talent.profile_image || "https://via.placeholder.com/300x400"} alt={talent.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
       </div>
