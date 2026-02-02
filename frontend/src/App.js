@@ -1016,33 +1016,41 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        {/* Awards */}
-        {tab === "awards" && (
+        {/* Contest & Winners */}
+        {tab === "contests" && (
           <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20">
-            <h2 className="text-lg font-bold text-[#F5F5F0] mb-4">Awards</h2>
+            <h2 className="text-lg font-bold text-[#F5F5F0] mb-4">Contest & Winners</h2>
+            <p className="text-[#A0A5B0] text-sm mb-4">Add contest winners to display on the homepage. Delete a contest to remove it from public view.</p>
             <div className="grid md:grid-cols-2 gap-3 mb-4">
-              <input type="text" placeholder="Award Title (e.g. Model of the Week)" value={newAward.title} onChange={e => setNewAward({...newAward, title: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+              <input type="text" placeholder="Contest Title (e.g. Model of the Week)" value={newAward.title} onChange={e => setNewAward({...newAward, title: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
               <input type="text" placeholder="Winner Name" value={newAward.winner_name} onChange={e => setNewAward({...newAward, winner_name: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
               <input type="text" placeholder="Category" value={newAward.category} onChange={e => setNewAward({...newAward, category: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
               <input type="text" placeholder="Description" value={newAward.description} onChange={e => setNewAward({...newAward, description: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
             </div>
             <div className="flex items-center gap-4 mb-6">
               <input type="file" accept="image/*" onChange={handleAwardImg} className="text-[#A0A5B0]" />
-              {newAward.winner_image && <img src={newAward.winner_image} className="h-16 rounded" />}
-              <button onClick={addAward} className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold">Create Award</button>
+              {newAward.winner_image && <img src={newAward.winner_image} alt="Preview" className="h-16 rounded" />}
+              <button onClick={addAward} className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold">Add Winner</button>
             </div>
-            <div className="grid md:grid-cols-3 gap-4">
-              {awards.map(a => (
-                <div key={a.id} className="bg-[#050A14] rounded overflow-hidden">
-                  {a.winner_image && <img src={a.winner_image} className="w-full h-40 object-cover" />}
-                  <div className="p-3">
-                    <p className="text-[#D4AF37] text-sm">{a.title}</p>
-                    <p className="text-[#F5F5F0] font-bold">{a.winner_name}</p>
-                    <button onClick={() => deleteAward(a.id)} className="text-red-500 text-sm mt-2">Delete</button>
+            {awards.length === 0 ? (
+              <p className="text-[#A0A5B0] text-center py-8">No contest winners added yet. Add winners above to display them on homepage.</p>
+            ) : (
+              <div className="grid md:grid-cols-3 gap-4">
+                {awards.map(a => (
+                  <div key={a.id} className="bg-[#050A14] rounded overflow-hidden">
+                    {a.winner_image && <img src={a.winner_image} alt={a.winner_name} className="w-full h-40 object-cover" />}
+                    <div className="p-3">
+                      <p className="text-[#D4AF37] text-sm">{a.title}</p>
+                      <p className="text-[#F5F5F0] font-bold">{a.winner_name}</p>
+                      {a.category && <p className="text-[#A0A5B0] text-xs">{a.category}</p>}
+                      <button onClick={() => deleteAward(a.id)} className="text-red-500 text-sm mt-2 flex items-center gap-1">
+                        <Trash2 size={14} /> Delete
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
