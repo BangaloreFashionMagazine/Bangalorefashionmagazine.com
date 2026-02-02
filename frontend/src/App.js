@@ -234,84 +234,70 @@ const TalentDetailModal = ({ talent, onClose, onVote }) => {
     setVoting(false);
   };
 
+  // Combine profile image with portfolio for gallery display
+  const allImages = [talent.profile_image, ...(talent.portfolio_images || [])].filter(Boolean);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80" onClick={onClose}>
-      <div className="bg-[#0A1628] rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-[#D4AF37]/20" onClick={e => e.stopPropagation()}>
+      <div className="bg-[#0A1628] rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-[#D4AF37]/20 relative" onClick={e => e.stopPropagation()}>
         {/* Close Button */}
         <button onClick={onClose} className="absolute top-4 right-4 p-2 bg-[#050A14] rounded-full text-[#F5F5F0] hover:text-[#D4AF37] z-10">
           <X size={24} />
         </button>
         
-        <div className="grid md:grid-cols-2 gap-6 p-6">
-          {/* Profile Image */}
-          <div>
-            <img 
-              src={talent.profile_image || "https://via.placeholder.com/400"} 
-              alt={talent.name} 
-              className="w-full aspect-[3/4] object-cover rounded-xl"
-            />
+        <div className="p-6">
+          {/* Header with Name and Category */}
+          <div className="text-center mb-6">
+            <span className="inline-block px-3 py-1 bg-[#D4AF37]/20 text-[#D4AF37] text-xs uppercase tracking-wider rounded mb-3">{talent.category}</span>
+            <h2 className="font-serif text-3xl font-bold text-[#F5F5F0]">{talent.name}</h2>
           </div>
           
-          {/* Details */}
-          <div className="space-y-4">
-            <div>
-              <span className="inline-block px-3 py-1 bg-[#D4AF37]/20 text-[#D4AF37] text-xs uppercase tracking-wider rounded">{talent.category}</span>
+          {/* About Section - Only show if bio exists */}
+          {talent.bio && (
+            <div className="mb-6 text-center">
+              <h3 className="text-[#D4AF37] text-sm uppercase tracking-wider mb-2">About</h3>
+              <p className="text-[#A0A5B0] max-w-2xl mx-auto">{talent.bio}</p>
             </div>
-            
-            <h2 className="font-serif text-3xl font-bold text-[#F5F5F0]">{talent.name}</h2>
-            
-            {talent.instagram_id && (
-              <a href={`https://instagram.com/${talent.instagram_id}`} target="_blank" rel="noopener noreferrer" 
-                className="inline-flex items-center gap-2 text-[#D4AF37] hover:underline">
-                <Instagram size={18} /> @{talent.instagram_id}
-              </a>
-            )}
-            
-            {talent.bio && (
-              <div>
-                <h3 className="text-[#D4AF37] text-sm uppercase tracking-wider mb-2">About</h3>
-                <p className="text-[#A0A5B0]">{talent.bio}</p>
-              </div>
-            )}
-            
-            {/* Voting */}
-            <div className="flex items-center gap-4 pt-4 border-t border-[#D4AF37]/20">
-              <span className="text-[#F5F5F0]"><strong className="text-[#D4AF37] text-2xl">{talent.votes || 0}</strong> votes</span>
-              <button 
-                onClick={handleVote} 
-                disabled={voting}
-                className="px-6 py-2 bg-[#D4AF37] text-[#050A14] rounded-lg font-bold hover:bg-[#F5F5F0] disabled:opacity-50 flex items-center gap-2"
-              >
-                <Vote size={18} />
-                {voting ? "Voting..." : "Vote"}
-              </button>
-            </div>
+          )}
+          
+          {/* Voting Section */}
+          <div className="flex items-center justify-center gap-4 mb-6 pb-6 border-b border-[#D4AF37]/20">
+            <span className="text-[#F5F5F0]"><strong className="text-[#D4AF37] text-2xl">{talent.votes || 0}</strong> votes</span>
+            <button 
+              onClick={handleVote} 
+              disabled={voting}
+              className="px-6 py-2 bg-[#D4AF37] text-[#050A14] rounded-lg font-bold hover:bg-[#F5F5F0] disabled:opacity-50 flex items-center gap-2"
+            >
+              <Vote size={18} />
+              {voting ? "Voting..." : "Vote"}
+            </button>
           </div>
-        </div>
-        
-        {/* Portfolio Section */}
-        {talent.portfolio_images && talent.portfolio_images.length > 0 && (
-          <div className="p-6 pt-0">
-            <h3 className="text-[#D4AF37] text-sm uppercase tracking-wider mb-4">Portfolio</h3>
-            <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
-              {talent.portfolio_images.map((img, i) => (
+          
+          {/* Photo Gallery - Profile + Portfolio Images */}
+          <div>
+            <h3 className="text-[#D4AF37] text-sm uppercase tracking-wider mb-4 text-center">Photo Gallery</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              {allImages.map((img, i) => (
                 <img 
                   key={i} 
                   src={img} 
-                  alt={`Portfolio ${i + 1}`} 
-                  className="w-full aspect-square object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                  alt={`${talent.name} - Photo ${i + 1}`} 
+                  className="w-full aspect-[3/4] object-cover rounded-lg cursor-pointer hover:opacity-80 hover:scale-[1.02] transition-all"
                   onClick={() => setSelectedImage(img)}
                 />
               ))}
             </div>
+            {allImages.length === 0 && (
+              <p className="text-[#A0A5B0] text-center py-8">No photos available</p>
+            )}
           </div>
-        )}
+        </div>
         
-        {/* Full Image View */}
+        {/* Full Image View Overlay */}
         {selectedImage && (
-          <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/90 p-4" onClick={() => setSelectedImage(null)}>
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/95 p-4" onClick={() => setSelectedImage(null)}>
             <img src={selectedImage} alt="Full view" className="max-w-full max-h-full object-contain rounded-lg" />
-            <button onClick={() => setSelectedImage(null)} className="absolute top-4 right-4 p-2 bg-white/20 rounded-full text-white">
+            <button onClick={() => setSelectedImage(null)} className="absolute top-4 right-4 p-2 bg-white/20 rounded-full text-white hover:bg-white/30">
               <X size={24} />
             </button>
           </div>
