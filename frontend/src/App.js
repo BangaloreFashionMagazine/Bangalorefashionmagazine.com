@@ -1175,10 +1175,10 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage user={user} talent={talent} onLogout={handleLogout} heroImages={heroImages} awards={awards} ads={ads} />} />
-        <Route path="/login" element={<LoginPage onLogin={setUser} />} />
-        <Route path="/talent-login" element={<TalentLoginPage onTalentLogin={setTalent} />} />
-        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/join" element={<JoinPage />} />
+        <Route path="/login" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><LoginPage onLogin={setUser} /></>} />
+        <Route path="/talent-login" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><TalentLoginPage onTalentLogin={setTalent} /></>} />
+        <Route path="/forgot-password" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><ForgotPasswordPage /></>} />
+        <Route path="/join" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><JoinPage /></>} />
         <Route path="/about" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><AboutPage /></>} />
         <Route path="/talents/:category" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><TalentsPage category={window.location.pathname.split('/talents/')[1]} ads={ads} /></>} />
         <Route path="/talent-dashboard" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><TalentDashboard talent={talent} onUpdate={setTalent} /></>} />
