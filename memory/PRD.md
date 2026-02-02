@@ -76,15 +76,25 @@ Build a fashion magazine website for Bangalore with talent management, admin pan
 
 ## Bug Fixes Applied (February 2, 2026)
 1. ✅ Mobile navigation - Working (hamburger menu with all tabs)
-2. ✅ Talent profile click - Modal opens with photo gallery
+2. ✅ Talent profile click - Modal opens with photo gallery (no contact info)
 3. ✅ Forgot password OTP - Displayed on screen
 4. ⚠️ "Made with Emergent" branding - Platform-injected, cannot remove
 5. ✅ Privacy: Talent cards and modal hide contact info (phone, email, Instagram) from public view
+6. ✅ Renamed "Awards" to "Contest & Winners" in admin panel
+7. ✅ Advertisements visible on both desktop and mobile
+8. ✅ Contest winners auto-hide from homepage when deleted by admin
 
 ## Privacy Rules
 - **Public View (Visitors):** Can only see talent name, category, bio, photos, and vote count
 - **Talent Dashboard:** Talents can only see and edit their OWN profile
 - **Admin Panel:** Admin can see ALL talent details including phone, email, Instagram
+
+## Admin Features
+- **Contest & Winners:** Add/delete contest winners - automatically shows/hides on homepage
+- **Advertisements:** Add/delete ads - displays on homepage sidebar (desktop & mobile)
+- **Hero Images:** Manage homepage slider images
+- **Talent Management:** Approve, reject, rank talents
+- **Export:** Download talent data as CSV
 
 ## API Endpoints
 - `/health` - Health check
