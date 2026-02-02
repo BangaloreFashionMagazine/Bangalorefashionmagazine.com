@@ -262,7 +262,8 @@ async def login_user(login_data: UserLogin):
 # ============== Talent Registration & Auth ==============
 @api_router.post("/talent/register", response_model=TalentResponse)
 async def register_talent(talent_data: TalentCreate):
-    existing = await db.talents.find_one({"email": talent_data.email})
+    # Case-insensitive email check
+    existing = await db.talents.find_one({"email": {"$regex": f"^{talent_data.email}$", "$options": "i"}})
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
     
@@ -278,11 +279,12 @@ async def register_talent(talent_data: TalentCreate):
     # Limit portfolio to 7 images
     portfolio = (talent_data.portfolio_images or [])[:7]
     
+    # Store email in lowercase for consistency
     talent_id = str(uuid.uuid4())
     talent_doc = {
         "id": talent_id,
         "name": talent_data.name,
-        "email": talent_data.email,
+        "email": talent_data.email.lower(),
         "password_hash": hash_password(talent_data.password),
         "phone": talent_data.phone,
         "instagram_id": talent_data.instagram_id or "",
