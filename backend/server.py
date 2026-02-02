@@ -311,7 +311,8 @@ async def register_talent(talent_data: TalentCreate):
 
 @api_router.post("/talent/login", response_model=TalentLoginResponse)
 async def login_talent(login_data: UserLogin):
-    talent = await db.talents.find_one({"email": login_data.email}, {"_id": 0})
+    # Case-insensitive email search
+    talent = await db.talents.find_one({"email": {"$regex": f"^{login_data.email}$", "$options": "i"}}, {"_id": 0})
     if not talent:
         raise HTTPException(status_code=401, detail="Invalid email or password")
     
