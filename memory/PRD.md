@@ -76,9 +76,15 @@ Build a fashion magazine website for Bangalore with talent management, admin pan
 
 ## Bug Fixes Applied (February 2, 2026)
 1. ✅ Mobile navigation - Working (hamburger menu with all tabs)
-2. ✅ Talent profile click - Modal opens with details
+2. ✅ Talent profile click - Modal opens with photo gallery
 3. ✅ Forgot password OTP - Displayed on screen
 4. ⚠️ "Made with Emergent" branding - Platform-injected, cannot remove
+5. ✅ Privacy: Talent cards and modal hide contact info (phone, email, Instagram) from public view
+
+## Privacy Rules
+- **Public View (Visitors):** Can only see talent name, category, bio, photos, and vote count
+- **Talent Dashboard:** Talents can only see and edit their OWN profile
+- **Admin Panel:** Admin can see ALL talent details including phone, email, Instagram
 
 ## API Endpoints
 - `/health` - Health check
