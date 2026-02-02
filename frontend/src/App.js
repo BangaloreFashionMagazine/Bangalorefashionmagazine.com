@@ -363,6 +363,7 @@ const TalentCard = ({ talent, onVote, onClick }) => {
 // Talents Page by Category
 const TalentsPage = ({ category, ads }) => {
   const [talents, setTalents] = useState([]);
+  const [selectedTalent, setSelectedTalent] = useState(null);
   const { toast } = useToast();
   const decodedCategory = decodeURIComponent(category);
 
@@ -394,13 +395,22 @@ const TalentsPage = ({ category, ads }) => {
               <p className="text-[#A0A5B0]">No approved talents in this category yet.</p>
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {talents.map(t => <TalentCard key={t.id} talent={t} onVote={handleVote} />)}
+                {talents.map(t => <TalentCard key={t.id} talent={t} onVote={handleVote} onClick={setSelectedTalent} />)}
               </div>
             )}
           </div>
           <AdvertisementSidebar ads={ads} />
         </div>
       </div>
+      
+      {/* Talent Detail Modal */}
+      {selectedTalent && (
+        <TalentDetailModal 
+          talent={selectedTalent} 
+          onClose={() => setSelectedTalent(null)} 
+          onVote={handleVote} 
+        />
+      )}
     </div>
   );
 };
