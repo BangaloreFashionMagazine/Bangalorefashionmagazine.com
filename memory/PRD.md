@@ -1,58 +1,109 @@
 # Bangalore Fashion Magazine - PRD
 
 ## Original Problem Statement
-User requested to hide admin login credentials (admin@bangalorefashionmag.com / Admin@123BFM) that were being displayed on the login page of bangalorefashionmagazine.com in a "Demo Accounts" section.
-
-## Architecture
-- **Frontend**: React.js with Tailwind CSS, Swiper.js for sliders
-- **Backend**: FastAPI (Python)
-- **Database**: MongoDB
-- **Styling**: Custom CSS with Playfair Display & Cormorant Garamond fonts
+Build a fashion magazine website for Bangalore with talent management, admin panel, and voting system.
 
 ## User Personas
-- Fashion models, photographers, designers seeking to showcase portfolios
-- Event organizers and agencies looking for talent
-- Admin users managing the platform
+- **Admin**: Manages talents, approves registrations, controls content (hero images, awards, ads)
+- **Talent**: Models, designers, makeup artists, photographers who register and showcase portfolios
+- **Visitors**: Browse talents, vote for favorites
 
-## Core Requirements (Static)
-1. ✅ Secure login page without exposed credentials
-2. Fashion talent portfolio showcase
-3. Voting system for talent
-4. Service listings
-5. User registration and authentication
+## Core Requirements
 
-## What's Been Implemented
-| Date | Feature | Status |
-|------|---------|--------|
-| Jan 28, 2026 | Removed admin credentials from login page | ✅ Complete |
-| Jan 28, 2026 | Rebuilt login page without "Demo Accounts" section | ✅ Complete |
-| Jan 28, 2026 | Homepage with hero slider | ✅ Complete |
-| Jan 28, 2026 | Navigation and routing | ✅ Complete |
-| Jan 28, 2026 | Services section | ✅ Complete |
-| Jan 28, 2026 | Talent showcase section | ✅ Complete |
-| Jan 28, 2026 | Voting section UI | ✅ Complete |
-| Jan 28, 2026 | Added "Remember Me" checkbox to login | ✅ Complete |
-| Jan 28, 2026 | Added Google social login button | ✅ Complete |
-| Jan 28, 2026 | Added Facebook social login button | ✅ Complete |
-| Jan 28, 2026 | All text updated to English | ✅ Complete |
+### Talent Categories
+- Model - Female
+- Model - Male
+- Designers
+- Makeup & Hair
+- Photography
+- Event Management
 
-## Prioritized Backlog
+### Homepage Features
+- Hero slider with 4 admin-managed images
+- Awards section (admin-managed, linked to voting)
+- Advertisement sidebar (admin-managed)
 
-### P0 (Critical)
-- None currently
+### Navigation
+- Home
+- Talents (dropdown with 6 categories)
+- About Us
+- Admin Login
+- Talent Login
+- Join Us
 
-### P1 (High Priority)
-- Backend authentication API implementation
-- User profile management
-- Talent portfolio CRUD operations
+### Registration (Join Us)
+- Fields: Name, Email, Password, Phone, Category, Profile Image (required), Portfolio (up to 7 images)
+- New registrations require admin approval
 
-### P2 (Medium Priority)
-- Voting functionality backend
-- Image upload for portfolios
+### Admin Panel
+- Approve/reject talents
+- Manage hero images, awards, ads
+- Rank talents
+- Export talent data to CSV
+
+### Talent Dashboard
+- Edit profile
+- Update portfolio images
+
+### Forgot Password
+- OTP displayed on screen (no email integration)
+
+### Voting System
+- Vote for talents (IP-based restriction)
+
+## Tech Stack
+- Frontend: React.js + Tailwind CSS
+- Backend: FastAPI (Python)
+- Database: MongoDB
+
+## What's Been Implemented ✅
+
+### Backend (server.py)
+- Full authentication (users and talents)
+- Admin APIs (talent management, content management)
+- Talent portfolio management
+- Voting system
+- CSV export
+- Password reset with OTP
+
+### Frontend (App.js)
+- All pages and components
+- Mobile hamburger menu navigation
+- Talent detail modal on click
+- Forgot password with OTP display
 - Admin dashboard
+- Talent dashboard
 
-## Next Tasks
-1. Implement backend auth endpoints (/api/auth/login, /api/auth/register)
-2. Connect frontend forms to backend APIs
-3. Add user profile management
-4. Implement portfolio upload feature
+## Bug Fixes Applied (February 2, 2026)
+1. ✅ Mobile navigation - Working (hamburger menu with all tabs)
+2. ✅ Talent profile click - Modal opens with details
+3. ✅ Forgot password OTP - Displayed on screen
+4. ⚠️ "Made with Emergent" branding - Platform-injected, cannot remove
+
+## API Endpoints
+- `/health` - Health check
+- `/api/auth/{login,register}` - User auth
+- `/api/talent/{register,login,forgot-password,reset-password}` - Talent auth
+- `/api/talents` - List talents
+- `/api/vote` - Cast vote
+- `/api/admin/*` - Admin operations
+
+## Database Collections
+- users: {id, name, email, password_hash, is_admin}
+- talents: {id, name, email, password_hash, phone, instagram_id, category, bio, profile_image, portfolio_images, is_approved, rank, votes}
+- hero_images: {id, image_data, category, title, subtitle}
+- awards: {id, image_data, title, description, talent_id}
+- advertisements: {id, image_data, link, is_active}
+
+## Future Tasks (Backlog)
+- P1: SEO Meta Tags (titles, descriptions, Open Graph)
+- P2: Code refactoring (split monolithic files)
+- P2: Portfolio image gallery in talent modal
+
+## Admin Credentials
+- Email: admin@bangalorefashionmag.com
+- Password: Admin@123BFM
+
+## Notes
+- Live site uses separate Atlas MongoDB from preview
+- "Made with Emergent" branding is platform-injected
