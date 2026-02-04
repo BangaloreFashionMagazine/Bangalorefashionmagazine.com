@@ -21,7 +21,8 @@ const TALENT_CATEGORIES = [
   "Designers",
   "Makeup & Hair",
   "Photography",
-  "Event Management"
+  "Event Management",
+  "Other"
 ];
 
 const DEFAULT_SLIDES = [
