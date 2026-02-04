@@ -589,7 +589,7 @@ const ForgotPasswordPage = () => {
 // Join Us (Talent Registration)
 const JoinPage = () => {
   const [formData, setFormData] = useState({
-    name: "", email: "", password: "", phone: "", instagram_id: "", category: "Model - Female", bio: ""
+    name: "", email: "", password: "", phone: "", instagram_id: "", category: "", bio: ""
   });
   const [profileImage, setProfileImage] = useState("");
   const [portfolio, setPortfolio] = useState([]);
