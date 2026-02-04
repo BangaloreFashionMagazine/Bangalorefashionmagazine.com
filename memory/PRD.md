@@ -74,7 +74,7 @@ Build a fashion magazine website for Bangalore with talent management, admin pan
 - Admin dashboard
 - Talent dashboard
 
-## Bug Fixes Applied (February 2, 2026)
+## Bug Fixes Applied (February 2026)
 1. ✅ Mobile navigation - Working (hamburger menu with all tabs)
 2. ✅ Talent profile click - Modal opens with photo gallery (no contact info)
 3. ✅ Forgot password OTP - Displayed on screen
@@ -83,6 +83,12 @@ Build a fashion magazine website for Bangalore with talent management, admin pan
 6. ✅ Renamed "Awards" to "Contest & Winners" in admin panel
 7. ✅ Advertisements visible on both desktop and mobile
 8. ✅ Contest winners auto-hide from homepage when deleted by admin
+9. ✅ Navbar added to Join Us, Login, Forgot Password pages
+10. ✅ Admin can click talent name to view full details, edit, and approve/reject
+11. ✅ Added "Other" category for talents
+12. ✅ Category can be left blank during registration
+13. ✅ Contact section added below hero slider (Instagram & Email)
+14. ✅ Case-insensitive email handling for login/register/reset password
 
 ## Privacy Rules
 - **Public View (Visitors):** Can only see talent name, category, bio, photos, and vote count
@@ -93,8 +99,12 @@ Build a fashion magazine website for Bangalore with talent management, admin pan
 - **Contest & Winners:** Add/delete contest winners - automatically shows/hides on homepage
 - **Advertisements:** Add/delete ads - displays on homepage sidebar (desktop & mobile)
 - **Hero Images:** Manage homepage slider images
-- **Talent Management:** Approve, reject, rank talents
+- **Talent Management:** Click name to view details, edit, approve, reject, rank talents
 - **Export:** Download talent data as CSV
+
+## Contact Information
+- Instagram: @bangalorefashionmagazine
+- Email: bfm1magazine@gmail.com
 
 ## API Endpoints
 - `/health` - Health check
