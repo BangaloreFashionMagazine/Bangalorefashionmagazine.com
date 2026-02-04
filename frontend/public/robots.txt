@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /talent-dashboard
+
+Sitemap: https://www.bangalorefashionworld.com/sitemap.xml
