@@ -995,7 +995,7 @@ const AdminDashboard = () => {
                 {allTalents.map(t => (
                   <tr key={t.id} className="border-t border-[#D4AF37]/10">
                     <td className="py-2"><input type="number" value={t.rank} onChange={e => updateRank(t.id, parseInt(e.target.value))} className="w-16 px-2 py-1 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-center" /></td>
-                    <td className="py-2 text-[#F5F5F0]">{t.name}</td>
+                    <td className="py-2"><button onClick={() => openTalentDetail(t)} className="text-[#D4AF37] hover:underline font-medium">{t.name}</button></td>
                     <td className="py-2 text-[#A0A5B0]">{t.category}</td>
                     <td className="py-2">{t.is_approved ? <span className="text-green-500">Approved</span> : <span className="text-yellow-500">Pending</span>}</td>
                     <td className="py-2 text-[#D4AF37]">{t.votes}</td>
@@ -1007,6 +1007,141 @@ const AdminDashboard = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Talent Detail Modal for Admin */}
+        {selectedTalent && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80" onClick={() => setSelectedTalent(null)}>
+            <div className="bg-[#0A1628] rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-[#D4AF37]/20 relative" onClick={e => e.stopPropagation()}>
+              <button onClick={() => setSelectedTalent(null)} className="absolute top-4 right-4 p-2 bg-[#050A14] rounded-full text-[#F5F5F0] hover:text-[#D4AF37] z-10">
+                <X size={24} />
+              </button>
+              
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="font-serif text-2xl font-bold text-[#F5F5F0]">Talent Details</h2>
+                  <div className="flex gap-2">
+                    {!editMode ? (
+                      <button onClick={() => setEditMode(true)} className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold">Edit</button>
+                    ) : (
+                      <>
+                        <button onClick={saveTalentEdit} className="px-4 py-2 bg-green-500 text-white rounded font-bold">Save</button>
+                        <button onClick={() => { setEditMode(false); setEditData({...selectedTalent}); }} className="px-4 py-2 bg-gray-500 text-white rounded font-bold">Cancel</button>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* Profile Image */}
+                  <div>
+                    <img src={editData.profile_image || "https://via.placeholder.com/400"} alt={editData.name} className="w-full aspect-[3/4] object-cover rounded-xl" />
+                    {/* Portfolio Images */}
+                    {editData.portfolio_images && editData.portfolio_images.length > 0 && (
+                      <div className="mt-4">
+                        <p className="text-[#D4AF37] text-sm uppercase mb-2">Portfolio ({editData.portfolio_images.length} images)</p>
+                        <div className="grid grid-cols-4 gap-2">
+                          {editData.portfolio_images.map((img, i) => (
+                            <img key={i} src={img} alt={`Portfolio ${i+1}`} className="w-full aspect-square object-cover rounded" />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Details Form */}
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-[#A0A5B0] text-sm">Name</label>
+                      {editMode ? (
+                        <input type="text" value={editData.name || ""} onChange={e => setEditData({...editData, name: e.target.value})} className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+                      ) : (
+                        <p className="text-[#F5F5F0] text-lg font-bold">{editData.name}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="text-[#A0A5B0] text-sm">Email</label>
+                      <p className="text-[#F5F5F0]">{editData.email}</p>
+                    </div>
+
+                    <div>
+                      <label className="text-[#A0A5B0] text-sm">Phone</label>
+                      {editMode ? (
+                        <input type="text" value={editData.phone || ""} onChange={e => setEditData({...editData, phone: e.target.value})} className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+                      ) : (
+                        <p className="text-[#F5F5F0]">{editData.phone || "N/A"}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="text-[#A0A5B0] text-sm">Instagram</label>
+                      {editMode ? (
+                        <input type="text" value={editData.instagram_id || ""} onChange={e => setEditData({...editData, instagram_id: e.target.value})} className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+                      ) : (
+                        <p className="text-[#F5F5F0]">{editData.instagram_id || "N/A"}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="text-[#A0A5B0] text-sm">Category</label>
+                      {editMode ? (
+                        <select value={editData.category || ""} onChange={e => setEditData({...editData, category: e.target.value})} className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]">
+                          {TALENT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                      ) : (
+                        <p className="text-[#D4AF37]">{editData.category}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="text-[#A0A5B0] text-sm">Bio</label>
+                      {editMode ? (
+                        <textarea value={editData.bio || ""} onChange={e => setEditData({...editData, bio: e.target.value})} className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] h-24" />
+                      ) : (
+                        <p className="text-[#A0A5B0]">{editData.bio || "No bio"}</p>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-[#A0A5B0] text-sm">Rank</label>
+                        <p className="text-[#F5F5F0]">{editData.rank}</p>
+                      </div>
+                      <div>
+                        <label className="text-[#A0A5B0] text-sm">Votes</label>
+                        <p className="text-[#D4AF37] font-bold">{editData.votes}</p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-[#A0A5B0] text-sm">Status</label>
+                      <p className={editData.is_approved ? "text-green-500 font-bold" : "text-yellow-500 font-bold"}>
+                        {editData.is_approved ? "Approved" : "Pending Approval"}
+                      </p>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-3 pt-4 border-t border-[#D4AF37]/20">
+                      {!editData.is_approved && (
+                        <button onClick={() => approve(editData.id)} className="flex-1 px-4 py-2 bg-green-500 text-white rounded font-bold flex items-center justify-center gap-2">
+                          <Check size={18} /> Approve
+                        </button>
+                      )}
+                      {editData.is_approved && (
+                        <button onClick={() => reject(editData.id)} className="flex-1 px-4 py-2 bg-yellow-500 text-white rounded font-bold">
+                          Revoke Approval
+                        </button>
+                      )}
+                      <button onClick={() => deleteTalent(editData.id)} className="px-4 py-2 bg-red-500 text-white rounded font-bold flex items-center gap-2">
+                        <Trash2 size={18} /> Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
