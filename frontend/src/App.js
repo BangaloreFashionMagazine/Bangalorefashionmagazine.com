@@ -657,6 +657,7 @@ const JoinPage = () => {
               className="px-4 py-3 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0]" placeholder="Instagram ID" />
             <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}
               className="px-4 py-3 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0]">
+              <option value="">Select Category</option>
               {TALENT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
