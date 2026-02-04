@@ -1281,6 +1281,24 @@ const HomePage = ({ user, talent, onLogout, heroImages, awards, ads }) => (
   <div className="min-h-screen bg-[#050A14]">
     <Navbar user={user} talent={talent} onLogout={onLogout} />
     <HeroSlider customSlides={heroImages} />
+    
+    {/* Contact Section */}
+    <div className="bg-[#0A1628] py-6 border-y border-[#D4AF37]/20">
+      <div className="container mx-auto px-4">
+        <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12 text-center">
+          <p className="text-[#D4AF37] font-serif text-lg">For Booking Talents</p>
+          <a href="https://instagram.com/bangalorefashionmagazine" target="_blank" rel="noopener noreferrer" 
+            className="flex items-center gap-2 text-[#F5F5F0] hover:text-[#D4AF37] transition-colors">
+            <Instagram size={20} /> @bangalorefashionmagazine
+          </a>
+          <a href="mailto:bfm1magazine@gmail.com" 
+            className="flex items-center gap-2 text-[#F5F5F0] hover:text-[#D4AF37] transition-colors">
+            <Mail size={20} /> bfm1magazine@gmail.com
+          </a>
+        </div>
+      </div>
+    </div>
+
     <div className="container mx-auto px-4">
       <div className="flex flex-col lg:flex-row gap-8">
         <div className="flex-1">
