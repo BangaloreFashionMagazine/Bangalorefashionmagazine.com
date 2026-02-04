@@ -843,6 +843,9 @@ const AdminDashboard = () => {
   const [awards, setAwards] = useState([]);
   const [ads, setAds] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [selectedTalent, setSelectedTalent] = useState(null);
+  const [editMode, setEditMode] = useState(false);
+  const [editData, setEditData] = useState({});
   const { toast } = useToast();
 
   // Forms
