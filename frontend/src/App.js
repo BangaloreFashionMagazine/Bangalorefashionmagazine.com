@@ -1099,10 +1099,20 @@ const AdminDashboard = () => {
 const AboutPage = () => (
   <div className="min-h-screen bg-[#050A14] pt-20 pb-12 px-4">
     <div className="container mx-auto max-w-4xl">
-      <h1 className="font-serif text-4xl font-bold text-[#F5F5F0] mb-6">About Us</h1>
-      <div className="prose prose-invert">
-        <p className="text-[#A0A5B0] text-lg mb-4">Bangalore Fashion Magazine is the premier platform for fashion talent in Bangalore and beyond.</p>
-        <p className="text-[#A0A5B0]">We connect models, photographers, designers, makeup artists, stylists, and event managers with opportunities in the fashion industry.</p>
+      <h1 className="font-serif text-4xl font-bold text-[#F5F5F0] mb-8 text-center">About Us</h1>
+      <div className="space-y-6">
+        <p className="text-[#A0A5B0] text-lg leading-relaxed">
+          We are a premier fashion talent management and creative collaboration platform headquartered in Bangalore, curating exceptional talent for the evolving world of fashion and visual culture. With over a decade of industry expertise, we are committed to discovering, refining, and representing professionals who define excellence and influence the future of Indian fashion.
+        </p>
+        <p className="text-[#A0A5B0] text-lg leading-relaxed">
+          Our platform brings together an exclusive collective of models, fashion designers, makeup artists, photographers, videographers, hair stylists, fashion stylists, creative directors, costume designers, master tailors, influencers, and talent agencies—carefully selected for their craft, vision, and professionalism. We provide a seamless ecosystem where creativity meets opportunity across fashion shows, luxury brand campaigns, editorial productions, films, and digital media.
+        </p>
+        <p className="text-[#A0A5B0] text-lg leading-relaxed">
+          We believe true luxury lies in precision, credibility, and meaningful collaboration. Through curated profiles, verified talent, and discreet access to opportunities, we enable brands and creatives to connect with confidence and clarity. Every collaboration is approached with intention, aesthetic integrity, and an uncompromising standard of quality.
+        </p>
+        <p className="text-[#A0A5B0] text-lg leading-relaxed">
+          Rooted in innovation and guided by timeless sophistication, our mission is to elevate Indian talent, foster global-ready collaborations, and shape a refined creative community that sets new benchmarks for the fashion industry.
+        </p>
       </div>
     </div>
   </div>
