@@ -268,7 +268,8 @@ async def register_talent(talent_data: TalentCreate):
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
     
-    if talent_data.category not in TALENT_CATEGORIES:
+    # Allow empty category or valid category
+    if talent_data.category and talent_data.category not in TALENT_CATEGORIES:
         raise HTTPException(status_code=400, detail=f"Invalid category. Must be one of: {TALENT_CATEGORIES}")
     
     if len(talent_data.password) < 6:
