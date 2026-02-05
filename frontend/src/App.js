@@ -345,16 +345,25 @@ const TalentCard = ({ talent, onVote, onClick }) => {
 };
 
 // Talents Page by Category
-const TalentsPage = ({ category, ads }) => {
+const TalentsPage = ({ ads }) => {
+  const { category } = useParams();
   const [talents, setTalents] = useState([]);
   const [selectedTalent, setSelectedTalent] = useState(null);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const decodedCategory = decodeURIComponent(category);
+  const decodedCategory = decodeURIComponent(category || "");
 
   useEffect(() => {
+    setLoading(true);
     axios.get(`${API}/talents?approved_only=true&category=${encodeURIComponent(decodedCategory)}`)
-      .then(res => setTalents(res.data))
-      .catch(err => console.error(err));
+      .then(res => {
+        setTalents(res.data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
   }, [decodedCategory]);
 
   const handleVote = async (talentId) => {
