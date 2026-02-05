@@ -1278,6 +1278,40 @@ const AdminDashboard = () => {
           </div>
         )}
 
+        {/* Magazine */}
+        {tab === "magazine" && (
+          <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20">
+            <h2 className="text-lg font-bold text-[#F5F5F0] mb-4">Monthly Magazine</h2>
+            <p className="text-[#A0A5B0] text-sm mb-4">Upload your monthly magazine PDF. This will be available for download on the homepage.</p>
+            
+            {magazine ? (
+              <div className="mb-6 p-4 bg-[#050A14] rounded-lg">
+                <p className="text-[#D4AF37] font-bold">Current Magazine:</p>
+                <p className="text-[#F5F5F0]">{magazine.title}</p>
+                <p className="text-[#A0A5B0] text-sm">{magazine.file_name}</p>
+                <p className="text-[#A0A5B0] text-xs mt-1">Uploaded: {new Date(magazine.created_at).toLocaleDateString()}</p>
+                <button onClick={deleteMagazine} className="mt-3 px-4 py-2 bg-red-500 text-white rounded text-sm flex items-center gap-2">
+                  <Trash2 size={14} /> Delete Magazine
+                </button>
+              </div>
+            ) : (
+              <p className="text-[#A0A5B0] mb-4">No magazine uploaded yet.</p>
+            )}
+
+            <div className="space-y-4">
+              <input type="text" placeholder="Magazine Title (e.g. January 2026 Edition)" value={newMagazine.title} onChange={e => setNewMagazine({...newMagazine, title: e.target.value})}
+                className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+              <div>
+                <input type="file" accept="application/pdf" onChange={handleMagazineFile} className="text-[#A0A5B0]" />
+                {newMagazine.file_name && <p className="text-[#D4AF37] text-sm mt-2">Selected: {newMagazine.file_name}</p>}
+              </div>
+              <button onClick={uploadMagazine} className="px-6 py-3 bg-[#D4AF37] text-[#050A14] rounded font-bold flex items-center gap-2">
+                <Download size={18} /> Upload Magazine
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Export */}
         {tab === "export" && (
           <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20">
