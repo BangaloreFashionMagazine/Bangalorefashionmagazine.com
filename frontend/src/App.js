@@ -1418,6 +1418,7 @@ function App() {
   const [heroImages, setHeroImages] = useState([]);
   const [awards, setAwards] = useState([]);
   const [ads, setAds] = useState([]);
+  const [magazine, setMagazine] = useState(null);
 
   useEffect(() => {
     const u = localStorage.getItem("user");
@@ -1429,11 +1430,13 @@ function App() {
     Promise.all([
       axios.get(`${API}/hero-images`),
       axios.get(`${API}/awards?active_only=true`),
-      axios.get(`${API}/advertisements`)
-    ]).then(([h, a, ad]) => {
+      axios.get(`${API}/advertisements`),
+      axios.get(`${API}/magazine`)
+    ]).then(([h, a, ad, mag]) => {
       setHeroImages(h.data);
       setAwards(a.data);
       setAds(ad.data);
+      setMagazine(mag.data?.id ? mag.data : null);
     }).catch(console.error);
   }, []);
 
