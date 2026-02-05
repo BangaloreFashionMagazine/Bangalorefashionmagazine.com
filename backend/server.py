@@ -675,6 +675,35 @@ async def delete_advertisement(ad_id: str):
     return {"message": "Advertisement deleted"}
 
 
+# ============== Magazine ==============
+@api_router.get("/magazine")
+async def get_magazine():
+    magazine = await db.magazine.find_one({}, {"_id": 0}, sort=[("created_at", -1)])
+    return magazine or {}
+
+
+@api_router.post("/admin/magazine")
+async def upload_magazine(data: dict):
+    # Delete old magazine and add new one
+    await db.magazine.delete_many({})
+    doc = {
+        "id": str(uuid.uuid4()),
+        "title": data.get("title", "Monthly Magazine"),
+        "file_data": data.get("file_data"),
+        "file_name": data.get("file_name", "magazine.pdf"),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.magazine.insert_one(doc)
+    logger.info(f"Magazine uploaded: {doc['title']}")
+    return {"message": "Magazine uploaded successfully", "id": doc["id"]}
+
+
+@api_router.delete("/admin/magazine")
+async def delete_magazine():
+    await db.magazine.delete_many({})
+    return {"message": "Magazine deleted"}
+
+
 # Include router
 app.include_router(api_router)
 
