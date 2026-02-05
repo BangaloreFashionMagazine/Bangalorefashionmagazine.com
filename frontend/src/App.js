@@ -954,12 +954,37 @@ const AdminDashboard = () => {
   };
   const deleteAd = async (id) => { await axios.delete(`${API}/admin/advertisements/${id}`); fetchData(); };
 
+  // Magazine
+  const handleMagazineFile = (e) => {
+    const file = e.target.files[0];
+    if (file && file.type === "application/pdf") {
+      const reader = new FileReader();
+      reader.onloadend = () => setNewMagazine({...newMagazine, file_data: reader.result, file_name: file.name});
+      reader.readAsDataURL(file);
+    } else {
+      toast({ title: "Please select a PDF file", variant: "destructive" });
+    }
+  };
+  const uploadMagazine = async () => {
+    if (!newMagazine.file_data || !newMagazine.title) { toast({ title: "Please add title and PDF file", variant: "destructive" }); return; }
+    await axios.post(`${API}/admin/magazine`, newMagazine);
+    setNewMagazine({ title: "", file_data: "", file_name: "" });
+    toast({ title: "Magazine uploaded!" }); fetchData();
+  };
+  const deleteMagazine = async () => { 
+    if (window.confirm("Delete magazine?")) {
+      await axios.delete(`${API}/admin/magazine`); 
+      fetchData(); 
+    }
+  };
+
   const tabs = [
     { id: "pending", label: "Pending", icon: Users },
     { id: "talents", label: "All Talents", icon: Star },
     { id: "hero", label: "Hero Images", icon: Image },
     { id: "contests", label: "Contest & Winners", icon: Award },
     { id: "ads", label: "Advertisements", icon: ExternalLink },
+    { id: "magazine", label: "Magazine", icon: Download },
     { id: "export", label: "Export", icon: Download }
   ];
 
