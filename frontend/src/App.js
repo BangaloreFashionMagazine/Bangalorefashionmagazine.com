@@ -383,8 +383,10 @@ const TalentsPage = ({ ads }) => {
       <div className="container mx-auto px-4">
         <div className="flex gap-8">
           <div className="flex-1">
-            <h1 className="font-serif text-3xl font-bold text-[#F5F5F0] mb-8">{decodedCategory}</h1>
-            {talents.length === 0 ? (
+            <h1 className="font-serif text-3xl font-bold text-[#F5F5F0] mb-8">{decodedCategory || "All Talents"}</h1>
+            {loading ? (
+              <p className="text-[#A0A5B0]">Loading...</p>
+            ) : talents.length === 0 ? (
               <p className="text-[#A0A5B0]">No approved talents in this category yet.</p>
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
