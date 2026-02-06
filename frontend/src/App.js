@@ -940,6 +940,10 @@ const AdminDashboard = () => {
     toast({ title: "Hero image added!" }); fetchData();
   };
   const deleteHero = async (id) => { await axios.delete(`${API}/admin/hero-images/${id}`); fetchData(); };
+  const updateHeroOrder = async (id, order) => {
+    await axios.put(`${API}/admin/hero-images/${id}`, { order });
+    fetchData();
+  };
 
   // Awards
   const handleAwardImg = (e) => {
