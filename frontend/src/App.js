@@ -906,7 +906,11 @@ const AdminDashboard = () => {
 
   const approve = async (id) => { await axios.put(`${API}/admin/talent/${id}/approve`); toast({ title: "Approved!" }); fetchData(); setSelectedTalent(null); };
   const reject = async (id) => { await axios.put(`${API}/admin/talent/${id}/reject`); toast({ title: "Rejected" }); fetchData(); setSelectedTalent(null); };
-  const updateRank = async (id, rank) => { await axios.put(`${API}/admin/talent/${id}/rank?rank=${rank}`); fetchData(); };
+  const updateRank = async (id, rank) => { 
+    await axios.put(`${API}/admin/talent/${id}/rank?rank=${rank}`); 
+    toast({ title: `Rank updated to ${rank}` });
+    fetchData(); 
+  };
   const deleteTalent = async (id) => { if (window.confirm("Delete?")) { await axios.delete(`${API}/admin/talent/${id}`); fetchData(); setSelectedTalent(null); } };
   const exportTalents = () => window.open(`${API}/admin/talents/export`, '_blank');
 
