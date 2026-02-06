@@ -710,16 +710,28 @@ const JoinPage = () => {
 const TalentDashboard = ({ talent, onUpdate }) => {
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState(talent || {});
-  const [portfolio, setPortfolio] = useState(talent?.portfolio_images || []);
+  const [portfolio, setPortfolio] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (talent) {
-      setFormData(talent);
-      setPortfolio(talent.portfolio_images || []);
+    // Fetch fresh talent data from API
+    if (talent?.id) {
+      setFetching(true);
+      axios.get(`${API}/talent/${talent.id}`)
+        .then(res => {
+          setFormData(res.data);
+          setPortfolio(res.data.portfolio_images || []);
+          localStorage.setItem("talent", JSON.stringify(res.data));
+          onUpdate(res.data);
+        })
+        .catch(err => console.error(err))
+        .finally(() => setFetching(false));
+    } else {
+      setFetching(false);
     }
-  }, [talent]);
+  }, [talent?.id]);
 
   const handleProfileImage = (e) => {
     const file = e.target.files[0];
