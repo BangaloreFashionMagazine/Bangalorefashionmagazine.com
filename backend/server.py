@@ -107,15 +107,15 @@ class TalentResponse(BaseModel):
     name: str
     email: str
     phone: str
-    instagram_id: str
-    category: str
-    bio: str
-    profile_image: str
-    portfolio_images: List[str]
-    is_approved: bool
-    rank: int
-    votes: int
-    created_at: str
+    instagram_id: str = ""
+    category: str = ""
+    bio: str = ""
+    profile_image: str = ""
+    portfolio_images: List[str] = []
+    is_approved: bool = False
+    rank: int = 999
+    votes: int = 0
+    created_at: str = ""
 
 class TalentLoginResponse(BaseModel):
     token: str
