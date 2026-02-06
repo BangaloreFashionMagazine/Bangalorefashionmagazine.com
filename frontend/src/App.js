@@ -777,6 +777,7 @@ const TalentDashboard = ({ talent, onUpdate }) => {
   };
 
   if (!talent) return <div className="min-h-screen bg-[#050A14] pt-20 text-center text-[#F5F5F0]">Please login</div>;
+  if (fetching) return <div className="min-h-screen bg-[#050A14] pt-20 text-center text-[#F5F5F0]">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-[#050A14] pt-20 pb-12 px-4">
