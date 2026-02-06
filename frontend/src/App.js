@@ -1045,15 +1045,24 @@ const AdminDashboard = () => {
         {/* All Talents */}
         {tab === "talents" && (
           <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20 overflow-x-auto">
-            <h2 className="text-lg font-bold text-[#F5F5F0] mb-4">All Talents</h2>
+            <h2 className="text-lg font-bold text-[#F5F5F0] mb-2">All Talents</h2>
+            <p className="text-[#A0A5B0] text-sm mb-4">Change rank number and press Enter or click outside to save. Lower rank = shown first.</p>
             <table className="w-full text-sm">
               <thead><tr className="text-left text-[#A0A5B0]">
                 <th className="pb-2">Rank</th><th className="pb-2">Name</th><th className="pb-2">Category</th><th className="pb-2">Status</th><th className="pb-2">Votes</th><th className="pb-2">Actions</th>
               </tr></thead>
               <tbody>
-                {allTalents.map(t => (
+                {allTalents.sort((a, b) => (a.rank || 999) - (b.rank || 999)).map(t => (
                   <tr key={t.id} className="border-t border-[#D4AF37]/10">
-                    <td className="py-2"><input type="number" value={t.rank} onChange={e => updateRank(t.id, parseInt(e.target.value))} className="w-16 px-2 py-1 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-center" /></td>
+                    <td className="py-2">
+                      <input 
+                        type="number" 
+                        defaultValue={t.rank} 
+                        onBlur={e => { const val = parseInt(e.target.value); if (val !== t.rank) updateRank(t.id, val || 999); }}
+                        onKeyDown={e => { if (e.key === 'Enter') { e.target.blur(); } }}
+                        className="w-16 px-2 py-1 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-center" 
+                      />
+                    </td>
                     <td className="py-2"><button onClick={() => openTalentDetail(t)} className="text-[#D4AF37] hover:underline font-medium">{t.name}</button></td>
                     <td className="py-2 text-[#A0A5B0]">{t.category}</td>
                     <td className="py-2">{t.is_approved ? <span className="text-green-500">Approved</span> : <span className="text-yellow-500">Pending</span>}</td>
