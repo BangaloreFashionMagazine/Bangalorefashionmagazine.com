@@ -92,6 +92,8 @@ class TalentCreate(BaseModel):
     bio: Optional[str] = ""
     profile_image: str  # Required
     portfolio_images: Optional[List[str]] = []
+    agreed_to_terms: Optional[bool] = False
+    agreed_at: Optional[str] = ""
 
 class TalentUpdate(BaseModel):
     name: Optional[str] = None
