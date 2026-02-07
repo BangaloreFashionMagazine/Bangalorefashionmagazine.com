@@ -1560,6 +1560,42 @@ const AdminDashboard = () => {
           </div>
         )}
 
+        {/* Background Music */}
+        {tab === "music" && (
+          <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20">
+            <h2 className="text-lg font-bold text-[#F5F5F0] mb-4">Background Music</h2>
+            <p className="text-[#A0A5B0] text-sm mb-4">Upload background music that plays when visitors browse the site. They can mute it if they want.</p>
+            
+            {music ? (
+              <div className="mb-6 p-4 bg-[#050A14] rounded-lg">
+                <p className="text-[#D4AF37] font-bold">Current Music:</p>
+                <p className="text-[#F5F5F0]">{music.title}</p>
+                <p className="text-[#A0A5B0] text-sm">{music.file_name}</p>
+                <audio controls className="mt-2 w-full">
+                  <source src={music.file_data} type="audio/mpeg" />
+                </audio>
+                <button onClick={deleteMusic} className="mt-3 px-4 py-2 bg-red-500 text-white rounded text-sm flex items-center gap-2">
+                  <Trash2 size={14} /> Delete Music
+                </button>
+              </div>
+            ) : (
+              <p className="text-[#A0A5B0] mb-4">No background music uploaded yet.</p>
+            )}
+
+            <div className="space-y-4">
+              <input type="text" placeholder="Music Title (e.g. Chill Beats)" value={newMusic.title} onChange={e => setNewMusic({...newMusic, title: e.target.value})}
+                className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+              <div>
+                <input type="file" accept="audio/mp3,audio/mpeg,audio/wav" onChange={handleMusicFile} className="text-[#A0A5B0]" />
+                {newMusic.file_name && <p className="text-[#D4AF37] text-sm mt-2">Selected: {newMusic.file_name}</p>}
+              </div>
+              <button onClick={uploadMusic} className="px-6 py-3 bg-[#D4AF37] text-[#050A14] rounded font-bold flex items-center gap-2">
+                <Music size={18} /> Upload Music
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Export */}
         {tab === "export" && (
           <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20">
