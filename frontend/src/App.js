@@ -1066,14 +1066,14 @@ const AdminDashboard = () => {
   // Load data when tab changes
   useEffect(() => { loadTabData(tab); }, [tab]);
 
-  const approve = async (id) => { await axios.put(`${API}/admin/talent/${id}/approve`); toast({ title: "Approved!" }); fetchData(); setSelectedTalent(null); };
-  const reject = async (id) => { await axios.put(`${API}/admin/talent/${id}/reject`); toast({ title: "Rejected" }); fetchData(); setSelectedTalent(null); };
+  const approve = async (id) => { await axios.put(`${API}/admin/talent/${id}/approve`); toast({ title: "Approved!" }); fetchPending(); fetchAllTalents(); setSelectedTalent(null); };
+  const reject = async (id) => { await axios.put(`${API}/admin/talent/${id}/reject`); toast({ title: "Rejected" }); fetchPending(); setSelectedTalent(null); };
   const updateRank = async (id, rank) => { 
     await axios.put(`${API}/admin/talent/${id}/rank?rank=${rank}`); 
     toast({ title: `Rank updated to ${rank}` });
-    fetchData(); 
+    fetchAllTalents(); 
   };
-  const deleteTalent = async (id) => { if (window.confirm("Delete?")) { await axios.delete(`${API}/admin/talent/${id}`); fetchData(); setSelectedTalent(null); } };
+  const deleteTalent = async (id) => { if (window.confirm("Delete?")) { await axios.delete(`${API}/admin/talent/${id}`); fetchPending(); fetchAllTalents(); setSelectedTalent(null); } };
   const exportTalents = () => window.open(`${API}/admin/talents/export`, '_blank');
 
   const openTalentDetail = async (talent) => {
@@ -1095,7 +1095,7 @@ const AdminDashboard = () => {
     try {
       await axios.put(`${API}/talent/${selectedTalent.id}`, editData);
       toast({ title: "Talent updated!" });
-      fetchData();
+      fetchAllTalents();
       setSelectedTalent(null);
       setEditMode(false);
     } catch (err) {
@@ -1112,12 +1112,12 @@ const AdminDashboard = () => {
     if (!newHero.image_data || !newHero.title) { toast({ title: "Fill all fields", variant: "destructive" }); return; }
     await axios.post(`${API}/admin/hero-images`, newHero);
     setNewHero({ title: "", subtitle: "", category: "", order: heroImages.length + 1, image_data: "" });
-    toast({ title: "Hero image added!" }); fetchData();
+    toast({ title: "Hero image added!" }); fetchHeroImages();
   };
-  const deleteHero = async (id) => { await axios.delete(`${API}/admin/hero-images/${id}`); fetchData(); };
+  const deleteHero = async (id) => { await axios.delete(`${API}/admin/hero-images/${id}`); fetchHeroImages(); };
   const updateHeroOrder = async (id, order) => {
     await axios.put(`${API}/admin/hero-images/${id}`, { order });
-    fetchData();
+    fetchHeroImages();
   };
 
   // Awards
@@ -1129,9 +1129,9 @@ const AdminDashboard = () => {
     if (!newAward.title || !newAward.winner_name) { toast({ title: "Fill required fields", variant: "destructive" }); return; }
     await axios.post(`${API}/admin/awards`, newAward);
     setNewAward({ title: "", winner_name: "", winner_image: "", description: "", category: "" });
-    toast({ title: "Award created!" }); fetchData();
+    toast({ title: "Award created!" }); fetchAwards();
   };
-  const deleteAward = async (id) => { await axios.delete(`${API}/admin/awards/${id}`); fetchData(); };
+  const deleteAward = async (id) => { await axios.delete(`${API}/admin/awards/${id}`); fetchAwards(); };
 
   // Ads
   const handleAdImg = (e) => {
@@ -1142,9 +1142,9 @@ const AdminDashboard = () => {
     if (!newAd.image_data || !newAd.title) { toast({ title: "Fill all fields", variant: "destructive" }); return; }
     await axios.post(`${API}/admin/advertisements`, newAd);
     setNewAd({ title: "", link: "", order: ads.length + 1, image_data: "" });
-    toast({ title: "Ad added!" }); fetchData();
+    toast({ title: "Ad added!" }); fetchAds();
   };
-  const deleteAd = async (id) => { await axios.delete(`${API}/admin/advertisements/${id}`); fetchData(); };
+  const deleteAd = async (id) => { await axios.delete(`${API}/admin/advertisements/${id}`); fetchAds(); };
 
   // Magazine
   const handleMagazineFile = (e) => {
@@ -1161,12 +1161,12 @@ const AdminDashboard = () => {
     if (!newMagazine.file_data || !newMagazine.title) { toast({ title: "Please add title and PDF file", variant: "destructive" }); return; }
     await axios.post(`${API}/admin/magazine`, newMagazine);
     setNewMagazine({ title: "", file_data: "", file_name: "" });
-    toast({ title: "Magazine uploaded!" }); fetchData();
+    toast({ title: "Magazine uploaded!" }); fetchMagazine();
   };
   const deleteMagazine = async () => { 
     if (window.confirm("Delete magazine?")) {
       await axios.delete(`${API}/admin/magazine`); 
-      fetchData(); 
+      fetchMagazine(); 
     }
   };
 
@@ -1185,12 +1185,12 @@ const AdminDashboard = () => {
     if (!newMusic.file_data || !newMusic.title) { toast({ title: "Please add title and audio file", variant: "destructive" }); return; }
     await axios.post(`${API}/admin/music`, newMusic);
     setNewMusic({ title: "", file_data: "", file_name: "" });
-    toast({ title: "Music uploaded!" }); fetchData();
+    toast({ title: "Music uploaded!" }); fetchMusic();
   };
   const deleteMusic = async () => { 
     if (window.confirm("Delete music?")) {
       await axios.delete(`${API}/admin/music`); 
-      fetchData(); 
+      fetchMusic(); 
     }
   };
 
@@ -1199,12 +1199,12 @@ const AdminDashboard = () => {
     if (!newVideo.video_url || !newVideo.title) { toast({ title: "Please add title and video URL", variant: "destructive" }); return; }
     await axios.post(`${API}/admin/video`, newVideo);
     setNewVideo({ title: "", video_url: "", video_type: "youtube" });
-    toast({ title: "Video uploaded!" }); fetchData();
+    toast({ title: "Video uploaded!" }); fetchVideo();
   };
   const deleteVideo = async () => { 
     if (window.confirm("Delete video?")) {
       await axios.delete(`${API}/admin/video`); 
-      fetchData(); 
+      fetchVideo(); 
     }
   };
 
