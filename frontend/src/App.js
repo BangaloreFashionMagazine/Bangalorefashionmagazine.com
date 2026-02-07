@@ -1239,17 +1239,17 @@ const AdminDashboard = () => {
         {tab === "pending" && (
           <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20">
             <h2 className="text-lg font-bold text-[#F5F5F0] mb-4">Pending Approvals</h2>
-            {pending.length === 0 ? <p className="text-[#A0A5B0]">No pending</p> : (
+            {loading ? <p className="text-[#A0A5B0]">Loading...</p> : pending.length === 0 ? <p className="text-[#A0A5B0]">No pending</p> : (
               <div className="space-y-3">
                 {pending.map(t => (
-                  <div key={t.id} className="flex items-center gap-4 p-3 bg-[#050A14] rounded">
+                  <div key={t.id} className="flex items-center gap-4 p-3 bg-[#050A14] rounded cursor-pointer hover:bg-[#0D1B2A]" onClick={() => openTalentDetail(t)}>
                     <img src={t.profile_image || "https://via.placeholder.com/50"} className="w-12 h-12 rounded-full object-cover" />
                     <div className="flex-1">
                       <p className="text-[#F5F5F0] font-bold">{t.name}</p>
                       <p className="text-[#A0A5B0] text-sm">{t.category} • {t.email}</p>
                     </div>
-                    <button onClick={() => approve(t.id)} className="p-2 bg-green-500/20 text-green-500 rounded hover:bg-green-500 hover:text-white"><Check size={16} /></button>
-                    <button onClick={() => reject(t.id)} className="p-2 bg-red-500/20 text-red-500 rounded hover:bg-red-500 hover:text-white"><X size={16} /></button>
+                    <button onClick={(e) => { e.stopPropagation(); approve(t.id); }} className="p-2 bg-green-500/20 text-green-500 rounded hover:bg-green-500 hover:text-white"><Check size={16} /></button>
+                    <button onClick={(e) => { e.stopPropagation(); reject(t.id); }} className="p-2 bg-red-500/20 text-red-500 rounded hover:bg-red-500 hover:text-white"><X size={16} /></button>
                   </div>
                 ))}
               </div>
