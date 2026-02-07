@@ -524,7 +524,9 @@ async def get_talent_full_details(talent_id: str):
         "is_approved": talent.get("is_approved", False),
         "rank": talent.get("rank", 999),
         "votes": talent.get("votes", 0),
-        "created_at": talent.get("created_at", "")
+        "created_at": talent.get("created_at", ""),
+        "agreed_to_terms": talent.get("agreed_to_terms", False),
+        "agreed_at": talent.get("agreed_at", "")
     }
 
 
