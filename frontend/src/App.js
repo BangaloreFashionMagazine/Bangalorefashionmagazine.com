@@ -1777,10 +1777,39 @@ const AboutPage = () => (
 );
 
 // Home Page
-const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine }) => (
+const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine, video }) => (
   <div className="min-h-screen bg-[#050A14]">
     <Navbar user={user} talent={talent} onLogout={onLogout} />
     <HeroSlider customSlides={heroImages} />
+    
+    {/* Featured Video Section */}
+    {video && video.video_url && (
+      <div className="bg-[#0A1628] py-8 border-y border-[#D4AF37]/20">
+        <div className="container mx-auto px-4">
+          <h3 className="text-[#D4AF37] font-serif text-xl text-center mb-4">{video.title || "Featured Video"}</h3>
+          <div className="max-w-3xl mx-auto aspect-video rounded-lg overflow-hidden border border-[#D4AF37]/20">
+            {video.video_type === "youtube" && (
+              <iframe
+                src={`https://www.youtube.com/embed/${video.video_url.includes("youtu.be") ? video.video_url.split("/").pop().split("?")[0] : video.video_url.includes("v=") ? video.video_url.split("v=")[1].split("&")[0] : video.video_url}`}
+                className="w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                title={video.title}
+              />
+            )}
+            {video.video_type === "vimeo" && (
+              <iframe
+                src={`https://player.vimeo.com/video/${video.video_url.split("/").pop()}`}
+                className="w-full h-full"
+                allow="autoplay; fullscreen; picture-in-picture"
+                allowFullScreen
+                title={video.title}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+    )}
     
     {/* Contact Section */}
     <div className="bg-[#0A1628] py-6 border-y border-[#D4AF37]/20">
