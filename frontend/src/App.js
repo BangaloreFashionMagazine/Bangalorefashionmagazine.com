@@ -1109,17 +1109,52 @@ const AdminDashboard = () => {
                   {/* Profile Image */}
                   <div>
                     <img src={editData.profile_image || "https://via.placeholder.com/400"} alt={editData.name} className="w-full aspect-[3/4] object-cover rounded-xl" />
-                    {/* Portfolio Images */}
-                    {editData.portfolio_images && editData.portfolio_images.length > 0 && (
-                      <div className="mt-4">
-                        <p className="text-[#D4AF37] text-sm uppercase mb-2">Portfolio ({editData.portfolio_images.length} images)</p>
-                        <div className="grid grid-cols-4 gap-2">
-                          {editData.portfolio_images.map((img, i) => (
-                            <img key={i} src={img} alt={`Portfolio ${i+1}`} className="w-full aspect-square object-cover rounded" />
-                          ))}
-                        </div>
+                    {editMode && (
+                      <div className="mt-2">
+                        <label className="text-[#A0A5B0] text-sm">Change Profile Image</label>
+                        <input type="file" accept="image/*" onChange={e => {
+                          const file = e.target.files[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => setEditData({...editData, profile_image: reader.result});
+                            reader.readAsDataURL(file);
+                          }
+                        }} className="text-[#A0A5B0] text-sm mt-1" />
                       </div>
                     )}
+                    
+                    {/* Portfolio Images */}
+                    <div className="mt-4">
+                      <p className="text-[#D4AF37] text-sm uppercase mb-2">Portfolio ({(editData.portfolio_images || []).length}/7 images)</p>
+                      <div className="grid grid-cols-4 gap-2">
+                        {(editData.portfolio_images || []).map((img, i) => (
+                          <div key={i} className="relative group">
+                            <img src={img} alt={`Portfolio ${i+1}`} className="w-full aspect-square object-cover rounded" />
+                            {editMode && (
+                              <button onClick={() => setEditData({...editData, portfolio_images: editData.portfolio_images.filter((_, idx) => idx !== i)})} 
+                                className="absolute top-0 right-0 p-1 bg-red-500 rounded-full opacity-0 group-hover:opacity-100">
+                                <X size={12} className="text-white" />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      {editMode && (editData.portfolio_images || []).length < 7 && (
+                        <input type="file" accept="image/*" multiple onChange={e => {
+                          const files = Array.from(e.target.files);
+                          const currentCount = (editData.portfolio_images || []).length;
+                          if (currentCount + files.length > 7) {
+                            toast({ title: "Max 7 portfolio images", variant: "destructive" });
+                            return;
+                          }
+                          files.forEach(file => {
+                            const reader = new FileReader();
+                            reader.onloadend = () => setEditData(prev => ({...prev, portfolio_images: [...(prev.portfolio_images || []), reader.result].slice(0, 7)}));
+                            reader.readAsDataURL(file);
+                          });
+                        }} className="text-[#A0A5B0] text-sm mt-2" />
+                      )}
+                    </div>
                   </div>
                   
                   {/* Details Form */}
@@ -1133,9 +1168,37 @@ const AdminDashboard = () => {
                       )}
                     </div>
 
-                    <div>
-                      <label className="text-[#A0A5B0] text-sm">Email</label>
-                      <p className="text-[#F5F5F0]">{editData.email}</p>
+                    {/* Login Credentials Section */}
+                    <div className="p-3 bg-[#050A14] rounded-lg border border-[#D4AF37]/30">
+                      <p className="text-[#D4AF37] text-xs uppercase mb-2">Login Credentials</p>
+                      <div className="space-y-2">
+                        <div>
+                          <label className="text-[#A0A5B0] text-xs">Email (Username)</label>
+                          <p className="text-[#F5F5F0] font-mono text-sm">{editData.email}</p>
+                        </div>
+                        <div>
+                          <label className="text-[#A0A5B0] text-xs">Password</label>
+                          <p className="text-[#A0A5B0] text-xs italic">Password is encrypted. Use reset to change.</p>
+                          {editMode && (
+                            <div className="mt-2">
+                              <input type="text" placeholder="Enter new password" id={`newpw-${editData.id}`}
+                                className="w-full px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-sm" />
+                              <button onClick={async () => {
+                                const newPw = document.getElementById(`newpw-${editData.id}`).value;
+                                if (newPw && newPw.length >= 6) {
+                                  await axios.put(`${API}/admin/talent/${editData.id}/password`, { password: newPw });
+                                  toast({ title: "Password updated!" });
+                                  document.getElementById(`newpw-${editData.id}`).value = '';
+                                } else {
+                                  toast({ title: "Password must be at least 6 characters", variant: "destructive" });
+                                }
+                              }} className="mt-2 px-3 py-1 bg-[#D4AF37] text-[#050A14] rounded text-sm font-bold">
+                                Reset Password
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
 
                     <div>
