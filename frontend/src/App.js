@@ -498,7 +498,7 @@ const TalentLoginPage = ({ onTalentLogin }) => {
           </button>
         </form>
         <div className="mt-4 text-center space-y-2">
-          <Link to="/forgot-password" className="text-[#D4AF37] text-sm hover:underline">Forgot Password?</Link>
+          <p className="text-[#A0A5B0] text-sm mt-2">Forgot password? Contact admin.</p>
           <p className="text-[#A0A5B0] text-sm">New talent? <Link to="/join" className="text-[#D4AF37] hover:underline">Register here</Link></p>
         </div>
       </div>
