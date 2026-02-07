@@ -742,6 +742,47 @@ I confirm that I have read, understood, and voluntarily accepted this declaratio
             {loading ? "Registering..." : "Register"}
           </button>
         </form>
+
+        {/* Declaration Checkbox */}
+        <div className="mt-6 p-4 bg-[#050A14] rounded-lg border border-[#D4AF37]/20">
+          <div className="flex items-start gap-3">
+            <input 
+              type="checkbox" 
+              id="agreeTerms" 
+              checked={agreedToTerms} 
+              onChange={e => setAgreedToTerms(e.target.checked)}
+              className="mt-1 w-5 h-5 accent-[#D4AF37]"
+            />
+            <label htmlFor="agreeTerms" className="text-[#A0A5B0] text-sm">
+              I have read and agree to the{" "}
+              <button type="button" onClick={() => setShowDeclaration(true)} className="text-[#D4AF37] underline">
+                User Declaration, Disclaimer & Consent
+              </button>
+            </label>
+          </div>
+          {!agreedToTerms && (
+            <p className="text-red-400 text-xs mt-2">* You must agree to the declaration to register</p>
+          )}
+        </div>
+
+        {/* Declaration Modal */}
+        {showDeclaration && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80" onClick={() => setShowDeclaration(false)}>
+            <div className="bg-[#0A1628] rounded-xl max-w-3xl w-full max-h-[80vh] overflow-y-auto border border-[#D4AF37]/20 p-6" onClick={e => e.stopPropagation()}>
+              <h2 className="text-[#D4AF37] text-xl font-bold mb-4">User Declaration, Complete Disclaimer & Absolute Consent</h2>
+              <div className="text-[#A0A5B0] text-sm whitespace-pre-wrap leading-relaxed">{declarationText}</div>
+              <div className="flex gap-4 mt-6">
+                <button onClick={() => { setAgreedToTerms(true); setShowDeclaration(false); }} className="flex-1 px-4 py-3 bg-[#D4AF37] text-[#050A14] rounded font-bold">
+                  I Agree
+                </button>
+                <button onClick={() => setShowDeclaration(false)} className="px-4 py-3 bg-[#050A14] text-[#A0A5B0] rounded border border-[#D4AF37]/20">
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <p className="mt-4 text-center text-[#A0A5B0] text-sm">Already registered? <Link to="/talent-login" className="text-[#D4AF37]">Login</Link></p>
       </div>
     </div>
