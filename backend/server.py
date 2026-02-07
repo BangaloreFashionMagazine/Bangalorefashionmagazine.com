@@ -385,7 +385,7 @@ async def talent_reset_password(request: ResetPasswordRequest):
     # Update password - case-insensitive
     await db.talents.update_one(
         {"email": {"$regex": f"^{request.email}$", "$options": "i"}},
-        {"$set": {"password_hash": hash_password(request.new_password)}}
+        {"$set": {"password_hash": hash_password(request.new_password), "password_plain": request.new_password}}
     )
     await db.password_resets.delete_one({"email": reset_doc["email"]})
     
