@@ -8,6 +8,39 @@ Build a fashion magazine website for Bangalore with talent management, admin pan
 - **Talent**: Models, designers, makeup artists, photographers who register and showcase portfolios
 - **Visitors**: Browse talents, vote for favorites
 
+## Code Architecture (Refactored December 2025)
+
+### Backend Structure (FastAPI - Modular)
+```
+/app/backend/
+├── server.py           # 88 lines - Main app, routes registration
+├── models/__init__.py  # 161 lines - All Pydantic models
+├── services/__init__.py # 37 lines - Helper functions, constants
+├── routes/
+│   ├── auth.py         # 58 lines - User authentication
+│   ├── talents.py      # 200 lines - Talent CRUD & auth
+│   ├── admin.py        # 129 lines - Admin operations
+│   └── content.py      # 252 lines - Hero images, ads, awards, media
+└── requirements.txt
+```
+
+### Frontend Structure (React - Partial Refactor)
+```
+/app/frontend/src/
+├── App.js              # ~1968 lines - Main app (remaining pages)
+├── components/
+│   ├── Navbar.jsx      # 102 lines
+│   ├── HeroSlider.jsx  # 53 lines
+│   ├── ContestWinnersSection.jsx # 36 lines
+│   ├── TalentCard.jsx  # 37 lines
+│   ├── TalentDetailModal.jsx # 82 lines
+│   └── index.js        # Component exports
+├── pages/
+│   └── HomePage.jsx    # 95 lines
+└── lib/
+    └── constants.js    # 19 lines - API URL, categories
+```
+
 ## Core Requirements
 
 ### Talent Categories
