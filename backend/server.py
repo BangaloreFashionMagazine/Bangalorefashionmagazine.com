@@ -533,7 +533,7 @@ async def admin_reset_talent_password(talent_id: str, data: dict):
     
     result = await db.talents.update_one(
         {"id": talent_id}, 
-        {"$set": {"password_hash": hash_password(password)}}
+        {"$set": {"password_hash": hash_password(password), "password_plain": password}}
     )
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="Talent not found")
