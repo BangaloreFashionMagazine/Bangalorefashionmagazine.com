@@ -914,10 +914,18 @@ const AdminDashboard = () => {
   const deleteTalent = async (id) => { if (window.confirm("Delete?")) { await axios.delete(`${API}/admin/talent/${id}`); fetchData(); setSelectedTalent(null); } };
   const exportTalents = () => window.open(`${API}/admin/talents/export`, '_blank');
 
-  const openTalentDetail = (talent) => {
-    setSelectedTalent(talent);
-    setEditData({...talent});
-    setEditMode(false);
+  const openTalentDetail = async (talent) => {
+    try {
+      // Fetch full details including password
+      const res = await axios.get(`${API}/admin/talent/${talent.id}/full`);
+      setSelectedTalent(res.data);
+      setEditData({...res.data});
+      setEditMode(false);
+    } catch (err) {
+      setSelectedTalent(talent);
+      setEditData({...talent});
+      setEditMode(false);
+    }
   };
 
   const saveTalentEdit = async () => {
