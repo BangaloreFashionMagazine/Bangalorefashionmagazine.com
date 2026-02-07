@@ -301,7 +301,9 @@ async def register_talent(talent_data: TalentCreate):
         "rank": 999,
         "votes": 0,
         "created_at": datetime.now(timezone.utc).isoformat(),
-        "is_active": True
+        "is_active": True,
+        "agreed_to_terms": talent_data.agreed_to_terms or False,
+        "agreed_at": talent_data.agreed_at or datetime.now(timezone.utc).isoformat()
     }
     await db.talents.insert_one(talent_doc)
     logger.info(f"New talent registered: {talent_data.email}")
