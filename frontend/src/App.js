@@ -1801,6 +1801,9 @@ function App() {
       if (mus.data?.id && mus.data?.file_data) {
         setMusic(mus.data);
       }
+      if (vid.data?.id) {
+        setVideo(vid.data);
+      }
     }).catch(console.error);
   }, []);
 
