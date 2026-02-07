@@ -750,6 +750,34 @@ async def delete_magazine():
     return {"message": "Magazine deleted"}
 
 
+# ============== Background Music ==============
+@api_router.get("/music")
+async def get_music():
+    music = await db.music.find_one({}, {"_id": 0}, sort=[("created_at", -1)])
+    return music or {}
+
+
+@api_router.post("/admin/music")
+async def upload_music(data: dict):
+    await db.music.delete_many({})
+    doc = {
+        "id": str(uuid.uuid4()),
+        "title": data.get("title", "Background Music"),
+        "file_data": data.get("file_data"),
+        "file_name": data.get("file_name", "music.mp3"),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.music.insert_one(doc)
+    logger.info(f"Music uploaded: {doc['title']}")
+    return {"message": "Music uploaded successfully", "id": doc["id"]}
+
+
+@api_router.delete("/admin/music")
+async def delete_music():
+    await db.music.delete_many({})
+    return {"message": "Music deleted"}
+
+
 # Include router
 app.include_router(api_router)
 
