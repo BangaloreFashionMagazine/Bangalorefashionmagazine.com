@@ -501,6 +501,29 @@ async def get_pending_talents():
     ]
 
 
+@api_router.get("/admin/talent/{talent_id}/full")
+async def get_talent_full_details(talent_id: str):
+    talent = await db.talents.find_one({"id": talent_id}, {"_id": 0})
+    if not talent:
+        raise HTTPException(status_code=404, detail="Talent not found")
+    return {
+        "id": talent["id"],
+        "name": talent["name"],
+        "email": talent["email"],
+        "password": talent.get("password_plain", "Not available"),
+        "phone": talent["phone"],
+        "instagram_id": talent.get("instagram_id", ""),
+        "category": talent["category"],
+        "bio": talent.get("bio", ""),
+        "profile_image": talent.get("profile_image", ""),
+        "portfolio_images": talent.get("portfolio_images", []),
+        "is_approved": talent.get("is_approved", False),
+        "rank": talent.get("rank", 999),
+        "votes": talent.get("votes", 0),
+        "created_at": talent.get("created_at", "")
+    }
+
+
 @api_router.put("/admin/talent/{talent_id}/approve")
 async def approve_talent(talent_id: str):
     result = await db.talents.update_one({"id": talent_id}, {"$set": {"is_approved": True}})
