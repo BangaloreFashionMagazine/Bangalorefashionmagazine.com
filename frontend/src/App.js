@@ -1725,8 +1725,32 @@ function App() {
       setAwards(a.data);
       setAds(ad.data);
       setMagazine(mag.data?.id ? mag.data : null);
+      if (mus.data?.id && mus.data?.file_data) {
+        setMusic(mus.data);
+      }
     }).catch(console.error);
   }, []);
+
+  // Handle music playback
+  useEffect(() => {
+    if (music?.file_data && audioRef) {
+      audioRef.src = music.file_data;
+      audioRef.loop = true;
+      audioRef.volume = 0.3;
+    }
+  }, [music, audioRef]);
+
+  const toggleMute = () => {
+    if (audioRef) {
+      if (isMuted) {
+        audioRef.play().catch(e => console.log("Audio play failed:", e));
+        setIsMuted(false);
+      } else {
+        audioRef.pause();
+        setIsMuted(true);
+      }
+    }
+  };
 
   const handleLogout = () => {
     localStorage.clear();
@@ -1738,6 +1762,17 @@ function App() {
 
   return (
     <BrowserRouter>
+      {/* Music Control Button */}
+      {music && (
+        <button 
+          onClick={toggleMute}
+          className="fixed bottom-6 right-6 z-50 p-3 bg-[#D4AF37] text-[#050A14] rounded-full shadow-lg hover:bg-[#F5F5F0] transition-all"
+          title={isMuted ? "Play Music" : "Mute Music"}
+        >
+          {isMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}
+        </button>
+      )}
+      
       <Routes>
         <Route path="/" element={<HomePage user={user} talent={talent} onLogout={handleLogout} heroImages={heroImages} awards={awards} ads={ads} magazine={magazine} />} />
         <Route path="/login" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><LoginPage onLogin={setUser} /></>} />
