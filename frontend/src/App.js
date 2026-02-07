@@ -1703,6 +1703,9 @@ function App() {
   const [awards, setAwards] = useState([]);
   const [ads, setAds] = useState([]);
   const [magazine, setMagazine] = useState(null);
+  const [music, setMusic] = useState(null);
+  const [isMuted, setIsMuted] = useState(true);
+  const [audioRef] = useState(() => typeof Audio !== 'undefined' ? new Audio() : null);
 
   useEffect(() => {
     const u = localStorage.getItem("user");
@@ -1715,8 +1718,9 @@ function App() {
       axios.get(`${API}/hero-images`),
       axios.get(`${API}/awards?active_only=true`),
       axios.get(`${API}/advertisements`),
-      axios.get(`${API}/magazine`)
-    ]).then(([h, a, ad, mag]) => {
+      axios.get(`${API}/magazine`),
+      axios.get(`${API}/music`)
+    ]).then(([h, a, ad, mag, mus]) => {
       setHeroImages(h.data);
       setAwards(a.data);
       setAds(ad.data);
