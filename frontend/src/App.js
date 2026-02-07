@@ -915,16 +915,17 @@ const AdminDashboard = () => {
   const exportTalents = () => window.open(`${API}/admin/talents/export`, '_blank');
 
   const openTalentDetail = async (talent) => {
+    // Show immediately with existing data
+    setSelectedTalent(talent);
+    setEditData({...talent});
+    setEditMode(false);
+    
+    // Fetch password in background
     try {
-      // Fetch full details including password
       const res = await axios.get(`${API}/admin/talent/${talent.id}/full`);
-      setSelectedTalent(res.data);
-      setEditData({...res.data});
-      setEditMode(false);
+      setEditData(prev => ({...prev, password: res.data.password}));
     } catch (err) {
-      setSelectedTalent(talent);
-      setEditData({...talent});
-      setEditMode(false);
+      console.error(err);
     }
   };
 
