@@ -524,6 +524,22 @@ async def update_talent_rank(talent_id: str, rank: int):
     return {"message": f"Rank updated to {rank}"}
 
 
+@api_router.put("/admin/talent/{talent_id}/password")
+async def admin_reset_talent_password(talent_id: str, data: dict):
+    password = data.get("password")
+    if not password or len(password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+    
+    result = await db.talents.update_one(
+        {"id": talent_id}, 
+        {"$set": {"password_hash": hash_password(password)}}
+    )
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Talent not found")
+    logger.info(f"Admin reset password for talent {talent_id}")
+    return {"message": "Password updated"}
+
+
 @api_router.delete("/admin/talent/{talent_id}")
 async def delete_talent(talent_id: str):
     result = await db.talents.delete_one({"id": talent_id})
