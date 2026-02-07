@@ -605,8 +605,46 @@ const JoinPage = () => {
   const [profileImage, setProfileImage] = useState("");
   const [portfolio, setPortfolio] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [showDeclaration, setShowDeclaration] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  const declarationText = `User Declaration, Complete Disclaimer & Absolute Consent
+
+By registering on Bangalore Fashion Magazine, I expressly acknowledge, understand, and agree that the platform functions solely as a digital intermediary and listing platform under the Information Technology Act, 2000 and the Information Technology (Intermediary Guidelines and Digital Media Ethics Code) Rules, 2021.
+
+I fully agree and confirm that:
+
+Bangalore Fashion Magazine only provides a platform for talent discovery and visibility and does not act as an agent, employer, guarantor, broker, manager, or representative of any user.
+
+The platform does not verify, authenticate, endorse, guarantee, or take responsibility for the identity, background, credentials, conduct, availability, pricing, legality, or authenticity of any user, profile, image, video, message, or communication.
+
+Bangalore Fashion Magazine shall not be responsible or liable in any manner whatsoever for:
+
+• Any misuse, unauthorized use, copying, downloading, editing, morphed use, or redistribution of images, videos, or content uploaded by me
+
+• Any fraud, cheating, impersonation, misrepresentation, or false commitments by any user or third party
+
+• Any financial loss, payment dispute, advance payment issue, non-payment, or contractual disagreement
+
+• Any harassment, abuse, misconduct, threats, exploitation, or professional or personal harm
+
+• Any offline or online interaction, meeting, collaboration, photoshoot, event, show, campaign, or engagement arranged through the platform
+
+• Any technical issue, data loss, hacking incident, account compromise, or unauthorized access
+
+I understand that all interactions and engagements are undertaken entirely at my own risk, and I am solely responsible for conducting my own verification, background checks, and due diligence before entering into any professional or personal arrangement.
+
+I declare that all information, images, and content uploaded by me are lawful, original, or duly authorized, and I alone shall be responsible for any legal consequences arising from copyright infringement, privacy violation, or unlawful use.
+
+I acknowledge that my profile will be displayed only after admin approval, and the platform reserves the absolute right to approve, reject, suspend, modify, or remove any profile or content at its sole discretion, without notice and without assigning any reason.
+
+I accept full responsibility for safeguarding my login credentials and understand that password reset via email-based OTP is provided for convenience only, and the platform shall not be responsible for misuse arising from compromised email or device access.
+
+I agree to indemnify, defend, and hold harmless Bangalore Fashion Magazine, its owners, directors, employees, partners, and affiliates from any and all claims, damages, losses, liabilities, legal actions, costs, or expenses arising out of my actions, content, communications, or engagements on or through the platform.
+
+I confirm that I have read, understood, and voluntarily accepted this declaration and agree that my electronic acceptance shall be legally valid and binding under Indian law. I waive any present or future claim against Bangalore Fashion Magazine to the maximum extent permitted by law.`;
 
   const handleProfileImage = (e) => {
     const file = e.target.files[0];
@@ -638,9 +676,13 @@ const JoinPage = () => {
       toast({ title: "Error", description: "Profile image is required", variant: "destructive" });
       return;
     }
+    if (!agreedToTerms) {
+      toast({ title: "Error", description: "You must agree to the declaration to register", variant: "destructive" });
+      return;
+    }
     setLoading(true);
     try {
-      await axios.post(`${API}/talent/register`, { ...formData, profile_image: profileImage, portfolio_images: portfolio });
+      await axios.post(`${API}/talent/register`, { ...formData, profile_image: profileImage, portfolio_images: portfolio, agreed_to_terms: true, agreed_at: new Date().toISOString() });
       toast({ title: "Registration Successful!", description: "Please wait for admin approval." });
       navigate("/talent-login");
     } catch (err) {
