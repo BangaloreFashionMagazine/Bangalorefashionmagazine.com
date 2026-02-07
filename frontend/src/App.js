@@ -1123,10 +1123,25 @@ const AdminDashboard = () => {
     }
   };
 
+  // Video
+  const uploadVideo = async () => {
+    if (!newVideo.video_url || !newVideo.title) { toast({ title: "Please add title and video URL", variant: "destructive" }); return; }
+    await axios.post(`${API}/admin/video`, newVideo);
+    setNewVideo({ title: "", video_url: "", video_type: "youtube" });
+    toast({ title: "Video uploaded!" }); fetchData();
+  };
+  const deleteVideo = async () => { 
+    if (window.confirm("Delete video?")) {
+      await axios.delete(`${API}/admin/video`); 
+      fetchData(); 
+    }
+  };
+
   const tabs = [
     { id: "pending", label: "Pending", icon: Users },
     { id: "talents", label: "All Talents", icon: Star },
     { id: "hero", label: "Hero Images", icon: Image },
+    { id: "video", label: "Featured Video", icon: Video },
     { id: "contests", label: "Contest & Winners", icon: Award },
     { id: "ads", label: "Advertisements", icon: ExternalLink },
     { id: "magazine", label: "Magazine", icon: Download },
