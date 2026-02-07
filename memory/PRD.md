@@ -4,7 +4,7 @@
 Build a fashion magazine website for Bangalore with talent management, admin panel, and voting system.
 
 ## User Personas
-- **Admin**: Manages talents, approves registrations, controls content (hero images, awards, ads)
+- **Admin**: Manages talents, approves registrations, controls content (hero images, awards, ads, magazine, video, music)
 - **Talent**: Models, designers, makeup artists, photographers who register and showcase portfolios
 - **Visitors**: Browse talents, vote for favorites
 
@@ -17,36 +17,49 @@ Build a fashion magazine website for Bangalore with talent management, admin pan
 - Makeup & Hair
 - Photography
 - Event Management
+- Other (custom)
 
 ### Homepage Features
 - Hero slider with 4 admin-managed images
-- Awards section (admin-managed, linked to voting)
-- Advertisement sidebar (admin-managed)
+- Featured Video section (YouTube/Vimeo embeds, admin-managed)
+- Contact section with Instagram & email links
+- Magazine download section (PDF, admin-managed)
+- Contest & Winners section (admin-managed)
+- Advertisement sidebar (admin-managed, visible on all screen sizes)
+- Background music player with mute/unmute button
 
 ### Navigation
 - Home
-- Talents (dropdown with 6 categories)
+- Talents (dropdown with categories)
 - About Us
 - Admin Login
 - Talent Login
 - Join Us
 
 ### Registration (Join Us)
-- Fields: Name, Email, Password, Phone, Category, Profile Image (required), Portfolio (up to 7 images)
+- Fields: Name, Email, Password, Phone, Category (optional), Profile Image (optional), Portfolio (up to 7 images)
+- Declaration/Terms checkbox (mandatory)
 - New registrations require admin approval
+- Talents can upload images later after registration
 
-### Admin Panel
-- Approve/reject talents
-- Manage hero images, awards, ads
-- Rank talents
-- Export talent data to CSV
+### Admin Panel (Lazy Loading for Performance)
+- **Pending Tab:** Approve/reject talents
+- **All Talents Tab:** View, edit, rank, delete talents; view/set passwords
+- **Hero Images Tab:** Manage homepage slider images with ordering
+- **Featured Video Tab:** Add YouTube/Vimeo video URL for homepage
+- **Contest & Winners Tab:** Manage contest winners
+- **Advertisements Tab:** Manage sidebar ads
+- **Magazine Tab:** Upload monthly PDF magazine
+- **Background Music Tab:** Upload audio file for site-wide background music
+- **Export Tab:** Download talent data as CSV
 
 ### Talent Dashboard
 - Edit profile
 - Update portfolio images
 
 ### Forgot Password
-- OTP displayed on screen (no email integration)
+- Removed from public view
+- Admin resets passwords via admin panel
 
 ### Voting System
 - Vote for talents (IP-based restriction)
@@ -58,78 +71,54 @@ Build a fashion magazine website for Bangalore with talent management, admin pan
 
 ## What's Been Implemented ✅
 
-### Backend (server.py)
-- Full authentication (users and talents)
-- Admin APIs (talent management, content management)
-- Talent portfolio management
-- Voting system
-- CSV export
-- Password reset with OTP
+### December 2025 Updates
+1. ✅ Homepage Video Feature: Admin can upload YouTube/Vimeo URLs, displayed below hero slider
+2. ✅ Admin Panel Performance: Lazy loading - only fetches data for active tab
+3. ✅ Magazine PDF download feature
+4. ✅ Background music with mute/unmute
+5. ✅ Declaration checkbox for talent registration
+6. ✅ Admin can view/set talent passwords (plaintext storage per user request)
+7. ✅ Admin talent detail modal with full editing capabilities
+8. ✅ "Other" category for custom talent categories
 
-### Frontend (App.js)
-- All pages and components
-- Mobile hamburger menu navigation
-- Talent detail modal on click
-- Forgot password with OTP display
-- Admin dashboard
-- Talent dashboard
-
-## Bug Fixes Applied (February 2026)
-1. ✅ Mobile navigation - Working (hamburger menu with all tabs)
-2. ✅ Talent profile click - Modal opens with photo gallery (no contact info)
-3. ✅ Forgot password OTP - Displayed on screen
-4. ⚠️ "Made with Emergent" branding - Platform-injected, cannot remove
-5. ✅ Privacy: Talent cards and modal hide contact info (phone, email, Instagram) from public view
-6. ✅ Renamed "Awards" to "Contest & Winners" in admin panel
-7. ✅ Advertisements visible on both desktop and mobile
-8. ✅ Contest winners auto-hide from homepage when deleted by admin
-9. ✅ Navbar added to Join Us, Login, Forgot Password pages
-10. ✅ Admin can click talent name to view full details, edit, and approve/reject
-11. ✅ Added "Other" category for talents
-12. ✅ Category can be left blank during registration
-13. ✅ Contact section added below hero slider (Instagram & Email)
-14. ✅ Case-insensitive email handling for login/register/reset password
+### Bug Fixes Applied
+1. ✅ Mobile navigation - Working (hamburger menu)
+2. ✅ Talent profile click - Modal opens with photo gallery
+3. ✅ Privacy: Contact info hidden from public view
+4. ✅ Case-insensitive email handling
+5. ✅ Navbar on all pages including auth pages
+6. ✅ Talent image upload fix for existing profiles
 
 ## Privacy Rules
-- **Public View (Visitors):** Can only see talent name, category, bio, photos, and vote count
-- **Talent Dashboard:** Talents can only see and edit their OWN profile
-- **Admin Panel:** Admin can see ALL talent details including phone, email, Instagram
-
-## Admin Features
-- **Contest & Winners:** Add/delete contest winners - automatically shows/hides on homepage
-- **Advertisements:** Add/delete ads - displays on homepage sidebar (desktop & mobile)
-- **Hero Images:** Manage homepage slider images
-- **Talent Management:** Click name to view details, edit, approve, reject, rank talents
-- **Export:** Download talent data as CSV
-
-## Contact Information
-- Instagram: @bangalorefashionmagazine
-- Email: bfm1magazine@gmail.com
+- **Public View:** Name, category, bio, photos, vote count only
+- **Admin Panel:** Full access including passwords
 
 ## API Endpoints
-- `/health` - Health check
-- `/api/auth/{login,register}` - User auth
-- `/api/talent/{register,login,forgot-password,reset-password}` - Talent auth
-- `/api/talents` - List talents
-- `/api/vote` - Cast vote
-- `/api/admin/*` - Admin operations
+- `/api/video` - GET video data (public)
+- `/api/admin/video` - POST/DELETE video (admin only)
+- `/api/magazine` - GET magazine data (public)
+- `/api/admin/magazine` - POST/DELETE magazine (admin only)
+- `/api/music` - GET music data (public)
+- `/api/admin/music` - POST/DELETE music (admin only)
+- `/api/admin/talent/{id}/full` - GET talent with password (admin only)
+- `/api/admin/talent/{id}/password` - PUT reset password (admin only)
 
 ## Database Collections
-- users: {id, name, email, password_hash, is_admin}
-- talents: {id, name, email, password_hash, phone, instagram_id, category, bio, profile_image, portfolio_images, is_approved, rank, votes}
-- hero_images: {id, image_data, category, title, subtitle}
-- awards: {id, image_data, title, description, talent_id}
-- advertisements: {id, image_data, link, is_active}
+- users, talents, hero_images, awards, advertisements
+- magazines: {id, title, file_data, file_name, created_at}
+- music: {id, title, file_data, file_name, created_at}
+- videos: {id, title, video_url, video_type, created_at}
 
 ## Future Tasks (Backlog)
-- P1: SEO Meta Tags (titles, descriptions, Open Graph)
-- P2: Code refactoring (split monolithic files)
-- P2: Portfolio image gallery in talent modal
+- **P0: Code Refactoring** - Split monolithic App.js (~1900 lines) and server.py (~850 lines)
+- P1: SEO Enhancements (dynamic meta tags, Google Search Console)
+- P2: Portfolio image gallery improvements
 
 ## Admin Credentials
 - Email: admin@bangalorefashionmag.com
 - Password: Admin@123BFM
 
-## Notes
-- Live site uses separate Atlas MongoDB from preview
-- "Made with Emergent" branding is platform-injected
+## Security Notes
+- Passwords stored in plaintext (`password_plain` field) per user request
+- Admin-only endpoint exposes passwords
+- Live site uses separate MongoDB from preview
