@@ -965,17 +965,20 @@ const AdminDashboard = () => {
   const [newAd, setNewAd] = useState({ title: "", link: "", order: 1, image_data: "" });
   const [newMagazine, setNewMagazine] = useState({ title: "", file_data: "", file_name: "" });
   const [newMusic, setNewMusic] = useState({ title: "", file_data: "", file_name: "" });
+  const [newVideo, setNewVideo] = useState({ title: "", video_url: "", video_type: "youtube" });
+  const [video, setVideo] = useState(null);
 
   const fetchData = async () => {
     try {
-      const [p, a, h, aw, ad, mag, mus] = await Promise.all([
+      const [p, a, h, aw, ad, mag, mus, vid] = await Promise.all([
         axios.get(`${API}/admin/talents/pending`),
         axios.get(`${API}/talents?approved_only=false`),
         axios.get(`${API}/hero-images`),
         axios.get(`${API}/awards?active_only=false`),
         axios.get(`${API}/advertisements`),
         axios.get(`${API}/magazine`),
-        axios.get(`${API}/music`)
+        axios.get(`${API}/music`),
+        axios.get(`${API}/video`)
       ]);
       setPending(p.data);
       setAllTalents(a.data);
@@ -984,6 +987,7 @@ const AdminDashboard = () => {
       setAds(ad.data);
       setMagazine(mag.data?.id ? mag.data : null);
       setMusic(mus.data?.id ? mus.data : null);
+      setVideo(vid.data?.id ? vid.data : null);
     } catch (err) {
       console.error(err);
     }
