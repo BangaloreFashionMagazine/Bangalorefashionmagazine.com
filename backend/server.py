@@ -778,6 +778,34 @@ async def delete_music():
     return {"message": "Music deleted"}
 
 
+# ============== Homepage Video ==============
+@api_router.get("/video")
+async def get_video():
+    video = await db.homepage_video.find_one({}, {"_id": 0}, sort=[("created_at", -1)])
+    return video or {}
+
+
+@api_router.post("/admin/video")
+async def upload_video(data: dict):
+    await db.homepage_video.delete_many({})
+    doc = {
+        "id": str(uuid.uuid4()),
+        "title": data.get("title", "Featured Video"),
+        "video_url": data.get("video_url", ""),
+        "video_type": data.get("video_type", "youtube"),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.homepage_video.insert_one(doc)
+    logger.info(f"Video uploaded: {doc['title']}")
+    return {"message": "Video uploaded successfully", "id": doc["id"]}
+
+
+@api_router.delete("/admin/video")
+async def delete_video():
+    await db.homepage_video.delete_many({})
+    return {"message": "Video deleted"}
+
+
 # Include router
 app.include_router(api_router)
 
