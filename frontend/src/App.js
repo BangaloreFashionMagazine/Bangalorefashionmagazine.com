@@ -1351,6 +1351,23 @@ const AdminDashboard = () => {
                       </p>
                     </div>
 
+                    {/* Declaration Agreement Status */}
+                    <div className="p-3 bg-[#050A14] rounded-lg border border-[#D4AF37]/20">
+                      <label className="text-[#A0A5B0] text-sm">Declaration & Consent</label>
+                      {editData.agreed_to_terms ? (
+                        <div className="mt-1">
+                          <p className="text-green-500 font-bold flex items-center gap-2">
+                            <Check size={16} /> Agreed to Terms
+                          </p>
+                          <p className="text-[#A0A5B0] text-xs mt-1">
+                            Agreed on: {editData.agreed_at ? new Date(editData.agreed_at).toLocaleString() : "N/A"}
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="text-red-400 font-bold mt-1">Not Agreed (Old registration)</p>
+                      )}
+                    </div>
+
                     {/* Action Buttons */}
                     <div className="flex gap-3 pt-4 border-t border-[#D4AF37]/20">
                       {!editData.is_approved && (
