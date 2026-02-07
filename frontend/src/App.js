@@ -1095,6 +1095,30 @@ const AdminDashboard = () => {
     }
   };
 
+  // Music
+  const handleMusicFile = (e) => {
+    const file = e.target.files[0];
+    if (file && (file.type === "audio/mpeg" || file.type === "audio/mp3" || file.type === "audio/wav")) {
+      const reader = new FileReader();
+      reader.onloadend = () => setNewMusic({...newMusic, file_data: reader.result, file_name: file.name});
+      reader.readAsDataURL(file);
+    } else {
+      toast({ title: "Please select an MP3 or WAV file", variant: "destructive" });
+    }
+  };
+  const uploadMusic = async () => {
+    if (!newMusic.file_data || !newMusic.title) { toast({ title: "Please add title and audio file", variant: "destructive" }); return; }
+    await axios.post(`${API}/admin/music`, newMusic);
+    setNewMusic({ title: "", file_data: "", file_name: "" });
+    toast({ title: "Music uploaded!" }); fetchData();
+  };
+  const deleteMusic = async () => { 
+    if (window.confirm("Delete music?")) {
+      await axios.delete(`${API}/admin/music`); 
+      fetchData(); 
+    }
+  };
+
   const tabs = [
     { id: "pending", label: "Pending", icon: Users },
     { id: "talents", label: "All Talents", icon: Star },
