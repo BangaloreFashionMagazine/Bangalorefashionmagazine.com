@@ -952,6 +952,7 @@ const AdminDashboard = () => {
   const [awards, setAwards] = useState([]);
   const [ads, setAds] = useState([]);
   const [magazine, setMagazine] = useState(null);
+  const [music, setMusic] = useState(null);
   const [loading, setLoading] = useState(false);
   const [selectedTalent, setSelectedTalent] = useState(null);
   const [editMode, setEditMode] = useState(false);
@@ -963,16 +964,18 @@ const AdminDashboard = () => {
   const [newAward, setNewAward] = useState({ title: "", winner_name: "", winner_image: "", description: "", category: "" });
   const [newAd, setNewAd] = useState({ title: "", link: "", order: 1, image_data: "" });
   const [newMagazine, setNewMagazine] = useState({ title: "", file_data: "", file_name: "" });
+  const [newMusic, setNewMusic] = useState({ title: "", file_data: "", file_name: "" });
 
   const fetchData = async () => {
     try {
-      const [p, a, h, aw, ad, mag] = await Promise.all([
+      const [p, a, h, aw, ad, mag, mus] = await Promise.all([
         axios.get(`${API}/admin/talents/pending`),
         axios.get(`${API}/talents?approved_only=false`),
         axios.get(`${API}/hero-images`),
         axios.get(`${API}/awards?active_only=false`),
         axios.get(`${API}/advertisements`),
-        axios.get(`${API}/magazine`)
+        axios.get(`${API}/magazine`),
+        axios.get(`${API}/music`)
       ]);
       setPending(p.data);
       setAllTalents(a.data);
