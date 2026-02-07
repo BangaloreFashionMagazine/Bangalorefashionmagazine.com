@@ -1481,6 +1481,58 @@ const AdminDashboard = () => {
           </div>
         )}
 
+        {/* Featured Video */}
+        {tab === "video" && (
+          <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20">
+            <h2 className="text-lg font-bold text-[#F5F5F0] mb-4">Featured Video</h2>
+            <p className="text-[#A0A5B0] text-sm mb-4">Add a YouTube or Vimeo video to display below the hero slider on homepage.</p>
+            
+            {video ? (
+              <div className="mb-6 p-4 bg-[#050A14] rounded-lg">
+                <p className="text-[#D4AF37] font-bold">Current Video:</p>
+                <p className="text-[#F5F5F0]">{video.title}</p>
+                <p className="text-[#A0A5B0] text-sm">{video.video_type === "youtube" ? "YouTube" : "Vimeo"}</p>
+                <div className="mt-3 aspect-video max-w-md">
+                  {video.video_type === "youtube" && (
+                    <iframe 
+                      src={`https://www.youtube.com/embed/${video.video_url.includes("youtu.be") ? video.video_url.split("/").pop().split("?")[0] : video.video_url.includes("v=") ? video.video_url.split("v=")[1].split("&")[0] : video.video_url}`}
+                      className="w-full h-full rounded"
+                      allowFullScreen
+                    />
+                  )}
+                  {video.video_type === "vimeo" && (
+                    <iframe 
+                      src={`https://player.vimeo.com/video/${video.video_url.split("/").pop()}`}
+                      className="w-full h-full rounded"
+                      allowFullScreen
+                    />
+                  )}
+                </div>
+                <button onClick={deleteVideo} className="mt-3 px-4 py-2 bg-red-500 text-white rounded text-sm flex items-center gap-2">
+                  <Trash2 size={14} /> Delete Video
+                </button>
+              </div>
+            ) : (
+              <p className="text-[#A0A5B0] mb-4">No video added yet.</p>
+            )}
+
+            <div className="space-y-4">
+              <input type="text" placeholder="Video Title (e.g. BFM Fashion Show 2024)" value={newVideo.title} onChange={e => setNewVideo({...newVideo, title: e.target.value})}
+                className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+              <select value={newVideo.video_type} onChange={e => setNewVideo({...newVideo, video_type: e.target.value})}
+                className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]">
+                <option value="youtube">YouTube</option>
+                <option value="vimeo">Vimeo</option>
+              </select>
+              <input type="text" placeholder="Video URL (e.g. https://www.youtube.com/watch?v=xxxxx)" value={newVideo.video_url} onChange={e => setNewVideo({...newVideo, video_url: e.target.value})}
+                className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+              <button onClick={uploadVideo} className="px-6 py-3 bg-[#D4AF37] text-[#050A14] rounded font-bold flex items-center gap-2">
+                <Video size={18} /> Add Video
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Contest & Winners */}
         {tab === "contests" && (
           <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20">
