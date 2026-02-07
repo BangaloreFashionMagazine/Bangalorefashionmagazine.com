@@ -1775,6 +1775,7 @@ function App() {
   const [ads, setAds] = useState([]);
   const [magazine, setMagazine] = useState(null);
   const [music, setMusic] = useState(null);
+  const [video, setVideo] = useState(null);
   const [isMuted, setIsMuted] = useState(true);
   const [audioRef] = useState(() => typeof Audio !== 'undefined' ? new Audio() : null);
 
@@ -1790,8 +1791,9 @@ function App() {
       axios.get(`${API}/awards?active_only=true`),
       axios.get(`${API}/advertisements`),
       axios.get(`${API}/magazine`),
-      axios.get(`${API}/music`)
-    ]).then(([h, a, ad, mag, mus]) => {
+      axios.get(`${API}/music`),
+      axios.get(`${API}/video`)
+    ]).then(([h, a, ad, mag, mus, vid]) => {
       setHeroImages(h.data);
       setAwards(a.data);
       setAds(ad.data);
