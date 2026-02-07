@@ -957,6 +957,7 @@ const AdminDashboard = () => {
   const [selectedTalent, setSelectedTalent] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [editData, setEditData] = useState({});
+  const [loadedTabs, setLoadedTabs] = useState({});
   const { toast } = useToast();
 
   // Forms
@@ -968,32 +969,102 @@ const AdminDashboard = () => {
   const [newVideo, setNewVideo] = useState({ title: "", video_url: "", video_type: "youtube" });
   const [video, setVideo] = useState(null);
 
-  const fetchData = async () => {
+  // Tab-specific data fetchers
+  const fetchPending = async () => {
+    setLoading(true);
     try {
-      const [p, a, h, aw, ad, mag, mus, vid] = await Promise.all([
-        axios.get(`${API}/admin/talents/pending`),
-        axios.get(`${API}/talents?approved_only=false`),
-        axios.get(`${API}/hero-images`),
-        axios.get(`${API}/awards?active_only=false`),
-        axios.get(`${API}/advertisements`),
-        axios.get(`${API}/magazine`),
-        axios.get(`${API}/music`),
-        axios.get(`${API}/video`)
-      ]);
-      setPending(p.data);
-      setAllTalents(a.data);
-      setHeroImages(h.data);
-      setAwards(aw.data);
-      setAds(ad.data);
-      setMagazine(mag.data?.id ? mag.data : null);
-      setMusic(mus.data?.id ? mus.data : null);
-      setVideo(vid.data?.id ? vid.data : null);
-    } catch (err) {
-      console.error(err);
-    }
+      const res = await axios.get(`${API}/admin/talents/pending`);
+      setPending(res.data);
+    } catch (err) { console.error(err); }
+    setLoading(false);
+  };
+  
+  const fetchAllTalents = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API}/talents?approved_only=false`);
+      setAllTalents(res.data);
+    } catch (err) { console.error(err); }
+    setLoading(false);
+  };
+  
+  const fetchHeroImages = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API}/hero-images`);
+      setHeroImages(res.data);
+    } catch (err) { console.error(err); }
+    setLoading(false);
+  };
+  
+  const fetchAwards = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API}/awards?active_only=false`);
+      setAwards(res.data);
+    } catch (err) { console.error(err); }
+    setLoading(false);
+  };
+  
+  const fetchAds = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API}/advertisements`);
+      setAds(res.data);
+    } catch (err) { console.error(err); }
+    setLoading(false);
+  };
+  
+  const fetchMagazine = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API}/magazine`);
+      setMagazine(res.data?.id ? res.data : null);
+    } catch (err) { console.error(err); }
+    setLoading(false);
+  };
+  
+  const fetchMusic = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API}/music`);
+      setMusic(res.data?.id ? res.data : null);
+    } catch (err) { console.error(err); }
+    setLoading(false);
+  };
+  
+  const fetchVideo = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API}/video`);
+      setVideo(res.data?.id ? res.data : null);
+    } catch (err) { console.error(err); }
+    setLoading(false);
   };
 
-  useEffect(() => { fetchData(); }, []);
+  // Load data for current tab
+  const loadTabData = async (tabName, force = false) => {
+    if (loadedTabs[tabName] && !force) return;
+    
+    switch(tabName) {
+      case 'pending': await fetchPending(); break;
+      case 'talents': await fetchAllTalents(); break;
+      case 'hero': await fetchHeroImages(); break;
+      case 'video': await fetchVideo(); break;
+      case 'awards': await fetchAwards(); break;
+      case 'ads': await fetchAds(); break;
+      case 'magazine': await fetchMagazine(); break;
+      case 'music': await fetchMusic(); break;
+      default: break;
+    }
+    setLoadedTabs(prev => ({...prev, [tabName]: true}));
+  };
+
+  // Fetch pending on mount, then lazy-load other tabs
+  useEffect(() => { loadTabData('pending'); }, []);
+  
+  // Load data when tab changes
+  useEffect(() => { loadTabData(tab); }, [tab]);
 
   const approve = async (id) => { await axios.put(`${API}/admin/talent/${id}/approve`); toast({ title: "Approved!" }); fetchData(); setSelectedTalent(null); };
   const reject = async (id) => { await axios.put(`${API}/admin/talent/${id}/reject`); toast({ title: "Rejected" }); fetchData(); setSelectedTalent(null); };
