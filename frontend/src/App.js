@@ -1051,7 +1051,7 @@ const AdminDashboard = () => {
       case 'talents': await fetchAllTalents(); break;
       case 'hero': await fetchHeroImages(); break;
       case 'video': await fetchVideo(); break;
-      case 'awards': await fetchAwards(); break;
+      case 'contests': await fetchAwards(); break;
       case 'ads': await fetchAds(); break;
       case 'magazine': await fetchMagazine(); break;
       case 'music': await fetchMusic(); break;
