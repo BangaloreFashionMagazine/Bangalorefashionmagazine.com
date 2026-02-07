@@ -178,14 +178,19 @@ def create_talent_routes(db):
 
 
     @router.get("/talents", response_model=List[TalentResponse])
-    async def get_talents(approved_only: bool = True, category: Optional[str] = None):
+    async def get_talents(approved_only: bool = True, category: Optional[str] = None, lightweight: bool = False):
         query = {}
         if approved_only:
             query["is_approved"] = True
         if category:
             query["category"] = category
         
-        talents = await db.talents.find(query, {"_id": 0}).sort([("rank", 1), ("votes", -1)]).to_list(1000)
+        # For lightweight mode (admin list), exclude large image fields from DB query
+        projection = {"_id": 0}
+        if lightweight:
+            projection["portfolio_images"] = 0
+        
+        talents = await db.talents.find(query, projection).sort([("rank", 1), ("votes", -1)]).to_list(1000)
         
         return [
             TalentResponse(
