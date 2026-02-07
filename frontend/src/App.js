@@ -983,6 +983,7 @@ const AdminDashboard = () => {
       setAwards(aw.data);
       setAds(ad.data);
       setMagazine(mag.data?.id ? mag.data : null);
+      setMusic(mus.data?.id ? mus.data : null);
     } catch (err) {
       console.error(err);
     }
