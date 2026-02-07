@@ -1126,6 +1126,7 @@ const AdminDashboard = () => {
     { id: "contests", label: "Contest & Winners", icon: Award },
     { id: "ads", label: "Advertisements", icon: ExternalLink },
     { id: "magazine", label: "Magazine", icon: Download },
+    { id: "music", label: "Background Music", icon: Music },
     { id: "export", label: "Export", icon: Download }
   ];
 
