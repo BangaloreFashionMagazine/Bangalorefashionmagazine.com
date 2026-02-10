@@ -79,8 +79,8 @@ Build a fashion magazine website for Bangalore with talent management, admin pan
 - Talents can upload images later after registration
 
 ### Admin Panel (Lazy Loading for Performance)
-- **Pending Tab:** Approve/reject talents
-- **All Talents Tab:** View, edit, rank, delete talents; view/set passwords
+- **Pending Tab:** Enhanced cards showing talent details, terms agreement status, portfolio count, with View Full Details / Approve / Reject buttons
+- **All Talents Tab:** View, edit, rank, delete talents; view/set passwords; **Category filter dropdown** to filter by talent type; **Terms column** showing agreement status
 - **Hero Images Tab:** Manage up to 10 homepage slider images with cropping and ordering
 - **Featured Video Tab:** Add YouTube/Vimeo video URL for homepage
 - **Contest & Winners Tab:** Manage contest winners with up to 5 images each
