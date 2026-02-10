@@ -16,7 +16,7 @@ import base64
 load_dotenv('/app/frontend/.env')
 
 # Get backend URL from frontend environment
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://gallery-sync-1.preview.emergentagent.com')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://bfm-contest-hub.preview.emergentagent.com')
 BASE_API_URL = f"{BACKEND_URL}/api"
 
 print(f"Testing Backend API at: {BASE_API_URL}")
