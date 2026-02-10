@@ -48,6 +48,7 @@ def create_talent_routes(db):
             "bio": talent_data.bio or "",
             "profile_image": talent_data.profile_image,
             "portfolio_images": portfolio,
+            "portfolio_video": talent_data.portfolio_video or "",
             "is_approved": False,
             "rank": 999,
             "votes": 0,
@@ -63,6 +64,7 @@ def create_talent_routes(db):
             id=talent_id, name=talent_data.name, email=talent_data.email, phone=talent_data.phone,
             instagram_id=talent_doc["instagram_id"], category=talent_data.category, bio=talent_doc["bio"],
             profile_image=talent_data.profile_image, portfolio_images=portfolio,
+            portfolio_video=talent_doc["portfolio_video"],
             is_approved=False, rank=999, votes=0, created_at=talent_doc["created_at"],
             agreed_to_terms=talent_doc["agreed_to_terms"], agreed_at=talent_doc["agreed_at"]
         )
