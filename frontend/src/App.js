@@ -1065,6 +1065,7 @@ const AdminDashboard = () => {
   const [editMode, setEditMode] = useState(false);
   const [editData, setEditData] = useState({});
   const [loadedTabs, setLoadedTabs] = useState({});
+  const [categoryFilter, setCategoryFilter] = useState(""); // Category filter for All Talents
   const { toast } = useToast();
 
   // Forms
