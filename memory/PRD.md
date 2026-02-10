@@ -163,6 +163,7 @@ Build a fashion magazine website for Bangalore with talent management, admin pan
 - music: {id, title, file_data, file_name, created_at}
 - videos: {id, title, video_url, video_type, created_at}
 - awards: {id, title, winner_name, winner_image, winner_images[], description, category, is_active, created_at}
+- party_events: {id, title, venue, event_date, description, image, entry_code, booking_info, contact, is_active, created_at}
 
 ## Future Tasks (Backlog)
 - **P1: Frontend Refactoring** - Complete modularization of App.js (~1970 lines) using extracted components
