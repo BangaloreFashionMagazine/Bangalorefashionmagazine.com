@@ -1595,10 +1595,20 @@ const AdminDashboard = () => {
     setEditData({...talent});
     setEditMode(false);
     
-    // Fetch password in background
+    // Fetch full data including portfolio_images and portfolio_video
     try {
       const res = await axios.get(`${API}/admin/talent/${talent.id}/full`);
-      setEditData(prev => ({...prev, password: res.data.password}));
+      setEditData(prev => ({
+        ...prev, 
+        password: res.data.password,
+        portfolio_images: res.data.portfolio_images || [],
+        portfolio_video: res.data.portfolio_video || ""
+      }));
+      setSelectedTalent(prev => ({
+        ...prev,
+        portfolio_images: res.data.portfolio_images || [],
+        portfolio_video: res.data.portfolio_video || ""
+      }));
     } catch (err) {
       console.error(err);
     }
