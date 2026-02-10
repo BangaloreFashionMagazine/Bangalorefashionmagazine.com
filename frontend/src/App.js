@@ -1930,38 +1930,40 @@ const AdminDashboard = () => {
 
         {/* Talent Detail Modal for Admin */}
         {selectedTalent && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80" onClick={() => setSelectedTalent(null)}>
-            <div className="bg-[#0A1628] rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-[#D4AF37]/20 relative" onClick={e => e.stopPropagation()}>
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="font-serif text-2xl font-bold text-[#F5F5F0]">Talent Details</h2>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-2 md:p-4 bg-black/80" onClick={() => setSelectedTalent(null)}>
+            <div className="bg-[#0A1628] rounded-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto border border-[#D4AF37]/20 relative" onClick={e => e.stopPropagation()}>
+              {/* Close button for mobile */}
+              <button onClick={() => setSelectedTalent(null)} className="absolute top-3 right-3 z-10 p-2 bg-[#050A14] rounded-full text-[#A0A5B0] hover:text-[#D4AF37]">
+                <X size={20} />
+              </button>
+              
+              <div className="p-4 md:p-6">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-6">
+                  <h2 className="font-serif text-xl md:text-2xl font-bold text-[#F5F5F0]">Talent Details</h2>
                   <div className="flex gap-2 items-center">
                     {!editMode ? (
-                      <button data-testid="edit-talent-btn" onClick={(e) => { e.stopPropagation(); setEditMode(true); }} className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold">Edit</button>
+                      <button data-testid="edit-talent-btn" onClick={(e) => { e.stopPropagation(); setEditMode(true); }} className="flex-1 md:flex-none px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold text-sm">Edit</button>
                     ) : (
                       <>
-                        <button data-testid="save-talent-btn" onClick={(e) => { e.stopPropagation(); saveTalentEdit(); }} className="px-4 py-2 bg-green-500 text-white rounded font-bold">Save</button>
-                        <button data-testid="cancel-edit-btn" onClick={(e) => { e.stopPropagation(); setEditMode(false); setEditData({...selectedTalent}); }} className="px-4 py-2 bg-gray-500 text-white rounded font-bold">Cancel</button>
+                        <button data-testid="save-talent-btn" onClick={(e) => { e.stopPropagation(); saveTalentEdit(); }} className="flex-1 md:flex-none px-4 py-2 bg-green-500 text-white rounded font-bold text-sm">Save</button>
+                        <button data-testid="cancel-edit-btn" onClick={(e) => { e.stopPropagation(); setEditMode(false); setEditData({...selectedTalent}); }} className="flex-1 md:flex-none px-4 py-2 bg-gray-500 text-white rounded font-bold text-sm">Cancel</button>
                       </>
                     )}
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid md:grid-cols-2 gap-4 md:gap-6">
                   {/* Profile Image */}
                   <div>
                     <img src={editData.profile_image || "https://via.placeholder.com/400"} alt={editData.name} className="w-full aspect-[3/4] object-cover rounded-xl" />
                     {editMode && (
-                      <div className="mt-2">
-                        <label className="text-[#A0A5B0] text-sm">Change Profile Image</label>
-                        <input type="file" accept="image/*" onChange={e => {
-                          const file = e.target.files[0];
-                          if (file) {
-                            const reader = new FileReader();
-                            reader.onloadend = () => setEditData({...editData, profile_image: reader.result});
-                            reader.readAsDataURL(file);
-                          }
-                        }} className="text-[#A0A5B0] text-sm mt-1" />
+                      <div className="mt-3">
+                        <p className="text-[#A0A5B0] text-sm mb-2">Change Profile Image (with crop)</p>
+                        <ImageUploadWithCrop 
+                          onImageSelect={(img) => setEditData({...editData, profile_image: img})} 
+                          aspectRatio={3/4}
+                          buttonText="Upload & Crop Profile"
+                        />
                       </div>
                     )}
                     
