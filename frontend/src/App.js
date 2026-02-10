@@ -1020,6 +1020,45 @@ I confirm that I have read, understood, and voluntarily accepted this declaratio
               ))}
             </div>
           </div>
+
+          {/* Portfolio Video */}
+          <div>
+            <label className="text-[#A0A5B0] text-sm mb-2 block">Portfolio Video (max 45 seconds, optional)</label>
+            {!portfolioVideo ? (
+              <div className="border-2 border-dashed border-[#D4AF37]/30 rounded-lg p-4 text-center">
+                <input 
+                  type="file" 
+                  accept="video/*" 
+                  onChange={handleVideoUpload} 
+                  className="hidden" 
+                  id="video-upload"
+                />
+                <label htmlFor="video-upload" className="cursor-pointer">
+                  <Video size={32} className="mx-auto text-[#D4AF37] mb-2" />
+                  <p className="text-[#A0A5B0] text-sm">Click to upload video</p>
+                  <p className="text-[#A0A5B0] text-xs mt-1">Max 45 seconds, MP4/MOV recommended</p>
+                </label>
+              </div>
+            ) : (
+              <div className="relative">
+                <video 
+                  src={portfolioVideo} 
+                  controls 
+                  className="w-full max-h-48 rounded-lg bg-black"
+                />
+                <div className="flex items-center justify-between mt-2">
+                  <span className="text-[#D4AF37] text-sm">Duration: {videoDuration} seconds</span>
+                  <button 
+                    type="button" 
+                    onClick={removeVideo} 
+                    className="px-3 py-1 bg-red-500/20 text-red-500 rounded text-sm hover:bg-red-500 hover:text-white transition-colors"
+                  >
+                    Remove Video
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
           
           <button type="submit" disabled={loading} className="w-full bg-[#D4AF37] text-[#050A14] py-3 rounded-lg font-bold disabled:opacity-50">
             {loading ? "Registering..." : "Register"}
