@@ -1587,8 +1587,12 @@ const AdminDashboard = () => {
               <input type="number" placeholder="Order (1=first)" value={newHero.order} onChange={e => setNewHero({...newHero, order: parseInt(e.target.value) || 1})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
             </div>
             <div className="flex items-center gap-4 mb-6">
-              <input type="file" accept="image/*" onChange={handleHeroImg} className="text-[#A0A5B0]" />
-              {newHero.image_data && <img src={newHero.image_data} className="h-16 rounded" />}
+              <ImageUploadWithCrop 
+                onImageSelect={(img) => setNewHero({...newHero, image_data: img})} 
+                aspectRatio={16/9}
+                buttonText="Choose Hero Image"
+              />
+              {newHero.image_data && <img src={newHero.image_data} className="h-16 rounded" alt="Preview" />}
               <button onClick={addHero} className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold">Add</button>
             </div>
             {heroImages.length === 0 ? (
@@ -1597,7 +1601,7 @@ const AdminDashboard = () => {
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {heroImages.sort((a, b) => (a.order || 99) - (b.order || 99)).map(h => (
                   <div key={h.id} className="bg-[#050A14] rounded-lg overflow-hidden">
-                    <img src={h.image_data} className="w-full h-32 object-cover" />
+                    <img src={h.image_data} className="w-full h-32 object-cover" alt={h.title} />
                     <div className="p-3">
                       <p className="text-[#F5F5F0] font-medium text-sm">{h.title || "No title"}</p>
                       <p className="text-[#A0A5B0] text-xs">{h.subtitle || ""}</p>
