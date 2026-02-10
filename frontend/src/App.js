@@ -2037,7 +2037,6 @@ const AdminDashboard = () => {
                             </label>
                           </div>
                         ) : <p className="text-[#A0A5B0] text-sm">No video uploaded</p>
-                        ) : <p className="text-[#A0A5B0] text-sm">No video uploaded</p>
                       )}
                     </div>
                   </div>
