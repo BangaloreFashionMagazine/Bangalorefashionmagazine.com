@@ -1202,6 +1202,15 @@ const AdminDashboard = () => {
     setLoading(false);
   };
 
+  const fetchPartyEvents = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API}/admin/party-events`);
+      setPartyEvents(res.data);
+    } catch (err) { console.error(err); }
+    setLoading(false);
+  };
+
   // Load data for current tab
   const loadTabData = async (tabName, force = false) => {
     if (loadedTabs[tabName] && !force) return;
@@ -1215,6 +1224,7 @@ const AdminDashboard = () => {
       case 'ads': await fetchAds(); break;
       case 'magazine': await fetchMagazine(); break;
       case 'music': await fetchMusic(); break;
+      case 'party': await fetchPartyEvents(); break;
       default: break;
     }
     setLoadedTabs(prev => ({...prev, [tabName]: true}));
