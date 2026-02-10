@@ -688,7 +688,7 @@ const LoginPage = ({ onLogin }) => {
           <h2 className="text-2xl font-bold text-[#F5F5F0]">Admin Login</h2>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <input type="text" required value={email} onChange={e => setEmail(e.target.value)}
+          <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
             className="w-full px-4 py-3 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0]" placeholder="Email" />
           <input type="password" required value={password} onChange={e => setPassword(e.target.value)}
             className="w-full px-4 py-3 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0]" placeholder="Password" />
