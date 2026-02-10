@@ -114,6 +114,8 @@ Build a fashion magazine website for Bangalore with talent management, admin pan
 4. ✅ Admin Panel - Category Filter: All Talents tab now has category filter dropdown
 5. ✅ Admin Panel - Pending Tab Redesign: Shows detailed cards with terms agreement status, portfolio count
 6. ✅ Terms Agreement Fix: API now returns agreed_to_terms and agreed_at fields for all talents
+7. ✅ Hero Slider - No Dark Overlay: Removed dark gradient overlay, images now show original with subtle bottom gradient for text
+8. ✅ Party Updates Section: New section below hero images for party events, bookings, entry codes for bookers (commissions)
 
 ### December 2025 Updates
 1. ✅ Homepage Video Feature: Admin can upload YouTube/Vimeo URLs, displayed below hero slider
