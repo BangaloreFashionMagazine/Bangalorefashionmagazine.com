@@ -1883,14 +1883,10 @@ const AdminDashboard = () => {
         {selectedTalent && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80" onClick={() => setSelectedTalent(null)}>
             <div className="bg-[#0A1628] rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-[#D4AF37]/20 relative" onClick={e => e.stopPropagation()}>
-              <button onClick={() => setSelectedTalent(null)} className="absolute top-4 right-4 p-2 bg-[#050A14] rounded-full text-[#F5F5F0] hover:text-[#D4AF37] z-10">
-                <X size={24} />
-              </button>
-              
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="font-serif text-2xl font-bold text-[#F5F5F0]">Talent Details</h2>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 items-center">
                     {!editMode ? (
                       <button data-testid="edit-talent-btn" onClick={(e) => { e.stopPropagation(); setEditMode(true); }} className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold">Edit</button>
                     ) : (
