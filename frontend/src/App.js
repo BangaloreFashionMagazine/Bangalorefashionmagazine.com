@@ -1895,6 +1895,9 @@ const AdminDashboard = () => {
                         <button data-testid="cancel-edit-btn" onClick={(e) => { e.stopPropagation(); setEditMode(false); setEditData({...selectedTalent}); }} className="px-4 py-2 bg-gray-500 text-white rounded font-bold">Cancel</button>
                       </>
                     )}
+                    <button onClick={(e) => { e.stopPropagation(); setSelectedTalent(null); }} className="p-2 bg-[#050A14] rounded-full text-[#F5F5F0] hover:text-[#D4AF37] ml-2">
+                      <X size={24} />
+                    </button>
                   </div>
                 </div>
 
