@@ -160,6 +160,30 @@ class VideoCreate(BaseModel):
     video_type: str = "youtube"
 
 
+# ============== Party Events Models ==============
+class PartyEventCreate(BaseModel):
+    title: str
+    venue: str
+    event_date: str
+    description: str = ""
+    image: str = ""
+    entry_code: str = ""
+    booking_info: str = ""
+    contact: str = ""
+    is_active: bool = True
+
+class PartyEventUpdate(BaseModel):
+    title: Optional[str] = None
+    venue: Optional[str] = None
+    event_date: Optional[str] = None
+    description: Optional[str] = None
+    image: Optional[str] = None
+    entry_code: Optional[str] = None
+    booking_info: Optional[str] = None
+    contact: Optional[str] = None
+    is_active: Optional[bool] = None
+
+
 # ============== Admin Password Reset ==============
 class AdminPasswordReset(BaseModel):
     password: str
