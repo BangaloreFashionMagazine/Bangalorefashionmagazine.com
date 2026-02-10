@@ -1316,9 +1316,10 @@ const AdminDashboard = () => {
     }
     await axios.post(`${API}/admin/awards`, {
       ...newAward, 
-      winner_image: (newAward.winner_images || [])[0]
+      winner_image: (newAward.winner_images || [])[0],
+      talent_id: newAward.talent_id || ""
     });
-    setNewAward({ title: "", winner_name: "", winner_images: [], description: "", category: "" });
+    setNewAward({ title: "", winner_name: "", winner_images: [], description: "", category: "", talent_id: "" });
     toast({ title: "Winner added!" }); 
     fetchAwards();
   };
