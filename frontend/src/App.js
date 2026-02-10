@@ -843,6 +843,70 @@ const ForgotPasswordPage = () => {
   );
 };
 
+// Talent Profile Page (for direct links from contest winners)
+const TalentProfilePage = () => {
+  const { talentId } = useParams();
+  const [talent, setTalent] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchTalent = async () => {
+      try {
+        const res = await axios.get(`${API}/talent/${talentId}`);
+        setTalent(res.data);
+        setShowModal(true);
+      } catch (err) {
+        toast({ title: "Error", description: "Talent not found", variant: "destructive" });
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (talentId) fetchTalent();
+  }, [talentId]);
+
+  const handleVote = async (id) => {
+    try {
+      await axios.post(`${API}/talents/${id}/vote`);
+      const res = await axios.get(`${API}/talent/${talentId}`);
+      setTalent(res.data);
+      toast({ title: "Vote recorded!" });
+    } catch (err) {
+      toast({ title: "Already voted", variant: "destructive" });
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#050A14] flex items-center justify-center">
+        <div className="text-[#D4AF37]">Loading...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[#050A14]">
+      <Navbar />
+      <div className="pt-20 container mx-auto px-4">
+        {talent && showModal && (
+          <TalentDetailModal 
+            talent={talent} 
+            onClose={() => window.history.back()} 
+            onVote={handleVote} 
+          />
+        )}
+        {!talent && (
+          <div className="text-center py-20">
+            <h1 className="text-2xl text-[#F5F5F0]">Talent not found</h1>
+            <Link to="/" className="text-[#D4AF37] hover:underline mt-4 inline-block">Go back home</Link>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // Join Us (Talent Registration)
 const JoinPage = () => {
   const [formData, setFormData] = useState({
