@@ -1275,7 +1275,15 @@ const TalentDashboard = ({ talent, onUpdate }) => {
         <div className="grid md:grid-cols-3 gap-6">
           <div>
             <img src={formData.profile_image || "https://via.placeholder.com/200"} alt="" className="w-full aspect-square object-cover rounded-xl" />
-            {editing && <input type="file" accept="image/*" onChange={handleProfileImage} className="mt-2 text-[#A0A5B0] text-sm" />}
+            {editing && (
+              <div className="mt-2">
+                <ImageUploadWithCrop 
+                  onImageSelect={(img) => setFormData({...formData, profile_image: img})} 
+                  aspectRatio={1}
+                  buttonText="Change Profile Photo"
+                />
+              </div>
+            )}
           </div>
           <div className="md:col-span-2 space-y-3">
             {editing ? (
@@ -1294,23 +1302,29 @@ const TalentDashboard = ({ talent, onUpdate }) => {
                   className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] h-20" placeholder="Bio" />
                 
                 <div>
-                  <p className="text-[#A0A5B0] text-sm mb-2">Portfolio Images ({portfolio.length}/7)</p>
-                  <div className="flex flex-wrap gap-2 mb-2">
+                  <p className="text-[#A0A5B0] text-sm mb-2">Portfolio Images ({portfolio.length}/7) - Click to crop</p>
+                  <div className="flex flex-wrap gap-3 items-center mb-2">
                     {portfolio.map((img, i) => (
                       <div key={i} className="relative">
-                        <img src={img} alt="" className="h-16 w-16 object-cover rounded" />
+                        <img src={img} alt="" className="h-20 w-16 object-cover rounded" />
                         <button type="button" onClick={() => removePortfolio(i)} className="absolute -top-1 -right-1 bg-red-500 rounded-full p-0.5">
                           <X size={12} className="text-white" />
                         </button>
                       </div>
                     ))}
+                    {portfolio.length < 7 && (
+                      <ImageUploadWithCrop 
+                        onImageSelect={(img) => setPortfolio(prev => [...prev, img].slice(0, 7))} 
+                        aspectRatio={3/4}
+                        buttonText={`Add (${portfolio.length}/7)`}
+                      />
+                    )}
                   </div>
-                  {portfolio.length < 7 && <input type="file" accept="image/*" multiple onChange={handlePortfolioAdd} className="text-[#A0A5B0] text-sm" />}
                 </div>
 
                 {/* Portfolio Video */}
                 <div>
-                  <p className="text-[#A0A5B0] text-sm mb-2">Portfolio Video (max 45 seconds)</p>
+                  <p className="text-[#A0A5B0] text-sm mb-2">Portfolio Video (max 45 seconds) - Original size</p>
                   {!portfolioVideo ? (
                     <div className="border-2 border-dashed border-[#D4AF37]/30 rounded-lg p-4 text-center">
                       <input type="file" accept="video/*" onChange={handleVideoUpload} className="hidden" id="dash-video-upload" />
