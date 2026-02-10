@@ -1385,6 +1385,7 @@ const AdminDashboard = () => {
     { id: "pending", label: "Pending", icon: Users },
     { id: "talents", label: "All Talents", icon: Star },
     { id: "hero", label: "Hero Images", icon: Image },
+    { id: "party", label: "Party Updates", icon: Calendar },
     { id: "video", label: "Featured Video", icon: Video },
     { id: "contests", label: "Contest & Winners", icon: Award },
     { id: "ads", label: "Advertisements", icon: ExternalLink },
