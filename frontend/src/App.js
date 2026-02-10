@@ -176,7 +176,23 @@ const HeroSlider = ({ customSlides }) => {
 
 // Contest Winners Section (only shows if contests exist)
 const ContestWinnersSection = ({ awards }) => {
+  const [activeImages, setActiveImages] = useState({});
+  
   if (!awards || awards.length === 0) return null;
+
+  const handlePrev = (awardId, images) => {
+    setActiveImages(prev => ({
+      ...prev,
+      [awardId]: ((prev[awardId] || 0) - 1 + images.length) % images.length
+    }));
+  };
+
+  const handleNext = (awardId, images) => {
+    setActiveImages(prev => ({
+      ...prev,
+      [awardId]: ((prev[awardId] || 0) + 1) % images.length
+    }));
+  };
   
   return (
     <section className="py-16 bg-gradient-to-b from-[#050A14] to-[#0A1628]">
@@ -186,22 +202,57 @@ const ContestWinnersSection = ({ awards }) => {
           <h2 className="font-serif text-3xl font-bold text-[#F5F5F0] mt-2">Contest Winners</h2>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {awards.map((award, i) => (
-            <div key={i} className="bg-[#050A14] border border-[#D4AF37]/20 rounded-xl overflow-hidden">
-              {award.winner_image && (
-                <img src={award.winner_image} alt={award.winner_name} className="w-full h-64 object-cover" />
-              )}
-              <div className="p-5">
-                <div className="flex items-center gap-2 mb-2">
-                  <Award className="text-[#D4AF37]" size={18} />
-                  <span className="text-[#D4AF37] text-sm uppercase">{award.title}</span>
+          {awards.map((award, i) => {
+            const images = (award.winner_images || [award.winner_image]).filter(Boolean);
+            const activeIdx = activeImages[award.id] || 0;
+            
+            return (
+              <div key={i} className="bg-[#050A14] border border-[#D4AF37]/20 rounded-xl overflow-hidden">
+                {images.length > 0 && (
+                  <div className="relative group">
+                    <img 
+                      src={images[activeIdx]} 
+                      alt={`${award.winner_name} - ${activeIdx + 1}`} 
+                      className="w-full h-64 object-cover transition-opacity duration-300" 
+                    />
+                    {images.length > 1 && (
+                      <>
+                        <button 
+                          onClick={() => handlePrev(award.id, images)}
+                          className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-black/50 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <ChevronLeft size={20} />
+                        </button>
+                        <button 
+                          onClick={() => handleNext(award.id, images)}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-black/50 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <ChevronRight size={20} />
+                        </button>
+                        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                          {images.map((_, idx) => (
+                            <span 
+                              key={idx} 
+                              className={`w-2 h-2 rounded-full transition-all ${idx === activeIdx ? 'bg-[#D4AF37] w-4' : 'bg-white/50'}`}
+                            />
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+                <div className="p-5">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Award className="text-[#D4AF37]" size={18} />
+                    <span className="text-[#D4AF37] text-sm uppercase">{award.title}</span>
+                  </div>
+                  <h3 className="text-[#F5F5F0] font-bold text-xl">{award.winner_name}</h3>
+                  {award.category && <p className="text-[#A0A5B0] text-xs mt-1">{award.category}</p>}
+                  {award.description && <p className="text-[#A0A5B0] text-sm mt-2">{award.description}</p>}
                 </div>
-                <h3 className="text-[#F5F5F0] font-bold text-xl">{award.winner_name}</h3>
-                {award.category && <p className="text-[#A0A5B0] text-xs mt-1">{award.category}</p>}
-                {award.description && <p className="text-[#A0A5B0] text-sm mt-2">{award.description}</p>}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
