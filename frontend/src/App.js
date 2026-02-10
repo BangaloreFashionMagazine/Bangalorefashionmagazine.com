@@ -1456,26 +1456,30 @@ const AdminDashboard = () => {
                           <label className="text-[#A0A5B0] text-xs">Password</label>
                           <p className="text-[#F5F5F0] font-mono text-sm bg-[#0A1628] px-2 py-1 rounded">{editData.password || "Not available"}</p>
                         </div>
-                        {editMode && (
-                          <div className="mt-2 pt-2 border-t border-[#D4AF37]/20">
-                            <label className="text-[#A0A5B0] text-xs">Set New Password</label>
-                            <input type="text" placeholder="Enter new password" id={`newpw-${editData.id}`}
-                              className="w-full px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-sm mt-1" />
-                            <button onClick={async () => {
-                              const newPw = document.getElementById(`newpw-${editData.id}`).value;
-                              if (newPw && newPw.length >= 6) {
-                                await axios.put(`${API}/admin/talent/${editData.id}/password`, { password: newPw });
-                                toast({ title: "Password updated!" });
-                                setEditData({...editData, password: newPw});
-                                document.getElementById(`newpw-${editData.id}`).value = '';
-                              } else {
-                                toast({ title: "Password must be at least 6 characters", variant: "destructive" });
-                              }
-                            }} className="mt-2 px-3 py-1 bg-[#D4AF37] text-[#050A14] rounded text-sm font-bold">
-                              Update Password
-                            </button>
-                          </div>
-                        )}
+                        {/* Password Reset - Always visible */}
+                        <div className="mt-2 pt-2 border-t border-[#D4AF37]/20">
+                          <label className="text-[#A0A5B0] text-xs">Set New Password</label>
+                          <input type="text" placeholder="Enter new password (min 6 chars)" id={`newpw-${editData.id}`}
+                            className="w-full px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-sm mt-1" />
+                          <button onClick={async () => {
+                            const pwInput = document.getElementById(`newpw-${editData.id}`);
+                            const newPw = pwInput?.value;
+                            if (!newPw || newPw.length < 6) {
+                              toast({ title: "Password must be at least 6 characters", variant: "destructive" });
+                              return;
+                            }
+                            try {
+                              await axios.put(`${API}/admin/talent/${editData.id}/password`, { password: newPw });
+                              toast({ title: "Password updated successfully!" });
+                              setEditData({...editData, password: newPw});
+                              pwInput.value = '';
+                            } catch (err) {
+                              toast({ title: "Failed to update password", description: err.response?.data?.detail || "Unknown error", variant: "destructive" });
+                            }
+                          }} className="mt-2 px-3 py-1 bg-[#D4AF37] text-[#050A14] rounded text-sm font-bold hover:bg-[#F5F5F0]">
+                            Update Password
+                          </button>
+                        </div>
                       </div>
                     </div>
 
