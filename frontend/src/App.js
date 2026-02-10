@@ -1176,16 +1176,19 @@ const AdminDashboard = () => {
     fetchHeroImages();
   };
 
-  // Awards
-  const handleAwardImg = (e) => {
-    const file = e.target.files[0];
-    if (file) { const r = new FileReader(); r.onloadend = () => setNewAward({...newAward, winner_image: r.result}); r.readAsDataURL(file); }
-  };
+  // Awards (Contest Winners)
   const addAward = async () => {
-    if (!newAward.title || !newAward.winner_name) { toast({ title: "Fill required fields", variant: "destructive" }); return; }
-    await axios.post(`${API}/admin/awards`, newAward);
-    setNewAward({ title: "", winner_name: "", winner_image: "", description: "", category: "" });
-    toast({ title: "Award created!" }); fetchAwards();
+    if (!newAward.title || !newAward.winner_name || !(newAward.winner_images || []).length) { 
+      toast({ title: "Please fill title, name and add at least 1 image", variant: "destructive" }); 
+      return; 
+    }
+    await axios.post(`${API}/admin/awards`, {
+      ...newAward, 
+      winner_image: (newAward.winner_images || [])[0]
+    });
+    setNewAward({ title: "", winner_name: "", winner_images: [], description: "", category: "" });
+    toast({ title: "Winner added!" }); 
+    fetchAwards();
   };
   const deleteAward = async (id) => { await axios.delete(`${API}/admin/awards/${id}`); fetchAwards(); };
 
