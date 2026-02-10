@@ -1110,6 +1110,7 @@ const AdminDashboard = () => {
   const [ads, setAds] = useState([]);
   const [magazine, setMagazine] = useState(null);
   const [music, setMusic] = useState(null);
+  const [partyEvents, setPartyEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedTalent, setSelectedTalent] = useState(null);
   const [editMode, setEditMode] = useState(false);
@@ -1126,6 +1127,7 @@ const AdminDashboard = () => {
   const [newMusic, setNewMusic] = useState({ title: "", file_data: "", file_name: "" });
   const [newVideo, setNewVideo] = useState({ title: "", video_url: "", video_type: "youtube" });
   const [video, setVideo] = useState(null);
+  const [newPartyEvent, setNewPartyEvent] = useState({ title: "", venue: "", event_date: "", description: "", image: "", entry_code: "", booking_info: "", contact: "", is_active: true });
 
   // Tab-specific data fetchers
   const fetchPending = async () => {
