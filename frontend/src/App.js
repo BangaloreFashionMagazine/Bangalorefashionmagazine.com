@@ -16,6 +16,53 @@ import ImageUploadWithCrop from "@/components/ImageUploadWithCrop";
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+// BFM Logo URL
+const BFM_LOGO = "/bfm-logo.jpeg";
+
+// Welcome Splash Screen (shows once per session)
+const WelcomeSplash = ({ onClose }) => {
+  return (
+    <div className="fixed inset-0 z-[100] bg-[#F5F5F0] flex items-center justify-center animate-fadeIn">
+      <div className="text-center">
+        <img 
+          src={BFM_LOGO} 
+          alt="BFM Magazine" 
+          className="w-64 h-64 object-contain mx-auto mb-6 animate-scaleIn" 
+        />
+        <h1 className="font-serif text-3xl text-[#050A14] mb-2">Welcome to</h1>
+        <h2 className="font-serif text-4xl font-bold text-[#050A14] mb-4">Bangalore Fashion Magazine</h2>
+        <button 
+          onClick={onClose}
+          className="px-8 py-3 bg-[#D4AF37] text-[#050A14] font-bold rounded-full hover:bg-[#C4A030] transition-colors mt-4"
+        >
+          Enter
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Logo Watermark Component (for images)
+const LogoWatermark = ({ size = "small", position = "bottom-right" }) => {
+  const sizeClasses = {
+    small: "w-8 h-8",
+    medium: "w-12 h-12",
+    large: "w-16 h-16"
+  };
+  const positionClasses = {
+    "bottom-right": "bottom-2 right-2",
+    "bottom-left": "bottom-2 left-2",
+    "top-right": "top-2 right-2",
+    "top-left": "top-2 left-2"
+  };
+  
+  return (
+    <div className={`absolute ${positionClasses[position]} ${sizeClasses[size]} bg-white/80 rounded-full p-1 shadow-md`}>
+      <img src={BFM_LOGO} alt="BFM" className="w-full h-full object-contain rounded-full" />
+    </div>
+  );
+};
+
 const TALENT_CATEGORIES = [
   "Model - Female",
   "Model - Male",
