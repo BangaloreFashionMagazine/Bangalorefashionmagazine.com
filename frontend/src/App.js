@@ -1266,7 +1266,7 @@ const TalentDashboard = ({ talent, onUpdate }) => {
                   className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] h-20" placeholder="Bio" />
                 
                 <div>
-                  <p className="text-[#A0A5B0] text-sm mb-2">Portfolio ({portfolio.length}/7)</p>
+                  <p className="text-[#A0A5B0] text-sm mb-2">Portfolio Images ({portfolio.length}/7)</p>
                   <div className="flex flex-wrap gap-2 mb-2">
                     {portfolio.map((img, i) => (
                       <div key={i} className="relative">
@@ -1278,6 +1278,27 @@ const TalentDashboard = ({ talent, onUpdate }) => {
                     ))}
                   </div>
                   {portfolio.length < 7 && <input type="file" accept="image/*" multiple onChange={handlePortfolioAdd} className="text-[#A0A5B0] text-sm" />}
+                </div>
+
+                {/* Portfolio Video */}
+                <div>
+                  <p className="text-[#A0A5B0] text-sm mb-2">Portfolio Video (max 45 seconds)</p>
+                  {!portfolioVideo ? (
+                    <div className="border-2 border-dashed border-[#D4AF37]/30 rounded-lg p-4 text-center">
+                      <input type="file" accept="video/*" onChange={handleVideoUpload} className="hidden" id="dash-video-upload" />
+                      <label htmlFor="dash-video-upload" className="cursor-pointer">
+                        <Video size={24} className="mx-auto text-[#D4AF37] mb-1" />
+                        <p className="text-[#A0A5B0] text-sm">Upload video (max 45 sec)</p>
+                      </label>
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <video src={portfolioVideo} controls className="w-full max-h-40 rounded-lg bg-black" />
+                      <button type="button" onClick={removeVideo} className="mt-2 px-3 py-1 bg-red-500/20 text-red-500 rounded text-sm">
+                        Remove Video
+                      </button>
+                    </div>
+                  )}
                 </div>
                 
                 <button onClick={handleSave} disabled={loading} className="px-6 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold">
@@ -1295,10 +1316,16 @@ const TalentDashboard = ({ talent, onUpdate }) => {
                 {talent.bio && <p className="text-[#F5F5F0]"><strong>Bio:</strong> {talent.bio}</p>}
                 {portfolio.length > 0 && (
                   <div>
-                    <p className="text-[#A0A5B0] text-sm mb-2">Portfolio</p>
+                    <p className="text-[#A0A5B0] text-sm mb-2">Portfolio Images</p>
                     <div className="flex flex-wrap gap-2">
                       {portfolio.map((img, i) => <img key={i} src={img} alt="" className="h-16 w-16 object-cover rounded" />)}
                     </div>
+                  </div>
+                )}
+                {portfolioVideo && (
+                  <div>
+                    <p className="text-[#A0A5B0] text-sm mb-2">Portfolio Video</p>
+                    <video src={portfolioVideo} controls className="w-full max-h-40 rounded-lg bg-black" />
                   </div>
                 )}
               </div>
