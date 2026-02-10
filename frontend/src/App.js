@@ -299,7 +299,8 @@ const ContestWinnersSection = ({ awards }) => {
 
   const handleWinnerClick = (award) => {
     if (award.talent_id) {
-      navigate(`/talents?highlight=${award.talent_id}`);
+      // Navigate to the talent's category page and open their profile
+      navigate(`/talent/${award.talent_id}`);
     }
   };
   
