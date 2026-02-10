@@ -56,7 +56,8 @@ Build a fashion magazine website for Bangalore with talent management, admin pan
 - Other (custom)
 
 ### Homepage Features
-- Hero slider with up to 10 admin-managed images
+- Hero slider with up to 10 admin-managed images (original images, no dark overlay)
+- **Party Updates section** below hero slider - for party events, entry codes, booking info (only visible when active events exist)
 - Featured Video section (YouTube/Vimeo embeds, admin-managed)
 - Contact section with Instagram & email links
 - Magazine download section (PDF, admin-managed)
