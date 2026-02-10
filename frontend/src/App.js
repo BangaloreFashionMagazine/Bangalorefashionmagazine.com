@@ -1017,23 +1017,35 @@ I confirm that I have read, understood, and voluntarily accepted this declaratio
             className="w-full px-4 py-3 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0] h-20" placeholder="Bio (optional)" />
           
           <div>
-            <label className="text-[#A0A5B0] text-sm mb-2 block">Profile Image * (Required)</label>
-            <input type="file" accept="image/*" onChange={handleProfileImage} className="text-[#A0A5B0]" />
-            {profileImage && <img src={profileImage} alt="Preview" className="mt-2 h-24 w-24 object-cover rounded-lg" />}
+            <label className="text-[#A0A5B0] text-sm mb-2 block">Profile Image * (Required) - Click to crop</label>
+            <div className="flex items-center gap-4">
+              <ImageUploadWithCrop 
+                onImageSelect={(img) => setProfileImage(img)} 
+                aspectRatio={1}
+                buttonText="Upload Profile Photo"
+              />
+              {profileImage && <img src={profileImage} alt="Preview" className="h-24 w-24 object-cover rounded-lg border border-[#D4AF37]/30" />}
+            </div>
           </div>
           
           <div>
-            <label className="text-[#A0A5B0] text-sm mb-2 block">Portfolio Images ({portfolio.length}/7)</label>
-            <input type="file" accept="image/*" multiple onChange={handlePortfolio} className="text-[#A0A5B0]" disabled={portfolio.length >= 7} />
-            <div className="flex flex-wrap gap-2 mt-2">
+            <label className="text-[#A0A5B0] text-sm mb-2 block">Portfolio Images ({portfolio.length}/7) - Click to crop each</label>
+            <div className="flex flex-wrap gap-3 items-center">
               {portfolio.map((img, i) => (
                 <div key={i} className="relative">
-                  <img src={img} alt="" className="h-16 w-16 object-cover rounded" />
+                  <img src={img} alt="" className="h-20 w-16 object-cover rounded" />
                   <button type="button" onClick={() => removePortfolio(i)} className="absolute -top-1 -right-1 bg-red-500 rounded-full p-0.5">
                     <X size={12} className="text-white" />
                   </button>
                 </div>
               ))}
+              {portfolio.length < 7 && (
+                <ImageUploadWithCrop 
+                  onImageSelect={(img) => setPortfolio(prev => [...prev, img].slice(0, 7))} 
+                  aspectRatio={3/4}
+                  buttonText={`Add Image (${portfolio.length}/7)`}
+                />
+              )}
             </div>
           </div>
 
