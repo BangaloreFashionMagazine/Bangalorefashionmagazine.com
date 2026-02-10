@@ -226,7 +226,8 @@ const AdvertisementSidebar = ({ ads }) => {
 // Talent Detail Modal
 const TalentDetailModal = ({ talent, onClose, onVote }) => {
   const [voting, setVoting] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [galleryIndex, setGalleryIndex] = useState(0);
   
   if (!talent) return null;
 
@@ -238,6 +239,11 @@ const TalentDetailModal = ({ talent, onClose, onVote }) => {
 
   // Combine profile image with portfolio for gallery display
   const allImages = [talent.profile_image, ...(talent.portfolio_images || [])].filter(Boolean);
+
+  const openGallery = (index) => {
+    setGalleryIndex(index);
+    setGalleryOpen(true);
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80" onClick={onClose}>
@@ -285,7 +291,7 @@ const TalentDetailModal = ({ talent, onClose, onVote }) => {
                   src={img} 
                   alt={`${talent.name} - Photo ${i + 1}`} 
                   className="w-full aspect-[3/4] object-cover rounded-lg cursor-pointer hover:opacity-80 hover:scale-[1.02] transition-all"
-                  onClick={() => setSelectedImage(img)}
+                  onClick={() => openGallery(i)}
                 />
               ))}
             </div>
@@ -295,16 +301,65 @@ const TalentDetailModal = ({ talent, onClose, onVote }) => {
           </div>
         </div>
         
-        {/* Full Image View Overlay */}
-        {selectedImage && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/95 p-4" onClick={() => setSelectedImage(null)}>
-            <img src={selectedImage} alt="Full view" className="max-w-full max-h-full object-contain rounded-lg" />
-            <button onClick={() => setSelectedImage(null)} className="absolute top-4 right-4 p-2 bg-white/20 rounded-full text-white hover:bg-white/30">
-              <X size={24} />
-            </button>
-          </div>
+        {/* Full Image Gallery with Swipe */}
+        {galleryOpen && (
+          <ImageGalleryInline 
+            images={allImages} 
+            initialIndex={galleryIndex} 
+            onClose={() => setGalleryOpen(false)} 
+          />
         )}
       </div>
+    </div>
+  );
+};
+
+// Inline Image Gallery Component with Navigation
+const ImageGalleryInline = ({ images, initialIndex = 0, onClose }) => {
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [touchStart, setTouchStart] = useState(null);
+
+  const goNext = () => setCurrentIndex((prev) => (prev + 1) % images.length);
+  const goPrev = () => setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'ArrowRight') goNext();
+      else if (e.key === 'ArrowLeft') goPrev();
+      else if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const handleTouchStart = (e) => setTouchStart(e.touches[0].clientX);
+  const handleTouchEnd = (e) => {
+    if (!touchStart) return;
+    const diff = touchStart - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) { diff > 0 ? goNext() : goPrev(); }
+    setTouchStart(null);
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center" onClick={onClose}
+      onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+      <button onClick={onClose} className="absolute top-4 right-4 p-3 bg-white/10 rounded-full text-white hover:bg-white/20 z-10"><X size={24} /></button>
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/50 rounded-full text-white text-sm">{currentIndex + 1} / {images.length}</div>
+      {images.length > 1 && <button onClick={(e) => { e.stopPropagation(); goPrev(); }} className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/10 rounded-full text-white hover:bg-white/20 z-10"><ChevronLeft size={32} /></button>}
+      <div className="max-w-[90vw] max-h-[85vh]" onClick={(e) => e.stopPropagation()}>
+        <img src={images[currentIndex]} alt={`Image ${currentIndex + 1}`} className="max-w-full max-h-[85vh] object-contain rounded-lg" draggable={false} />
+      </div>
+      {images.length > 1 && <button onClick={(e) => { e.stopPropagation(); goNext(); }} className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/10 rounded-full text-white hover:bg-white/20 z-10"><ChevronRight size={32} /></button>}
+      {images.length > 1 && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 p-2 bg-black/50 rounded-lg max-w-[90vw] overflow-x-auto">
+          {images.map((img, i) => (
+            <button key={i} onClick={(e) => { e.stopPropagation(); setCurrentIndex(i); }}
+              className={`w-12 h-12 rounded overflow-hidden flex-shrink-0 border-2 transition-all ${i === currentIndex ? 'border-[#D4AF37]' : 'border-transparent opacity-60 hover:opacity-100'}`}>
+              <img src={img} alt={`Thumb ${i + 1}`} className="w-full h-full object-cover" />
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
