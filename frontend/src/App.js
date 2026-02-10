@@ -1725,14 +1725,17 @@ const AdminDashboard = () => {
               <input type="number" placeholder="Order" value={newAd.order} onChange={e => setNewAd({...newAd, order: parseInt(e.target.value)})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
             </div>
             <div className="flex items-center gap-4 mb-6">
-              <input type="file" accept="image/*" onChange={handleAdImg} className="text-[#A0A5B0]" />
-              {newAd.image_data && <img src={newAd.image_data} className="h-16 rounded" />}
+              <ImageUploadWithCrop 
+                onImageSelect={(img) => setNewAd({...newAd, image_data: img})} 
+                buttonText="Choose Ad Image"
+              />
+              {newAd.image_data && <img src={newAd.image_data} className="h-16 rounded" alt="Preview" />}
               <button onClick={addAd} className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold">Add Ad</button>
             </div>
             <div className="grid md:grid-cols-4 gap-4">
               {ads.map(a => (
                 <div key={a.id} className="relative group">
-                  <img src={a.image_data} className="w-full h-32 object-cover rounded" />
+                  <img src={a.image_data} className="w-full h-32 object-cover rounded" alt={a.title} />
                   <button onClick={() => deleteAd(a.id)} className="absolute top-1 right-1 p-1 bg-red-500 rounded opacity-0 group-hover:opacity-100"><Trash2 size={14} className="text-white" /></button>
                   <p className="text-[#F5F5F0] text-sm mt-1">{a.title}</p>
                 </div>
