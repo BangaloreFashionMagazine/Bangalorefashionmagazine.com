@@ -1116,6 +1116,8 @@ const TalentDashboard = ({ talent, onUpdate }) => {
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState(talent || {});
   const [portfolio, setPortfolio] = useState([]);
+  const [portfolioVideo, setPortfolioVideo] = useState("");
+  const [videoDuration, setVideoDuration] = useState(0);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const { toast } = useToast();
@@ -1128,6 +1130,7 @@ const TalentDashboard = ({ talent, onUpdate }) => {
         .then(res => {
           setFormData(res.data);
           setPortfolio(res.data.portfolio_images || []);
+          setPortfolioVideo(res.data.portfolio_video || "");
           localStorage.setItem("talent", JSON.stringify(res.data));
           onUpdate(res.data);
         })
@@ -1162,13 +1165,55 @@ const TalentDashboard = ({ talent, onUpdate }) => {
 
   const removePortfolio = (i) => setPortfolio(prev => prev.filter((_, idx) => idx !== i));
 
+  const handleVideoUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith('video/')) {
+      toast({ title: "Error", description: "Please upload a video file", variant: "destructive" });
+      return;
+    }
+    
+    if (file.size > 50 * 1024 * 1024) {
+      toast({ title: "Error", description: "Video must be less than 50MB", variant: "destructive" });
+      return;
+    }
+    
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.onloadedmetadata = () => {
+      window.URL.revokeObjectURL(video.src);
+      const duration = video.duration;
+      setVideoDuration(Math.round(duration));
+      
+      if (duration > 45) {
+        toast({ title: "Error", description: "Video must be 45 seconds or less. Your video is " + Math.round(duration) + " seconds.", variant: "destructive" });
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPortfolioVideo(reader.result);
+        toast({ title: "Video uploaded!", description: `Duration: ${Math.round(duration)} seconds` });
+      };
+      reader.readAsDataURL(file);
+    };
+    video.src = URL.createObjectURL(file);
+  };
+
+  const removeVideo = () => {
+    setPortfolioVideo("");
+    setVideoDuration(0);
+  };
+
   const handleSave = async () => {
     setLoading(true);
     try {
       const res = await axios.put(`${API}/talent/${talent.id}`, {
         name: formData.name, phone: formData.phone, instagram_id: formData.instagram_id,
         category: formData.category, bio: formData.bio, profile_image: formData.profile_image,
-        portfolio_images: portfolio
+        portfolio_images: portfolio,
+        portfolio_video: portfolioVideo
       });
       localStorage.setItem("talent", JSON.stringify(res.data));
       onUpdate(res.data);
