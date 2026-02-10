@@ -38,6 +38,7 @@ class TalentCreate(BaseModel):
     bio: Optional[str] = ""
     profile_image: str
     portfolio_images: Optional[List[str]] = []
+    portfolio_video: Optional[str] = ""  # Base64 video data, max 45 seconds
     agreed_to_terms: Optional[bool] = False
     agreed_at: Optional[str] = ""
 
@@ -49,6 +50,7 @@ class TalentUpdate(BaseModel):
     bio: Optional[str] = None
     profile_image: Optional[str] = None
     portfolio_images: Optional[List[str]] = None
+    portfolio_video: Optional[str] = None  # Base64 video data, max 45 seconds
 
 class TalentResponse(BaseModel):
     id: str
