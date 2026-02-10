@@ -1953,6 +1953,38 @@ const AdminDashboard = () => {
                         }} className="text-[#A0A5B0] text-sm mt-2" />
                       )}
                     </div>
+
+                    {/* Portfolio Video */}
+                    <div className="mt-4">
+                      <p className="text-[#D4AF37] text-sm uppercase mb-2">Portfolio Video (max 45 sec)</p>
+                      {editData.portfolio_video ? (
+                        <div>
+                          <video src={editData.portfolio_video} controls className="w-full max-h-32 rounded bg-black" />
+                          {editMode && (
+                            <button onClick={() => setEditData({...editData, portfolio_video: ""})} className="text-red-500 text-sm mt-1">Remove Video</button>
+                          )}
+                        </div>
+                      ) : (
+                        editMode ? (
+                          <input type="file" accept="video/*" onChange={e => {
+                            const file = e.target.files[0];
+                            if (!file) return;
+                            const video = document.createElement('video');
+                            video.preload = 'metadata';
+                            video.onloadedmetadata = () => {
+                              if (video.duration > 45) {
+                                toast({ title: "Video must be 45 seconds or less", variant: "destructive" });
+                                return;
+                              }
+                              const reader = new FileReader();
+                              reader.onloadend = () => setEditData(prev => ({...prev, portfolio_video: reader.result}));
+                              reader.readAsDataURL(file);
+                            };
+                            video.src = URL.createObjectURL(file);
+                          }} className="text-[#A0A5B0] text-sm" />
+                        ) : <p className="text-[#A0A5B0] text-sm">No video uploaded</p>
+                      )}
+                    </div>
                   </div>
                   
                   {/* Details Form */}
