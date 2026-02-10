@@ -1972,12 +1972,25 @@ const AdminDashboard = () => {
         {tab === "contests" && (
           <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20">
             <h2 className="text-lg font-bold text-[#F5F5F0] mb-4">Contest & Winners (Model of the Week)</h2>
-            <p className="text-[#A0A5B0] text-sm mb-4">Add contest winners with up to 5 images each.</p>
+            <p className="text-[#A0A5B0] text-sm mb-4">Add contest winners with up to 5 images each. Link to a talent profile to make the winner card clickable.</p>
             <div className="grid md:grid-cols-2 gap-3 mb-4">
               <input type="text" placeholder="Contest Title (e.g. Model of the Week)" value={newAward.title} onChange={e => setNewAward({...newAward, title: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
               <input type="text" placeholder="Winner Name" value={newAward.winner_name} onChange={e => setNewAward({...newAward, winner_name: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
               <input type="text" placeholder="Category" value={newAward.category} onChange={e => setNewAward({...newAward, category: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
               <input type="text" placeholder="Description" value={newAward.description} onChange={e => setNewAward({...newAward, description: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+            </div>
+            <div className="mb-4">
+              <label className="text-[#A0A5B0] text-sm mb-2 block">Link to Talent Profile (click on winner card leads to profile)</label>
+              <select 
+                value={newAward.talent_id || ""} 
+                onChange={e => setNewAward({...newAward, talent_id: e.target.value})}
+                className="w-full md:w-1/2 px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]"
+              >
+                <option value="">-- No linked profile (not clickable) --</option>
+                {allTalents.filter(t => t.is_approved).map(t => (
+                  <option key={t.id} value={t.id}>{t.name} - {t.category}</option>
+                ))}
+              </select>
             </div>
             <div className="mb-4">
               <label className="text-[#A0A5B0] text-sm mb-2 block">Winner Images (up to 5)</label>
@@ -2015,6 +2028,8 @@ const AdminDashboard = () => {
                       <p className="text-[#D4AF37] text-sm">{a.title}</p>
                       <p className="text-[#F5F5F0] font-bold">{a.winner_name}</p>
                       {a.category && <p className="text-[#A0A5B0] text-xs">{a.category}</p>}
+                      {a.talent_id && <p className="text-green-500 text-xs mt-1">✓ Linked to profile</p>}
+                      {!a.talent_id && <p className="text-yellow-500 text-xs mt-1">Not linked to profile</p>}
                       <button onClick={() => deleteAward(a.id)} className="text-red-500 text-sm mt-2 flex items-center gap-1">
                         <Trash2 size={14} /> Delete
                       </button>
