@@ -90,9 +90,12 @@ const Navbar = ({ user, talent, onLogout }) => {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-[#050A14]/95 backdrop-blur-md border-b border-[#D4AF37]/20">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-2">
-            <span className="font-serif text-lg font-bold text-[#F5F5F0]">BFM</span>
-            <span className="font-serif text-lg text-[#D4AF37]">Magazine</span>
+          <Link to="/" className="flex items-center gap-3">
+            <img src={BFM_LOGO} alt="BFM" className="w-10 h-10 rounded-full object-cover border border-[#D4AF37]/30" />
+            <div className="flex items-center gap-1">
+              <span className="font-serif text-lg font-bold text-[#F5F5F0]">BFM</span>
+              <span className="font-serif text-lg text-[#D4AF37]">Magazine</span>
+            </div>
           </Link>
           
           {/* Mobile Menu Button */}
