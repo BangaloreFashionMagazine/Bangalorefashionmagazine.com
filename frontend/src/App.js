@@ -1139,7 +1139,7 @@ const AdminDashboard = () => {
 
   // Forms
   const [newHero, setNewHero] = useState({ title: "", subtitle: "", category: "", order: 1, image_data: "" });
-  const [newAward, setNewAward] = useState({ title: "", winner_name: "", winner_images: [], description: "", category: "" });
+  const [newAward, setNewAward] = useState({ title: "", winner_name: "", winner_images: [], description: "", category: "", talent_id: "" });
   const [newAd, setNewAd] = useState({ title: "", link: "", order: 1, image_data: "" });
   const [newMagazine, setNewMagazine] = useState({ title: "", file_data: "", file_name: "" });
   const [newMusic, setNewMusic] = useState({ title: "", file_data: "", file_name: "" });
