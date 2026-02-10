@@ -207,6 +207,7 @@ def create_talent_routes(db):
         projection = {"_id": 0}
         if lightweight:
             projection["portfolio_images"] = 0
+            projection["portfolio_video"] = 0
         
         talents = await db.talents.find(query, projection).sort([("rank", 1), ("votes", -1)]).to_list(1000)
         
@@ -215,7 +216,8 @@ def create_talent_routes(db):
                 id=t["id"], name=t["name"], email=t["email"], phone=t["phone"],
                 instagram_id=t.get("instagram_id", ""), category=t["category"],
                 bio=t.get("bio", ""), profile_image=t.get("profile_image", ""),
-                portfolio_images=t.get("portfolio_images", []), is_approved=t.get("is_approved", False),
+                portfolio_images=t.get("portfolio_images", []), portfolio_video=t.get("portfolio_video", ""),
+                is_approved=t.get("is_approved", False),
                 rank=t.get("rank", 999), votes=t.get("votes", 0), created_at=t.get("created_at", ""),
                 agreed_to_terms=t.get("agreed_to_terms", False), agreed_at=t.get("agreed_at", "")
             ) for t in talents
