@@ -91,7 +91,8 @@ class HeroImageUpdate(BaseModel):
 class AwardCreate(BaseModel):
     title: str
     winner_name: str
-    winner_image: str
+    winner_image: str = ""
+    winner_images: List[str] = []
     description: str = ""
     category: str = ""
 
@@ -99,6 +100,7 @@ class AwardUpdate(BaseModel):
     title: Optional[str] = None
     winner_name: Optional[str] = None
     winner_image: Optional[str] = None
+    winner_images: Optional[List[str]] = None
     description: Optional[str] = None
     is_active: Optional[bool] = None
 
