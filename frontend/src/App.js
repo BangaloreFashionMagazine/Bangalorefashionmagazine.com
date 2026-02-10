@@ -689,7 +689,7 @@ const LoginPage = ({ onLogin }) => {
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input type="text" required value={email} onChange={e => setEmail(e.target.value)}
-            className="w-full px-4 py-3 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0]" placeholder="Username" />
+            className="w-full px-4 py-3 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0]" placeholder="Email" />
           <input type="password" required value={password} onChange={e => setPassword(e.target.value)}
             className="w-full px-4 py-3 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0]" placeholder="Password" />
           <button type="submit" disabled={loading} className="w-full bg-[#D4AF37] text-[#050A14] py-3 rounded-lg font-bold disabled:opacity-50">
