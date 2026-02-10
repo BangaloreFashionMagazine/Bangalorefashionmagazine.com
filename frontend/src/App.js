@@ -901,6 +901,51 @@ I confirm that I have read, understood, and voluntarily accepted this declaratio
 
   const removePortfolio = (index) => setPortfolio(prev => prev.filter((_, i) => i !== index));
 
+  const handleVideoUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    // Check file type
+    if (!file.type.startsWith('video/')) {
+      toast({ title: "Error", description: "Please upload a video file", variant: "destructive" });
+      return;
+    }
+    
+    // Check file size (max 50MB for base64)
+    if (file.size > 50 * 1024 * 1024) {
+      toast({ title: "Error", description: "Video must be less than 50MB", variant: "destructive" });
+      return;
+    }
+    
+    // Create video element to check duration
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.onloadedmetadata = () => {
+      window.URL.revokeObjectURL(video.src);
+      const duration = video.duration;
+      setVideoDuration(Math.round(duration));
+      
+      if (duration > 45) {
+        toast({ title: "Error", description: "Video must be 45 seconds or less. Your video is " + Math.round(duration) + " seconds.", variant: "destructive" });
+        return;
+      }
+      
+      // Read file as base64
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPortfolioVideo(reader.result);
+        toast({ title: "Video uploaded!", description: `Duration: ${Math.round(duration)} seconds` });
+      };
+      reader.readAsDataURL(file);
+    };
+    video.src = URL.createObjectURL(file);
+  };
+
+  const removeVideo = () => {
+    setPortfolioVideo("");
+    setVideoDuration(0);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!profileImage) {
