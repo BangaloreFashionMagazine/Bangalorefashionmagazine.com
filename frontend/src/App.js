@@ -227,21 +227,30 @@ const PartyUpdatesSection = ({ partyEvents }) => {
 // Contest Winners Section (only shows if contests exist)
 const ContestWinnersSection = ({ awards }) => {
   const [activeImages, setActiveImages] = useState({});
+  const navigate = useNavigate();
   
   if (!awards || awards.length === 0) return null;
 
-  const handlePrev = (awardId, images) => {
+  const handlePrev = (e, awardId, images) => {
+    e.stopPropagation();
     setActiveImages(prev => ({
       ...prev,
       [awardId]: ((prev[awardId] || 0) - 1 + images.length) % images.length
     }));
   };
 
-  const handleNext = (awardId, images) => {
+  const handleNext = (e, awardId, images) => {
+    e.stopPropagation();
     setActiveImages(prev => ({
       ...prev,
       [awardId]: ((prev[awardId] || 0) + 1) % images.length
     }));
+  };
+
+  const handleWinnerClick = (award) => {
+    if (award.talent_id) {
+      navigate(`/talents?highlight=${award.talent_id}`);
+    }
   };
   
   return (
@@ -257,7 +266,11 @@ const ContestWinnersSection = ({ awards }) => {
             const activeIdx = activeImages[award.id] || 0;
             
             return (
-              <div key={i} className="bg-[#050A14] border border-[#D4AF37]/20 rounded-xl overflow-hidden">
+              <div 
+                key={i} 
+                className={`bg-[#050A14] border border-[#D4AF37]/20 rounded-xl overflow-hidden ${award.talent_id ? 'cursor-pointer hover:border-[#D4AF37]/60 transition-all' : ''}`}
+                onClick={() => handleWinnerClick(award)}
+              >
                 {images.length > 0 && (
                   <div className="relative group">
                     <img 
@@ -265,16 +278,21 @@ const ContestWinnersSection = ({ awards }) => {
                       alt={`${award.winner_name} - ${activeIdx + 1}`} 
                       className="w-full h-64 object-cover transition-opacity duration-300" 
                     />
+                    {award.talent_id && (
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all flex items-center justify-center">
+                        <span className="text-white text-sm opacity-0 group-hover:opacity-100 transition-opacity bg-[#D4AF37] px-3 py-1 rounded-full">View Profile</span>
+                      </div>
+                    )}
                     {images.length > 1 && (
                       <>
                         <button 
-                          onClick={() => handlePrev(award.id, images)}
+                          onClick={(e) => handlePrev(e, award.id, images)}
                           className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-black/50 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           <ChevronLeft size={20} />
                         </button>
                         <button 
-                          onClick={() => handleNext(award.id, images)}
+                          onClick={(e) => handleNext(e, award.id, images)}
                           className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-black/50 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           <ChevronRight size={20} />
