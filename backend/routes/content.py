@@ -6,7 +6,8 @@ from models import (
     HeroImageCreate, HeroImageUpdate,
     AwardCreate, AwardUpdate,
     AdvertisementCreate, AdvertisementUpdate,
-    VoteCreate
+    VoteCreate,
+    PartyEventCreate, PartyEventUpdate
 )
 
 import logging
