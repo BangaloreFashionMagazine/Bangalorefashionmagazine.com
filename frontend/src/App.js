@@ -1680,30 +1680,55 @@ const AdminDashboard = () => {
         {/* Contest & Winners */}
         {tab === "contests" && (
           <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20">
-            <h2 className="text-lg font-bold text-[#F5F5F0] mb-4">Contest & Winners</h2>
-            <p className="text-[#A0A5B0] text-sm mb-4">Add contest winners to display on the homepage. Delete a contest to remove it from public view.</p>
+            <h2 className="text-lg font-bold text-[#F5F5F0] mb-4">Contest & Winners (Model of the Week)</h2>
+            <p className="text-[#A0A5B0] text-sm mb-4">Add contest winners with up to 5 images each.</p>
             <div className="grid md:grid-cols-2 gap-3 mb-4">
               <input type="text" placeholder="Contest Title (e.g. Model of the Week)" value={newAward.title} onChange={e => setNewAward({...newAward, title: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
               <input type="text" placeholder="Winner Name" value={newAward.winner_name} onChange={e => setNewAward({...newAward, winner_name: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
               <input type="text" placeholder="Category" value={newAward.category} onChange={e => setNewAward({...newAward, category: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
               <input type="text" placeholder="Description" value={newAward.description} onChange={e => setNewAward({...newAward, description: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
             </div>
-            <div className="flex items-center gap-4 mb-6">
-              <ImageUploadWithCrop 
-                onImageSelect={(img) => setNewAward({...newAward, winner_image: img})} 
-                aspectRatio={3/4}
-                buttonText="Choose Winner Image"
-              />
-              {newAward.winner_image && <img src={newAward.winner_image} alt="Preview" className="h-16 rounded" />}
-              <button onClick={addAward} className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold">Add Winner</button>
+            <div className="mb-4">
+              <label className="text-[#A0A5B0] text-sm mb-2 block">Winner Images (up to 5)</label>
+              <div className="flex flex-wrap gap-3 items-center">
+                {(newAward.winner_images || []).map((img, i) => (
+                  <div key={i} className="relative">
+                    <img src={img} className="h-20 w-16 object-cover rounded" alt={`Image ${i+1}`} />
+                    <button onClick={() => setNewAward({...newAward, winner_images: (newAward.winner_images || []).filter((_, idx) => idx !== i)})} 
+                      className="absolute -top-2 -right-2 p-1 bg-red-500 rounded-full text-white"><X size={12} /></button>
+                  </div>
+                ))}
+                {(newAward.winner_images || []).length < 5 && (
+                  <ImageUploadWithCrop 
+                    onImageSelect={(img) => setNewAward({...newAward, winner_images: [...(newAward.winner_images || []), img]})} 
+                    aspectRatio={3/4}
+                    buttonText={`Add Image (${(newAward.winner_images || []).length}/5)`}
+                  />
+                )}
+              </div>
             </div>
+            <button onClick={() => {
+              if (!newAward.title || !newAward.winner_name || !(newAward.winner_images || []).length) {
+                toast({ title: "Please fill title, name and add at least 1 image", variant: "destructive" });
+                return;
+              }
+              axios.post(`${API}/admin/awards`, {...newAward, winner_image: (newAward.winner_images || [])[0]});
+              setNewAward({ title: "", winner_name: "", winner_images: [], description: "", category: "" });
+              toast({ title: "Winner added!" }); 
+              fetchAwards();
+            }} className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold">Add Winner</button>
+            
             {awards.length === 0 ? (
-              <p className="text-[#A0A5B0] text-center py-8">No contest winners added yet. Add winners above to display them on homepage.</p>
+              <p className="text-[#A0A5B0] text-center py-8 mt-6">No contest winners added yet.</p>
             ) : (
-              <div className="grid md:grid-cols-3 gap-4">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
                 {awards.map(a => (
                   <div key={a.id} className="bg-[#050A14] rounded overflow-hidden">
-                    {a.winner_image && <img src={a.winner_image} alt={a.winner_name} className="w-full h-40 object-cover" />}
+                    <div className="flex gap-1 p-2 bg-[#0A1628]">
+                      {(a.winner_images || [a.winner_image]).filter(Boolean).slice(0, 5).map((img, i) => (
+                        <img key={i} src={img} alt={`${a.winner_name} ${i+1}`} className="h-24 w-20 object-cover rounded" />
+                      ))}
+                    </div>
                     <div className="p-3">
                       <p className="text-[#D4AF37] text-sm">{a.title}</p>
                       <p className="text-[#F5F5F0] font-bold">{a.winner_name}</p>
