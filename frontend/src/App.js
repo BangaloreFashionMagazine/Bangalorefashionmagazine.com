@@ -2701,6 +2701,7 @@ function App() {
       
       <Routes>
         <Route path="/" element={<HomePage user={user} talent={talent} onLogout={handleLogout} heroImages={heroImages} awards={awards} ads={ads} magazine={magazine} video={video} partyEvents={partyEvents} />} />
+        <Route path="/talent/:talentId" element={<TalentProfilePage />} />
         <Route path="/login" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><LoginPage onLogin={setUser} /></>} />
         <Route path="/talent-login" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><TalentLoginPage onTalentLogin={setTalent} /></>} />
         <Route path="/forgot-password" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><ForgotPasswordPage /></>} />
