@@ -2339,12 +2339,19 @@ function App() {
   const [partyEvents, setPartyEvents] = useState([]);
   const [isMuted, setIsMuted] = useState(true);
   const [audioRef] = useState(() => typeof Audio !== 'undefined' ? new Audio() : null);
+  const [showSplash, setShowSplash] = useState(false);
 
   useEffect(() => {
     const u = localStorage.getItem("user");
     const t = localStorage.getItem("talent");
     if (u) try { setUser(JSON.parse(u)); } catch {}
     if (t) try { setTalent(JSON.parse(t)); } catch {}
+    
+    // Show splash screen only once per session
+    const splashShown = sessionStorage.getItem("splashShown");
+    if (!splashShown) {
+      setShowSplash(true);
+    }
     
     // Fetch public data
     Promise.all([
