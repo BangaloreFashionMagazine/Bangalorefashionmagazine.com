@@ -551,8 +551,9 @@ const TalentCard = ({ talent, onVote, onClick }) => {
       onClick={() => onClick(talent)}
       data-testid={`talent-card-${talent.id}`}
     >
-      <div className="aspect-[3/4] overflow-hidden">
+      <div className="aspect-[3/4] overflow-hidden relative">
         <img src={talent.profile_image || "https://via.placeholder.com/300x400"} alt={talent.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+        <LogoWatermark size="small" position="bottom-right" />
       </div>
       <div className="absolute inset-0 bg-gradient-to-t from-[#050A14] via-transparent to-transparent" />
       <div className="absolute bottom-0 left-0 right-0 p-4">
