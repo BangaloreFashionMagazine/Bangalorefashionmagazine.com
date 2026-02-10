@@ -833,6 +833,8 @@ const JoinPage = () => {
   });
   const [profileImage, setProfileImage] = useState("");
   const [portfolio, setPortfolio] = useState([]);
+  const [portfolioVideo, setPortfolioVideo] = useState("");
+  const [videoDuration, setVideoDuration] = useState(0);
   const [loading, setLoading] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [showDeclaration, setShowDeclaration] = useState(false);
