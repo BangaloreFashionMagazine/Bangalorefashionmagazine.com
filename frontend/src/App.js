@@ -1582,39 +1582,45 @@ const AdminDashboard = () => {
         {/* Hero Images */}
         {tab === "hero" && (
           <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20">
-            <h2 className="text-lg font-bold text-[#F5F5F0] mb-4">Hero Slider Images</h2>
-            <p className="text-[#A0A5B0] text-sm mb-4">Add images for the homepage slider. Lower order number = displayed first.</p>
-            <div className="grid md:grid-cols-4 gap-3 mb-4">
-              <input type="text" placeholder="Title" value={newHero.title} onChange={e => setNewHero({...newHero, title: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
-              <input type="text" placeholder="Subtitle" value={newHero.subtitle} onChange={e => setNewHero({...newHero, subtitle: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
-              <input type="text" placeholder="Category" value={newHero.category} onChange={e => setNewHero({...newHero, category: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
-              <input type="number" placeholder="Order (1=first)" value={newHero.order} onChange={e => setNewHero({...newHero, order: parseInt(e.target.value) || 1})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
-            </div>
-            <div className="flex items-center gap-4 mb-6">
-              <ImageUploadWithCrop 
-                onImageSelect={(img) => setNewHero({...newHero, image_data: img})} 
-                aspectRatio={16/9}
-                buttonText="Choose Hero Image"
-              />
-              {newHero.image_data && <img src={newHero.image_data} className="h-16 rounded" alt="Preview" />}
-              <button onClick={addHero} className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold">Add</button>
-            </div>
+            <h2 className="text-lg font-bold text-[#F5F5F0] mb-4">Hero Slider Images ({heroImages.length}/10)</h2>
+            <p className="text-[#A0A5B0] text-sm mb-4">Add up to 10 images for the homepage slider. Lower order number = displayed first.</p>
+            {heroImages.length < 10 && (
+              <>
+                <div className="grid md:grid-cols-4 gap-3 mb-4">
+                  <input type="text" placeholder="Title" value={newHero.title} onChange={e => setNewHero({...newHero, title: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+                  <input type="text" placeholder="Subtitle" value={newHero.subtitle} onChange={e => setNewHero({...newHero, subtitle: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+                  <input type="text" placeholder="Category" value={newHero.category} onChange={e => setNewHero({...newHero, category: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+                  <input type="number" placeholder="Order (1=first)" value={newHero.order} onChange={e => setNewHero({...newHero, order: parseInt(e.target.value) || 1})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+                </div>
+                <div className="flex items-center gap-4 mb-6">
+                  <ImageUploadWithCrop 
+                    onImageSelect={(img) => setNewHero({...newHero, image_data: img})} 
+                    aspectRatio={16/9}
+                    buttonText="Choose Hero Image"
+                  />
+                  {newHero.image_data && <img src={newHero.image_data} className="h-16 rounded" alt="Preview" />}
+                  <button onClick={addHero} className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold">Add</button>
+                </div>
+              </>
+            )}
+            {heroImages.length >= 10 && (
+              <p className="text-yellow-500 text-sm mb-4">Maximum 10 hero images reached. Delete some to add more.</p>
+            )}
             {heroImages.length === 0 ? (
               <p className="text-[#A0A5B0] text-center py-8">No hero images added yet.</p>
             ) : (
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-4">
                 {heroImages.sort((a, b) => (a.order || 99) - (b.order || 99)).map(h => (
                   <div key={h.id} className="bg-[#050A14] rounded-lg overflow-hidden">
-                    <img src={h.image_data} className="w-full h-32 object-cover" alt={h.title} />
-                    <div className="p-3">
-                      <p className="text-[#F5F5F0] font-medium text-sm">{h.title || "No title"}</p>
-                      <p className="text-[#A0A5B0] text-xs">{h.subtitle || ""}</p>
-                      <div className="flex items-center gap-2 mt-2">
+                    <img src={h.image_data} className="w-full h-24 object-cover" alt={h.title} />
+                    <div className="p-2">
+                      <p className="text-[#F5F5F0] font-medium text-xs truncate">{h.title || "No title"}</p>
+                      <div className="flex items-center gap-1 mt-1">
                         <span className="text-[#A0A5B0] text-xs">Order:</span>
                         <input type="number" value={h.order || 1} onChange={e => updateHeroOrder(h.id, parseInt(e.target.value) || 1)} 
-                          className="w-16 px-2 py-1 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-sm text-center" />
+                          className="w-12 px-1 py-0.5 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-xs text-center" />
                         <button onClick={() => deleteHero(h.id)} className="ml-auto p-1 text-red-500 hover:bg-red-500/20 rounded">
-                          <Trash2 size={16} />
+                          <Trash2 size={14} />
                         </button>
                       </div>
                     </div>
