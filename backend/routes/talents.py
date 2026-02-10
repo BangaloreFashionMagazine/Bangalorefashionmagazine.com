@@ -171,7 +171,8 @@ def create_talent_routes(db):
             id=updated["id"], name=updated["name"], email=updated["email"], phone=updated["phone"],
             instagram_id=updated.get("instagram_id", ""), category=updated["category"],
             bio=updated.get("bio", ""), profile_image=updated.get("profile_image", ""),
-            portfolio_images=updated.get("portfolio_images", []), is_approved=updated.get("is_approved", False),
+            portfolio_images=updated.get("portfolio_images", []), portfolio_video=updated.get("portfolio_video", ""),
+            is_approved=updated.get("is_approved", False),
             rank=updated.get("rank", 999), votes=updated.get("votes", 0), created_at=updated.get("created_at", ""),
             agreed_to_terms=updated.get("agreed_to_terms", False), agreed_at=updated.get("agreed_at", "")
         )
@@ -187,7 +188,8 @@ def create_talent_routes(db):
             id=talent["id"], name=talent["name"], email=talent["email"], phone=talent["phone"],
             instagram_id=talent.get("instagram_id", ""), category=talent["category"],
             bio=talent.get("bio", ""), profile_image=talent.get("profile_image", ""),
-            portfolio_images=talent.get("portfolio_images", []), is_approved=talent.get("is_approved", False),
+            portfolio_images=talent.get("portfolio_images", []), portfolio_video=talent.get("portfolio_video", ""),
+            is_approved=talent.get("is_approved", False),
             rank=talent.get("rank", 999), votes=talent.get("votes", 0), created_at=talent.get("created_at", ""),
             agreed_to_terms=talent.get("agreed_to_terms", False), agreed_at=talent.get("agreed_at", "")
         )
