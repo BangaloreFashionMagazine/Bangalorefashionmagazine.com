@@ -64,6 +64,8 @@ class TalentResponse(BaseModel):
     rank: int = 999
     votes: int = 0
     created_at: str = ""
+    agreed_to_terms: bool = False
+    agreed_at: str = ""
 
 class TalentLoginResponse(BaseModel):
     token: str
