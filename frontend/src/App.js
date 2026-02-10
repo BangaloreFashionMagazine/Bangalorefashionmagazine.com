@@ -1716,16 +1716,7 @@ const AdminDashboard = () => {
                 )}
               </div>
             </div>
-            <button onClick={() => {
-              if (!newAward.title || !newAward.winner_name || !(newAward.winner_images || []).length) {
-                toast({ title: "Please fill title, name and add at least 1 image", variant: "destructive" });
-                return;
-              }
-              axios.post(`${API}/admin/awards`, {...newAward, winner_image: (newAward.winner_images || [])[0]});
-              setNewAward({ title: "", winner_name: "", winner_images: [], description: "", category: "" });
-              toast({ title: "Winner added!" }); 
-              fetchAwards();
-            }} className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold">Add Winner</button>
+            <button onClick={addAward} className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold">Add Winner</button>
             
             {awards.length === 0 ? (
               <p className="text-[#A0A5B0] text-center py-8 mt-6">No contest winners added yet.</p>
