@@ -14,26 +14,29 @@ Build a fashion magazine website for Bangalore with talent management, admin pan
 ```
 /app/backend/
 ├── server.py           # 88 lines - Main app, routes registration
-├── models/__init__.py  # 161 lines - All Pydantic models
+├── models/__init__.py  # 163 lines - All Pydantic models (includes multi-image support)
 ├── services/__init__.py # 37 lines - Helper functions, constants
 ├── routes/
 │   ├── auth.py         # 58 lines - User authentication
 │   ├── talents.py      # 200 lines - Talent CRUD & auth
 │   ├── admin.py        # 129 lines - Admin operations
-│   └── content.py      # 252 lines - Hero images, ads, awards, media
+│   └── content.py      # 260 lines - Hero images, ads, awards (with multi-image), media
 └── requirements.txt
 ```
 
 ### Frontend Structure (React - Partial Refactor)
 ```
 /app/frontend/src/
-├── App.js              # ~1968 lines - Main app (remaining pages)
+├── App.js              # ~1970 lines - Main app (remaining pages)
 ├── components/
 │   ├── Navbar.jsx      # 102 lines
 │   ├── HeroSlider.jsx  # 53 lines
 │   ├── ContestWinnersSection.jsx # 36 lines
 │   ├── TalentCard.jsx  # 37 lines
 │   ├── TalentDetailModal.jsx # 82 lines
+│   ├── ImageUploadWithCrop.jsx # 181 lines - Image cropping component
+│   ├── ImageCropper.jsx # Image cropping utility
+│   ├── ImageGallery.jsx # Swipeable image gallery
 │   └── index.js        # Component exports
 ├── pages/
 │   └── HomePage.jsx    # 95 lines
@@ -53,11 +56,11 @@ Build a fashion magazine website for Bangalore with talent management, admin pan
 - Other (custom)
 
 ### Homepage Features
-- Hero slider with 4 admin-managed images
+- Hero slider with up to 10 admin-managed images
 - Featured Video section (YouTube/Vimeo embeds, admin-managed)
 - Contact section with Instagram & email links
 - Magazine download section (PDF, admin-managed)
-- Contest & Winners section (admin-managed)
+- Contest & Winners section (up to 5 images per winner, with navigation)
 - Advertisement sidebar (admin-managed, visible on all screen sizes)
 - Background music player with mute/unmute button
 
@@ -78,10 +81,10 @@ Build a fashion magazine website for Bangalore with talent management, admin pan
 ### Admin Panel (Lazy Loading for Performance)
 - **Pending Tab:** Approve/reject talents
 - **All Talents Tab:** View, edit, rank, delete talents; view/set passwords
-- **Hero Images Tab:** Manage homepage slider images with ordering
+- **Hero Images Tab:** Manage up to 10 homepage slider images with cropping and ordering
 - **Featured Video Tab:** Add YouTube/Vimeo video URL for homepage
-- **Contest & Winners Tab:** Manage contest winners
-- **Advertisements Tab:** Manage sidebar ads
+- **Contest & Winners Tab:** Manage contest winners with up to 5 images each
+- **Advertisements Tab:** Manage sidebar ads with cropping
 - **Magazine Tab:** Upload monthly PDF magazine
 - **Background Music Tab:** Upload audio file for site-wide background music
 - **Export Tab:** Download talent data as CSV
@@ -98,11 +101,16 @@ Build a fashion magazine website for Bangalore with talent management, admin pan
 - Vote for talents (IP-based restriction)
 
 ## Tech Stack
-- Frontend: React.js + Tailwind CSS
+- Frontend: React.js + Tailwind CSS + react-image-crop
 - Backend: FastAPI (Python)
 - Database: MongoDB
 
 ## What's Been Implemented ✅
+
+### February 2026 Updates
+1. ✅ Multi-Image Upload for Contest Winners: Up to 5 images per winner with navigation arrows/dots
+2. ✅ Hero Images Limit: Increased to 10 images with clear UI indicator (0/10)
+3. ✅ Image Cropping: ImageUploadWithCrop component for Hero Images, Ads, Contest Winners
 
 ### December 2025 Updates
 1. ✅ Homepage Video Feature: Admin can upload YouTube/Vimeo URLs, displayed below hero slider
@@ -135,17 +143,22 @@ Build a fashion magazine website for Bangalore with talent management, admin pan
 - `/api/admin/music` - POST/DELETE music (admin only)
 - `/api/admin/talent/{id}/full` - GET talent with password (admin only)
 - `/api/admin/talent/{id}/password` - PUT reset password (admin only)
+- `/api/awards` - GET awards with winner_images array (public)
+- `/api/admin/awards` - POST/PUT/DELETE awards with multi-image support (admin only)
+- `/api/hero-images` - GET up to 10 hero images (public)
+- `/api/admin/hero-images` - POST/PUT/DELETE hero images (admin only)
 
 ## Database Collections
 - users, talents, hero_images, awards, advertisements
 - magazines: {id, title, file_data, file_name, created_at}
 - music: {id, title, file_data, file_name, created_at}
 - videos: {id, title, video_url, video_type, created_at}
+- awards: {id, title, winner_name, winner_image, winner_images[], description, category, is_active, created_at}
 
 ## Future Tasks (Backlog)
-- **P0: Code Refactoring** - Split monolithic App.js (~1900 lines) and server.py (~850 lines)
-- P1: SEO Enhancements (dynamic meta tags, Google Search Console)
-- P2: Portfolio image gallery improvements
+- **P1: Frontend Refactoring** - Complete modularization of App.js (~1970 lines) using extracted components
+- **P1: Image Gallery Swipe** - Test swipeable navigation in talent portfolio lightbox
+- P2: SEO Enhancements (dynamic meta tags, Google Search Console)
 
 ## Admin Credentials
 - Email: admin@bangalorefashionmag.com
