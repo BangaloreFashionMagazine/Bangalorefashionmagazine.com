@@ -2651,9 +2651,10 @@ function App() {
     if (u) try { setUser(JSON.parse(u)); } catch {}
     if (t) try { setTalent(JSON.parse(t)); } catch {}
     
-    // Show splash screen only once per session
+    // Show splash screen only once per session (skip for admin pages)
     const splashShown = sessionStorage.getItem("splashShown");
-    if (!splashShown) {
+    const isAdminPage = window.location.pathname.includes('/admin');
+    if (!splashShown && !isAdminPage) {
       setShowSplash(true);
     }
     
