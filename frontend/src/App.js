@@ -1371,22 +1371,42 @@ const AdminDashboard = () => {
         {/* All Talents */}
         {tab === "talents" && (
           <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20 overflow-x-auto">
-            <h2 className="text-lg font-bold text-[#F5F5F0] mb-2">All Talents</h2>
-            <p className="text-[#A0A5B0] text-sm mb-4">Change rank number and press Enter or click outside to save. Lower rank = shown first.</p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+              <div>
+                <h2 className="text-lg font-bold text-[#F5F5F0]">All Talents</h2>
+                <p className="text-[#A0A5B0] text-sm">Change rank number and press Enter or click outside to save. Lower rank = shown first.</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-[#A0A5B0] text-sm">Filter by Category:</label>
+                <select 
+                  value={categoryFilter} 
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]"
+                >
+                  <option value="">All Categories</option>
+                  {TALENT_CATEGORIES.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#D4AF37]"></div>
                 <span className="ml-3 text-[#A0A5B0]">Loading talents...</span>
               </div>
-            ) : allTalents.length === 0 ? (
-              <p className="text-[#A0A5B0] text-center py-8">No talents found.</p>
+            ) : allTalents.filter(t => !categoryFilter || t.category === categoryFilter).length === 0 ? (
+              <p className="text-[#A0A5B0] text-center py-8">{categoryFilter ? `No talents found in "${categoryFilter}" category.` : "No talents found."}</p>
             ) : (
               <table className="w-full text-sm">
                 <thead><tr className="text-left text-[#A0A5B0]">
-                  <th className="pb-2">Rank</th><th className="pb-2">Name</th><th className="pb-2">Category</th><th className="pb-2">Status</th><th className="pb-2">Votes</th><th className="pb-2">Actions</th>
+                  <th className="pb-2">Rank</th><th className="pb-2">Name</th><th className="pb-2">Category</th><th className="pb-2">Status</th><th className="pb-2">Terms</th><th className="pb-2">Votes</th><th className="pb-2">Actions</th>
                 </tr></thead>
                 <tbody>
-                  {allTalents.sort((a, b) => (a.rank || 999) - (b.rank || 999)).map(t => (
+                  {allTalents
+                    .filter(t => !categoryFilter || t.category === categoryFilter)
+                    .sort((a, b) => (a.rank || 999) - (b.rank || 999))
+                    .map(t => (
                     <tr key={t.id} className="border-t border-[#D4AF37]/10">
                       <td className="py-2">
                         <input 
@@ -1400,6 +1420,7 @@ const AdminDashboard = () => {
                       <td className="py-2"><button onClick={() => openTalentDetail(t)} className="text-[#D4AF37] hover:underline font-medium">{t.name}</button></td>
                       <td className="py-2 text-[#A0A5B0]">{t.category}</td>
                       <td className="py-2">{t.is_approved ? <span className="text-green-500">Approved</span> : <span className="text-yellow-500">Pending</span>}</td>
+                      <td className="py-2">{t.agreed_to_terms ? <span className="text-green-500" title={`Agreed on ${t.agreed_at ? new Date(t.agreed_at).toLocaleDateString() : 'N/A'}`}><Check size={16} /></span> : <span className="text-red-400" title="Not agreed"><X size={16} /></span>}</td>
                       <td className="py-2 text-[#D4AF37]">{t.votes}</td>
                       <td className="py-2">
                         {!t.is_approved && <button onClick={() => approve(t.id)} className="p-1 text-green-500 mr-2"><Check size={16} /></button>}
