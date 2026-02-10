@@ -1892,11 +1892,11 @@ const AdminDashboard = () => {
                   <h2 className="font-serif text-2xl font-bold text-[#F5F5F0]">Talent Details</h2>
                   <div className="flex gap-2">
                     {!editMode ? (
-                      <button data-testid="edit-talent-btn" onClick={() => setEditMode(true)} className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold">Edit</button>
+                      <button data-testid="edit-talent-btn" onClick={(e) => { e.stopPropagation(); setEditMode(true); }} className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold">Edit</button>
                     ) : (
                       <>
-                        <button data-testid="save-talent-btn" onClick={saveTalentEdit} className="px-4 py-2 bg-green-500 text-white rounded font-bold">Save</button>
-                        <button data-testid="cancel-edit-btn" onClick={() => { setEditMode(false); setEditData({...selectedTalent}); }} className="px-4 py-2 bg-gray-500 text-white rounded font-bold">Cancel</button>
+                        <button data-testid="save-talent-btn" onClick={(e) => { e.stopPropagation(); saveTalentEdit(); }} className="px-4 py-2 bg-green-500 text-white rounded font-bold">Save</button>
+                        <button data-testid="cancel-edit-btn" onClick={(e) => { e.stopPropagation(); setEditMode(false); setEditData({...selectedTalent}); }} className="px-4 py-2 bg-gray-500 text-white rounded font-bold">Cancel</button>
                       </>
                     )}
                   </div>
