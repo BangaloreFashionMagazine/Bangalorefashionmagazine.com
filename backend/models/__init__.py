@@ -97,6 +97,7 @@ class AwardCreate(BaseModel):
     winner_images: List[str] = []
     description: str = ""
     category: str = ""
+    talent_id: str = ""  # Link to talent profile
 
 class AwardUpdate(BaseModel):
     title: Optional[str] = None
@@ -105,6 +106,7 @@ class AwardUpdate(BaseModel):
     winner_images: Optional[List[str]] = None
     description: Optional[str] = None
     is_active: Optional[bool] = None
+    talent_id: Optional[str] = None
 
 
 # ============== Advertisement Models ==============
