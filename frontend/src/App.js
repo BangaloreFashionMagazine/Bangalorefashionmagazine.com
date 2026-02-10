@@ -2406,8 +2406,16 @@ function App() {
     window.location.href = "/";
   };
 
+  const closeSplash = () => {
+    setShowSplash(false);
+    sessionStorage.setItem("splashShown", "true");
+  };
+
   return (
     <BrowserRouter>
+      {/* Welcome Splash Screen */}
+      {showSplash && <WelcomeSplash onClose={closeSplash} />}
+      
       {/* Music Control Button */}
       {music && (
         <button 
