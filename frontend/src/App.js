@@ -1860,6 +1860,96 @@ const AdminDashboard = () => {
           </div>
         )}
 
+        {/* Party Updates */}
+        {tab === "party" && (
+          <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20">
+            <h2 className="text-lg font-bold text-[#F5F5F0] mb-4">Party Updates & Events</h2>
+            <p className="text-[#A0A5B0] text-sm mb-4">Add party events, entry codes for bookers, and booking info. Only active events show on homepage.</p>
+            
+            {/* Add New Party Event Form */}
+            <div className="bg-[#050A14] rounded-lg p-4 mb-6 border border-[#D4AF37]/10">
+              <h3 className="text-[#D4AF37] font-bold mb-4">Add New Party Event</h3>
+              <div className="grid md:grid-cols-2 gap-3 mb-4">
+                <input type="text" placeholder="Event Title *" value={newPartyEvent.title} onChange={e => setNewPartyEvent({...newPartyEvent, title: e.target.value})} 
+                  className="px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+                <input type="text" placeholder="Venue *" value={newPartyEvent.venue} onChange={e => setNewPartyEvent({...newPartyEvent, venue: e.target.value})} 
+                  className="px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+                <input type="text" placeholder="Event Date * (e.g. Feb 15, 2026)" value={newPartyEvent.event_date} onChange={e => setNewPartyEvent({...newPartyEvent, event_date: e.target.value})} 
+                  className="px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+                <input type="text" placeholder="Entry Code (e.g. BFM2026)" value={newPartyEvent.entry_code} onChange={e => setNewPartyEvent({...newPartyEvent, entry_code: e.target.value})} 
+                  className="px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+                <input type="text" placeholder="Contact Info (e.g. Call 9876543210)" value={newPartyEvent.contact} onChange={e => setNewPartyEvent({...newPartyEvent, contact: e.target.value})} 
+                  className="px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+                <input type="text" placeholder="Booking Info (e.g. Book via website)" value={newPartyEvent.booking_info} onChange={e => setNewPartyEvent({...newPartyEvent, booking_info: e.target.value})} 
+                  className="px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+              </div>
+              <textarea placeholder="Description (optional)" value={newPartyEvent.description} onChange={e => setNewPartyEvent({...newPartyEvent, description: e.target.value})} 
+                className="w-full px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0] mb-4 h-20" />
+              <div className="flex items-center gap-4 mb-4">
+                <ImageUploadWithCrop 
+                  onImageSelect={(img) => setNewPartyEvent({...newPartyEvent, image: img})} 
+                  buttonText="Add Event Image"
+                />
+                {newPartyEvent.image && <img src={newPartyEvent.image} className="h-16 rounded" alt="Preview" />}
+              </div>
+              <button onClick={async () => {
+                if (!newPartyEvent.title || !newPartyEvent.venue || !newPartyEvent.event_date) {
+                  toast({ title: "Please fill title, venue and date", variant: "destructive" });
+                  return;
+                }
+                await axios.post(`${API}/admin/party-events`, newPartyEvent);
+                setNewPartyEvent({ title: "", venue: "", event_date: "", description: "", image: "", entry_code: "", booking_info: "", contact: "", is_active: true });
+                toast({ title: "Party event added!" });
+                fetchPartyEvents();
+              }} className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold">Add Event</button>
+            </div>
+
+            {/* Existing Events */}
+            {partyEvents.length === 0 ? (
+              <p className="text-[#A0A5B0] text-center py-8">No party events added yet. Add one above to show on homepage.</p>
+            ) : (
+              <div className="space-y-4">
+                {partyEvents.map(event => (
+                  <div key={event.id} className={`bg-[#050A14] rounded-lg overflow-hidden border ${event.is_active ? 'border-green-500/30' : 'border-red-500/30'}`}>
+                    <div className="flex gap-4 p-4">
+                      {event.image && <img src={event.image} className="w-24 h-24 object-cover rounded" alt={event.title} />}
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h4 className="text-[#F5F5F0] font-bold">{event.title}</h4>
+                          <span className={`px-2 py-0.5 text-xs rounded ${event.is_active ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
+                            {event.is_active ? 'Active' : 'Hidden'}
+                          </span>
+                          {event.entry_code && <span className="px-2 py-0.5 bg-[#D4AF37] text-[#050A14] text-xs font-bold rounded">Entry: {event.entry_code}</span>}
+                        </div>
+                        <p className="text-[#D4AF37] text-sm">{event.event_date} • {event.venue}</p>
+                        {event.description && <p className="text-[#A0A5B0] text-sm mt-1">{event.description}</p>}
+                        {event.booking_info && <p className="text-[#A0A5B0] text-xs mt-1">Booking: {event.booking_info}</p>}
+                        {event.contact && <p className="text-[#A0A5B0] text-xs">Contact: {event.contact}</p>}
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <button onClick={async () => {
+                          await axios.put(`${API}/admin/party-events/${event.id}`, { is_active: !event.is_active });
+                          toast({ title: event.is_active ? "Event hidden" : "Event activated" });
+                          fetchPartyEvents();
+                        }} className={`px-3 py-1 text-xs rounded ${event.is_active ? 'bg-yellow-500/20 text-yellow-500' : 'bg-green-500/20 text-green-500'}`}>
+                          {event.is_active ? 'Hide' : 'Show'}
+                        </button>
+                        <button onClick={async () => {
+                          if (window.confirm("Delete this event?")) {
+                            await axios.delete(`${API}/admin/party-events/${event.id}`);
+                            toast({ title: "Event deleted" });
+                            fetchPartyEvents();
+                          }
+                        }} className="px-3 py-1 text-xs bg-red-500/20 text-red-500 rounded">Delete</button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Contest & Winners */}
         {tab === "contests" && (
           <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20">
