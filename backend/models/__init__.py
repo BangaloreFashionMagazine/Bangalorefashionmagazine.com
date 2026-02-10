@@ -62,6 +62,7 @@ class TalentResponse(BaseModel):
     bio: str = ""
     profile_image: str = ""
     portfolio_images: List[str] = []
+    portfolio_video: str = ""  # Video URL/data
     is_approved: bool = False
     rank: int = 999
     votes: int = 0
