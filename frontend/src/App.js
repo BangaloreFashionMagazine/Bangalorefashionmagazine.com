@@ -2146,10 +2146,13 @@ const AboutPage = () => (
 );
 
 // Home Page
-const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine, video }) => (
+const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine, video, partyEvents }) => (
   <div className="min-h-screen bg-[#050A14]">
     <Navbar user={user} talent={talent} onLogout={onLogout} />
     <HeroSlider customSlides={heroImages} />
+    
+    {/* Party Updates Section - Only visible when there are active events */}
+    <PartyUpdatesSection partyEvents={partyEvents} />
     
     {/* Featured Video Section */}
     {video && video.video_url && (
