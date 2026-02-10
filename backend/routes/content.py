@@ -81,6 +81,7 @@ def create_content_routes(db):
             "winner_images": images,
             "description": data.get("description", ""),
             "category": data.get("category", ""),
+            "talent_id": data.get("talent_id", ""),  # Link to talent profile
             "is_active": True,
             "created_at": datetime.now(timezone.utc).isoformat()
         }
