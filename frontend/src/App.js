@@ -1976,27 +1976,21 @@ const AdminDashboard = () => {
                             <img src={img} alt={`Portfolio ${i+1}`} className="w-full aspect-square object-cover rounded" />
                             {editMode && (
                               <button onClick={() => setEditData({...editData, portfolio_images: editData.portfolio_images.filter((_, idx) => idx !== i)})} 
-                                className="absolute top-0 right-0 p-1 bg-red-500 rounded-full opacity-0 group-hover:opacity-100">
-                                <X size={12} className="text-white" />
+                                className="absolute top-0 right-0 p-1.5 bg-red-500 rounded-full md:opacity-0 md:group-hover:opacity-100">
+                                <X size={14} className="text-white" />
                               </button>
                             )}
                           </div>
                         ))}
                       </div>
                       {editMode && (editData.portfolio_images || []).length < 7 && (
-                        <input type="file" accept="image/*" multiple onChange={e => {
-                          const files = Array.from(e.target.files);
-                          const currentCount = (editData.portfolio_images || []).length;
-                          if (currentCount + files.length > 7) {
-                            toast({ title: "Max 7 portfolio images", variant: "destructive" });
-                            return;
-                          }
-                          files.forEach(file => {
-                            const reader = new FileReader();
-                            reader.onloadend = () => setEditData(prev => ({...prev, portfolio_images: [...(prev.portfolio_images || []), reader.result].slice(0, 7)}));
-                            reader.readAsDataURL(file);
-                          });
-                        }} className="text-[#A0A5B0] text-sm mt-2" />
+                        <div className="mt-3">
+                          <ImageUploadWithCrop 
+                            onImageSelect={(img) => setEditData(prev => ({...prev, portfolio_images: [...(prev.portfolio_images || []), img].slice(0, 7)}))} 
+                            aspectRatio={3/4}
+                            buttonText={`Add Image (${(editData.portfolio_images || []).length}/7)`}
+                          />
+                        </div>
                       )}
                     </div>
 
@@ -2005,29 +1999,42 @@ const AdminDashboard = () => {
                       <p className="text-[#D4AF37] text-sm uppercase mb-2">Portfolio Video (max 45 sec)</p>
                       {editData.portfolio_video ? (
                         <div>
-                          <video src={editData.portfolio_video} controls className="w-full max-h-32 rounded bg-black" />
+                          <video src={editData.portfolio_video} controls className="w-full max-h-40 rounded bg-black" />
                           {editMode && (
-                            <button onClick={() => setEditData({...editData, portfolio_video: ""})} className="text-red-500 text-sm mt-1">Remove Video</button>
+                            <button onClick={() => setEditData({...editData, portfolio_video: ""})} className="mt-2 px-4 py-2 bg-red-500/20 text-red-500 rounded text-sm font-medium w-full md:w-auto">Remove Video</button>
                           )}
                         </div>
                       ) : (
                         editMode ? (
-                          <input type="file" accept="video/*" onChange={e => {
-                            const file = e.target.files[0];
-                            if (!file) return;
-                            const video = document.createElement('video');
-                            video.preload = 'metadata';
-                            video.onloadedmetadata = () => {
-                              if (video.duration > 45) {
-                                toast({ title: "Video must be 45 seconds or less", variant: "destructive" });
+                          <div className="border-2 border-dashed border-[#D4AF37]/30 rounded-lg p-4 text-center">
+                            <input type="file" accept="video/*" onChange={e => {
+                              const file = e.target.files[0];
+                              if (!file) return;
+                              if (file.size > 50 * 1024 * 1024) {
+                                toast({ title: "Video must be less than 50MB", variant: "destructive" });
                                 return;
                               }
-                              const reader = new FileReader();
-                              reader.onloadend = () => setEditData(prev => ({...prev, portfolio_video: reader.result}));
-                              reader.readAsDataURL(file);
-                            };
-                            video.src = URL.createObjectURL(file);
-                          }} className="text-[#A0A5B0] text-sm" />
+                              const video = document.createElement('video');
+                              video.preload = 'metadata';
+                              video.onloadedmetadata = () => {
+                                if (video.duration > 45) {
+                                  toast({ title: "Video must be 45 seconds or less", variant: "destructive" });
+                                  return;
+                                }
+                                const reader = new FileReader();
+                                reader.onloadend = () => setEditData(prev => ({...prev, portfolio_video: reader.result}));
+                                reader.readAsDataURL(file);
+                                toast({ title: "Video uploaded!", description: `Duration: ${Math.round(video.duration)} seconds` });
+                              };
+                              video.src = URL.createObjectURL(file);
+                            }} className="hidden" id="admin-video-upload" />
+                            <label htmlFor="admin-video-upload" className="cursor-pointer block">
+                              <Video size={28} className="mx-auto text-[#D4AF37] mb-2" />
+                              <p className="text-[#A0A5B0] text-sm">Tap to upload video</p>
+                              <p className="text-[#A0A5B0] text-xs mt-1">Max 45 seconds, 50MB</p>
+                            </label>
+                          </div>
+                        ) : <p className="text-[#A0A5B0] text-sm">No video uploaded</p>
                         ) : <p className="text-[#A0A5B0] text-sm">No video uploaded</p>
                       )}
                     </div>
