@@ -456,13 +456,15 @@ const TalentDetailModal = ({ talent, onClose, onVote }) => {
             <h3 className="text-[#D4AF37] text-sm uppercase tracking-wider mb-4 text-center">Photo Gallery</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {allImages.map((img, i) => (
-                <img 
-                  key={i} 
-                  src={img} 
-                  alt={`${talent.name} - Photo ${i + 1}`} 
-                  className="w-full aspect-[3/4] object-cover rounded-lg cursor-pointer hover:opacity-80 hover:scale-[1.02] transition-all"
-                  onClick={() => openGallery(i)}
-                />
+                <div key={i} className="relative">
+                  <img 
+                    src={img} 
+                    alt={`${talent.name} - Photo ${i + 1}`} 
+                    className="w-full aspect-[3/4] object-cover rounded-lg cursor-pointer hover:opacity-80 hover:scale-[1.02] transition-all"
+                    onClick={() => openGallery(i)}
+                  />
+                  <LogoWatermark size="small" position="bottom-right" />
+                </div>
               ))}
             </div>
             {allImages.length === 0 && (
