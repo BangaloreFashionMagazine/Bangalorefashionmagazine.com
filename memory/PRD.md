@@ -111,6 +111,9 @@ Build a fashion magazine website for Bangalore with talent management, admin pan
 1. ✅ Multi-Image Upload for Contest Winners: Up to 5 images per winner with navigation arrows/dots
 2. ✅ Hero Images Limit: Increased to 10 images with clear UI indicator (0/10)
 3. ✅ Image Cropping: ImageUploadWithCrop component for Hero Images, Ads, Contest Winners
+4. ✅ Admin Panel - Category Filter: All Talents tab now has category filter dropdown
+5. ✅ Admin Panel - Pending Tab Redesign: Shows detailed cards with terms agreement status, portfolio count
+6. ✅ Terms Agreement Fix: API now returns agreed_to_terms and agreed_at fields for all talents
 
 ### December 2025 Updates
 1. ✅ Homepage Video Feature: Admin can upload YouTube/Vimeo URLs, displayed below hero slider
