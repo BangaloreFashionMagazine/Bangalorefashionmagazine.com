@@ -185,7 +185,8 @@ def create_talent_routes(db):
             instagram_id=talent.get("instagram_id", ""), category=talent["category"],
             bio=talent.get("bio", ""), profile_image=talent.get("profile_image", ""),
             portfolio_images=talent.get("portfolio_images", []), is_approved=talent.get("is_approved", False),
-            rank=talent.get("rank", 999), votes=talent.get("votes", 0), created_at=talent.get("created_at", "")
+            rank=talent.get("rank", 999), votes=talent.get("votes", 0), created_at=talent.get("created_at", ""),
+            agreed_to_terms=talent.get("agreed_to_terms", False), agreed_at=talent.get("agreed_at", "")
         )
 
 
