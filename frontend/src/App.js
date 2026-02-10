@@ -471,6 +471,22 @@ const TalentDetailModal = ({ talent, onClose, onVote }) => {
               <p className="text-[#A0A5B0] text-center py-8">No photos available</p>
             )}
           </div>
+
+          {/* Portfolio Video */}
+          {talent.portfolio_video && (
+            <div className="mt-6">
+              <h3 className="text-[#D4AF37] text-sm uppercase tracking-wider mb-4 text-center">Portfolio Video</h3>
+              <div className="relative">
+                <video 
+                  src={talent.portfolio_video} 
+                  controls 
+                  className="w-full max-h-64 rounded-lg bg-black mx-auto"
+                  style={{ maxWidth: '500px', margin: '0 auto', display: 'block' }}
+                />
+                <LogoWatermark size="small" position="bottom-right" />
+              </div>
+            </div>
+          )}
         </div>
         
         {/* Full Image Gallery with Swipe */}
