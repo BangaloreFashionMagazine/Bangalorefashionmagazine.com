@@ -1853,6 +1853,7 @@ const AdminDashboard = () => {
             ) : allTalents.filter(t => !categoryFilter || t.category === categoryFilter).length === 0 ? (
               <p className="text-[#A0A5B0] text-center py-8">{categoryFilter ? `No talents found in "${categoryFilter}" category.` : "No talents found."}</p>
             ) : (
+              <>
               {/* Desktop Table View */}
               <table className="hidden md:table w-full text-sm">
                 <thead><tr className="text-left text-[#A0A5B0]">
