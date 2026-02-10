@@ -1853,7 +1853,8 @@ const AdminDashboard = () => {
             ) : allTalents.filter(t => !categoryFilter || t.category === categoryFilter).length === 0 ? (
               <p className="text-[#A0A5B0] text-center py-8">{categoryFilter ? `No talents found in "${categoryFilter}" category.` : "No talents found."}</p>
             ) : (
-              <table className="w-full text-sm">
+              {/* Desktop Table View */}
+              <table className="hidden md:table w-full text-sm">
                 <thead><tr className="text-left text-[#A0A5B0]">
                   <th className="pb-2">Rank</th><th className="pb-2">Name</th><th className="pb-2">Category</th><th className="pb-2">Status</th><th className="pb-2">Terms</th><th className="pb-2">Votes</th><th className="pb-2">Actions</th>
                 </tr></thead>
@@ -1885,6 +1886,44 @@ const AdminDashboard = () => {
                   ))}
                 </tbody>
               </table>
+              
+              {/* Mobile Card View */}
+              <div className="md:hidden space-y-3">
+                {allTalents
+                  .filter(t => !categoryFilter || t.category === categoryFilter)
+                  .sort((a, b) => (a.rank || 999) - (b.rank || 999))
+                  .map(t => (
+                  <div key={t.id} className="bg-[#050A14] rounded-lg p-4 border border-[#D4AF37]/20">
+                    <div className="flex items-start gap-3">
+                      <img src={t.profile_image || "https://via.placeholder.com/60"} alt={t.name} className="w-14 h-14 rounded-full object-cover" />
+                      <div className="flex-1 min-w-0">
+                        <button onClick={() => openTalentDetail(t)} className="text-[#D4AF37] font-bold text-base hover:underline truncate block">{t.name}</button>
+                        <p className="text-[#A0A5B0] text-xs">{t.category}</p>
+                        <div className="flex flex-wrap items-center gap-2 mt-1">
+                          {t.is_approved ? <span className="text-green-500 text-xs">✓ Approved</span> : <span className="text-yellow-500 text-xs">⏳ Pending</span>}
+                          <span className="text-[#D4AF37] text-xs">{t.votes} votes</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-[#D4AF37]/10">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[#A0A5B0] text-xs">Rank:</span>
+                        <input 
+                          type="number" 
+                          defaultValue={t.rank} 
+                          onBlur={e => { const val = parseInt(e.target.value); if (val !== t.rank) updateRank(t.id, val || 999); }}
+                          className="w-14 px-2 py-1 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-center text-sm" 
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => openTalentDetail(t)} className="px-3 py-1.5 bg-[#D4AF37] text-[#050A14] rounded text-xs font-bold">Edit</button>
+                        {!t.is_approved && <button onClick={() => approve(t.id)} className="px-3 py-1.5 bg-green-500/20 text-green-500 rounded text-xs font-bold">Approve</button>}
+                        <button onClick={() => deleteTalent(t.id)} className="p-1.5 bg-red-500/20 text-red-500 rounded"><Trash2 size={14} /></button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         )}
