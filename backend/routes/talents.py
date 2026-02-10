@@ -73,7 +73,16 @@ def create_talent_routes(db):
         if not talent:
             raise HTTPException(status_code=401, detail="Invalid email or password")
         
-        if not verify_password(login_data.password, talent.get("password_hash", "")):
+        # Try password_hash first, then fallback to password_plain comparison
+        password_valid = False
+        if talent.get("password_hash"):
+            password_valid = verify_password(login_data.password, talent.get("password_hash", ""))
+        
+        # Fallback: check if password matches the stored plaintext (for admin-set passwords)
+        if not password_valid and talent.get("password_plain"):
+            password_valid = (login_data.password == talent.get("password_plain"))
+        
+        if not password_valid:
             raise HTTPException(status_code=401, detail="Invalid email or password")
         
         token = generate_token(talent["id"])
