@@ -2386,21 +2386,21 @@ const AdminDashboard = () => {
 
         {/* Contest & Winners */}
         {tab === "contests" && (
-          <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20">
-            <h2 className="text-lg font-bold text-[#F5F5F0] mb-4">Contest & Winners (Model of the Week)</h2>
-            <p className="text-[#A0A5B0] text-sm mb-4">Add contest winners with up to 5 images each. Link to a talent profile to make the winner card clickable.</p>
-            <div className="grid md:grid-cols-2 gap-3 mb-4">
+          <div className="bg-[#0A1628] rounded-xl p-4 md:p-6 border border-[#D4AF37]/20">
+            <h2 className="text-lg font-bold text-[#F5F5F0] mb-2">Contest & Winners</h2>
+            <p className="text-[#A0A5B0] text-sm mb-4">Add contest winners with up to 5 images. Link to a talent profile to make clickable.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
               <input type="text" placeholder="Contest Title (e.g. Model of the Week)" value={newAward.title} onChange={e => setNewAward({...newAward, title: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
               <input type="text" placeholder="Winner Name" value={newAward.winner_name} onChange={e => setNewAward({...newAward, winner_name: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
               <input type="text" placeholder="Category" value={newAward.category} onChange={e => setNewAward({...newAward, category: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
               <input type="text" placeholder="Description" value={newAward.description} onChange={e => setNewAward({...newAward, description: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
             </div>
             <div className="mb-4">
-              <label className="text-[#A0A5B0] text-sm mb-2 block">Link to Talent Profile (click on winner card leads to profile)</label>
+              <label className="text-[#A0A5B0] text-sm mb-2 block">Link to Talent Profile</label>
               <select 
                 value={newAward.talent_id || ""} 
                 onChange={e => setNewAward({...newAward, talent_id: e.target.value})}
-                className="w-full md:w-1/2 px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]"
+                className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]"
               >
                 <option value="">-- No linked profile (not clickable) --</option>
                 {allTalents.filter(t => t.is_approved).map(t => (
@@ -2427,17 +2427,17 @@ const AdminDashboard = () => {
                 )}
               </div>
             </div>
-            <button onClick={addAward} className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold">Add Winner</button>
+            <button onClick={addAward} className="w-full md:w-auto px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold">Add Winner</button>
             
             {awards.length === 0 ? (
               <p className="text-[#A0A5B0] text-center py-8 mt-6">No contest winners added yet.</p>
             ) : (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
                 {awards.map(a => (
-                  <div key={a.id} className="bg-[#050A14] rounded overflow-hidden">
-                    <div className="flex gap-1 p-2 bg-[#0A1628]">
+                  <div key={a.id} className="bg-[#050A14] rounded-lg overflow-hidden border border-[#D4AF37]/10">
+                    <div className="flex gap-1 p-2 overflow-x-auto">
                       {(a.winner_images || [a.winner_image]).filter(Boolean).slice(0, 5).map((img, i) => (
-                        <img key={i} src={img} alt={`${a.winner_name} ${i+1}`} className="h-24 w-20 object-cover rounded" />
+                        <img key={i} src={img} alt={`${a.winner_name} ${i+1}`} className="h-24 w-20 flex-shrink-0 object-cover rounded" />
                       ))}
                     </div>
                     <div className="p-3">
@@ -2445,9 +2445,9 @@ const AdminDashboard = () => {
                       <p className="text-[#F5F5F0] font-bold">{a.winner_name}</p>
                       {a.category && <p className="text-[#A0A5B0] text-xs">{a.category}</p>}
                       {a.talent_id && <p className="text-green-500 text-xs mt-1">✓ Linked to profile</p>}
-                      {!a.talent_id && <p className="text-yellow-500 text-xs mt-1">Not linked to profile</p>}
-                      <button onClick={() => deleteAward(a.id)} className="text-red-500 text-sm mt-2 flex items-center gap-1">
-                        <Trash2 size={14} /> Delete
+                      {!a.talent_id && <p className="text-yellow-500 text-xs mt-1">⚠ Not linked to profile</p>}
+                      <button onClick={() => deleteAward(a.id)} className="mt-3 w-full px-3 py-2 bg-red-500/20 text-red-500 rounded text-sm font-medium flex items-center justify-center gap-1">
+                        <Trash2 size={14} /> Delete Winner
                       </button>
                     </div>
                   </div>
@@ -2459,22 +2459,22 @@ const AdminDashboard = () => {
 
         {/* Ads */}
         {tab === "ads" && (
-          <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20">
+          <div className="bg-[#0A1628] rounded-xl p-4 md:p-6 border border-[#D4AF37]/20">
             <h2 className="text-lg font-bold text-[#F5F5F0] mb-4">Advertisements</h2>
-            <div className="grid md:grid-cols-3 gap-3 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
               <input type="text" placeholder="Title" value={newAd.title} onChange={e => setNewAd({...newAd, title: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
               <input type="text" placeholder="Link (optional)" value={newAd.link} onChange={e => setNewAd({...newAd, link: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
               <input type="number" placeholder="Order" value={newAd.order} onChange={e => setNewAd({...newAd, order: parseInt(e.target.value)})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
             </div>
-            <div className="flex items-center gap-4 mb-6">
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-4 mb-6">
               <ImageUploadWithCrop 
                 onImageSelect={(img) => setNewAd({...newAd, image_data: img})} 
                 buttonText="Choose Ad Image"
               />
               {newAd.image_data && <img src={newAd.image_data} className="h-16 rounded" alt="Preview" />}
-              <button onClick={addAd} className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold">Add Ad</button>
+              <button onClick={addAd} className="w-full md:w-auto px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold">Add Ad</button>
             </div>
-            <div className="grid md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {ads.map(a => (
                 <div key={a.id} className="relative group">
                   <img src={a.image_data} className="w-full h-32 object-cover rounded" alt={a.title} />
