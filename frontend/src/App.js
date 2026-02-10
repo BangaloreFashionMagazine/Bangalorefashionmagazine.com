@@ -19,24 +19,23 @@ const API = `${BACKEND_URL}/api`;
 // BFM Logo URL
 const BFM_LOGO = "/bfm-logo.jpeg";
 
-// Welcome Splash Screen (shows once per session)
+// Welcome Splash Screen (auto-dismisses after 1 second)
 const WelcomeSplash = ({ onClose }) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose();
+    }, 1000); // Auto-close after 1 second
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
   return (
     <div className="fixed inset-0 z-[100] bg-[#F5F5F0] flex items-center justify-center animate-fadeIn">
       <div className="text-center">
         <img 
           src={BFM_LOGO} 
           alt="BFM Magazine" 
-          className="w-64 h-64 object-contain mx-auto mb-6 animate-scaleIn" 
+          className="w-64 h-64 object-contain mx-auto animate-scaleIn" 
         />
-        <h1 className="font-serif text-3xl text-[#050A14] mb-2">Welcome to</h1>
-        <h2 className="font-serif text-4xl font-bold text-[#050A14] mb-4">Bangalore Fashion Magazine</h2>
-        <button 
-          onClick={onClose}
-          className="px-8 py-3 bg-[#D4AF37] text-[#050A14] font-bold rounded-full hover:bg-[#C4A030] transition-colors mt-4"
-        >
-          Enter
-        </button>
       </div>
     </div>
   );
