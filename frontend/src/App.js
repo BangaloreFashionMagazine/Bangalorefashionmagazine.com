@@ -2293,27 +2293,31 @@ const AdminDashboard = () => {
               <div className="space-y-4">
                 {partyEvents.map(event => (
                   <div key={event.id} className={`bg-[#050A14] rounded-lg overflow-hidden border ${event.is_active ? 'border-green-500/30' : 'border-red-500/30'}`}>
-                    <div className="flex gap-4 p-4">
-                      {event.image && <img src={event.image} className="w-24 h-24 object-cover rounded" alt={event.title} />}
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h4 className="text-[#F5F5F0] font-bold">{event.title}</h4>
-                          <span className={`px-2 py-0.5 text-xs rounded ${event.is_active ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
-                            {event.is_active ? 'Active' : 'Hidden'}
-                          </span>
-                          {event.entry_code && <span className="px-2 py-0.5 bg-[#D4AF37] text-[#050A14] text-xs font-bold rounded">Entry: {event.entry_code}</span>}
+                    <div className="p-4">
+                      {/* Mobile: Stack layout, Desktop: Flex row */}
+                      <div className="flex flex-col md:flex-row gap-4">
+                        {event.image && <img src={event.image} className="w-full md:w-24 h-40 md:h-24 object-cover rounded" alt={event.title} />}
+                        <div className="flex-1">
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            <h4 className="text-[#F5F5F0] font-bold">{event.title}</h4>
+                            <span className={`px-2 py-0.5 text-xs rounded ${event.is_active ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
+                              {event.is_active ? 'Active' : 'Hidden'}
+                            </span>
+                            {event.entry_code && <span className="px-2 py-0.5 bg-[#D4AF37] text-[#050A14] text-xs font-bold rounded">Entry: {event.entry_code}</span>}
+                          </div>
+                          <p className="text-[#D4AF37] text-sm">{event.event_date} • {event.venue}</p>
+                          {event.description && <p className="text-[#A0A5B0] text-sm mt-1">{event.description}</p>}
+                          {event.booking_info && <p className="text-[#A0A5B0] text-xs mt-1">Booking: {event.booking_info}</p>}
+                          {event.contact && <p className="text-[#A0A5B0] text-xs">Contact: {event.contact}</p>}
                         </div>
-                        <p className="text-[#D4AF37] text-sm">{event.event_date} • {event.venue}</p>
-                        {event.description && <p className="text-[#A0A5B0] text-sm mt-1">{event.description}</p>}
-                        {event.booking_info && <p className="text-[#A0A5B0] text-xs mt-1">Booking: {event.booking_info}</p>}
-                        {event.contact && <p className="text-[#A0A5B0] text-xs">Contact: {event.contact}</p>}
                       </div>
-                      <div className="flex flex-col gap-2">
+                      {/* Action buttons - Always visible at bottom on mobile */}
+                      <div className="flex gap-2 mt-4 pt-3 border-t border-[#D4AF37]/10">
                         <button onClick={async () => {
                           await axios.put(`${API}/admin/party-events/${event.id}`, { is_active: !event.is_active });
                           toast({ title: event.is_active ? "Event hidden" : "Event activated" });
                           fetchPartyEvents();
-                        }} className={`px-3 py-1 text-xs rounded ${event.is_active ? 'bg-yellow-500/20 text-yellow-500' : 'bg-green-500/20 text-green-500'}`}>
+                        }} className={`flex-1 md:flex-none px-4 py-2 text-sm font-medium rounded ${event.is_active ? 'bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500/30' : 'bg-green-500/20 text-green-500 hover:bg-green-500/30'}`}>
                           {event.is_active ? 'Hide' : 'Show'}
                         </button>
                         <button onClick={async () => {
@@ -2322,7 +2326,7 @@ const AdminDashboard = () => {
                             toast({ title: "Event deleted" });
                             fetchPartyEvents();
                           }
-                        }} className="px-3 py-1 text-xs bg-red-500/20 text-red-500 rounded">Delete</button>
+                        }} className="flex-1 md:flex-none px-4 py-2 text-sm font-medium bg-red-500/20 text-red-500 rounded hover:bg-red-500/30">Delete</button>
                       </div>
                     </div>
                   </div>
