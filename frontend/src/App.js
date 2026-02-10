@@ -958,7 +958,14 @@ I confirm that I have read, understood, and voluntarily accepted this declaratio
     }
     setLoading(true);
     try {
-      await axios.post(`${API}/talent/register`, { ...formData, profile_image: profileImage, portfolio_images: portfolio, agreed_to_terms: true, agreed_at: new Date().toISOString() });
+      await axios.post(`${API}/talent/register`, { 
+        ...formData, 
+        profile_image: profileImage, 
+        portfolio_images: portfolio, 
+        portfolio_video: portfolioVideo,
+        agreed_to_terms: true, 
+        agreed_at: new Date().toISOString() 
+      });
       toast({ title: "Registration Successful!", description: "Please wait for admin approval." });
       navigate("/talent-login");
     } catch (err) {
