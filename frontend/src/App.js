@@ -152,25 +152,75 @@ const HeroSlider = ({ customSlides }) => {
         {slides.map((slide, i) => (
           <SwiperSlide key={i}>
             <div className="relative h-full bg-cover bg-center" style={{ backgroundImage: `url("${slide.image}")` }}>
-              <div className="absolute inset-0 bg-gradient-to-r from-[#050A14] via-[#050A14]/60 to-transparent" />
-              <div className="relative z-10 container mx-auto px-4 h-full flex items-center">
+              {/* Text overlay at bottom only - no dark shade on image */}
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#050A14] via-[#050A14]/80 to-transparent h-48" />
+              <div className="relative z-10 container mx-auto px-4 h-full flex items-end pb-12">
                 <div className="max-w-2xl">
-                  <span className="inline-block px-4 py-1 border border-[#D4AF37]/40 text-[#D4AF37] text-xs uppercase tracking-widest mb-4">{slide.category}</span>
-                  <h1 className="font-serif text-4xl md:text-6xl font-bold text-[#F5F5F0] mb-4">{slide.title}</h1>
-                  <p className="text-xl text-[#A0A5B0] italic">{slide.subtitle}</p>
+                  <span className="inline-block px-4 py-1 bg-[#050A14]/70 border border-[#D4AF37]/40 text-[#D4AF37] text-xs uppercase tracking-widest mb-4">{slide.category}</span>
+                  <h1 className="font-serif text-4xl md:text-6xl font-bold text-[#F5F5F0] mb-4 drop-shadow-lg">{slide.title}</h1>
+                  <p className="text-xl text-[#F5F5F0] italic drop-shadow-md">{slide.subtitle}</p>
                 </div>
               </div>
             </div>
           </SwiperSlide>
         ))}
       </Swiper>
-      <button className="prev-btn absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 flex items-center justify-center border border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#050A14]">
+      <button className="prev-btn absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 flex items-center justify-center border border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#050A14] bg-[#050A14]/50">
         <ChevronLeft size={20} />
       </button>
-      <button className="next-btn absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 flex items-center justify-center border border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#050A14]">
+      <button className="next-btn absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 flex items-center justify-center border border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#050A14] bg-[#050A14]/50">
         <ChevronRight size={20} />
       </button>
     </div>
+  );
+};
+
+// Party Updates Section (only shows if there are active party events)
+const PartyUpdatesSection = ({ partyEvents }) => {
+  if (!partyEvents || partyEvents.length === 0) return null;
+  
+  return (
+    <section className="py-10 bg-gradient-to-b from-[#0A1628] to-[#050A14]">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-8">
+          <span className="text-[#D4AF37] text-xs uppercase tracking-widest">What's Happening</span>
+          <h2 className="font-serif text-3xl font-bold text-[#F5F5F0] mt-2">Party Updates</h2>
+        </div>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {partyEvents.map((event, i) => (
+            <div key={i} className="bg-[#0A1628] border border-[#D4AF37]/20 rounded-xl overflow-hidden hover:border-[#D4AF37]/50 transition-all">
+              {event.image && (
+                <img src={event.image} alt={event.title} className="w-full h-48 object-cover" />
+              )}
+              <div className="p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-[#D4AF37] text-sm font-bold">{event.event_date}</span>
+                  {event.entry_code && (
+                    <span className="px-3 py-1 bg-[#D4AF37] text-[#050A14] text-xs font-bold rounded-full">
+                      Entry: {event.entry_code}
+                    </span>
+                  )}
+                </div>
+                <h3 className="text-[#F5F5F0] font-bold text-xl mb-2">{event.title}</h3>
+                <p className="text-[#A0A5B0] text-sm mb-3">{event.venue}</p>
+                {event.description && (
+                  <p className="text-[#A0A5B0] text-sm mb-4">{event.description}</p>
+                )}
+                {event.booking_info && (
+                  <div className="p-3 bg-[#050A14] rounded-lg border border-[#D4AF37]/10">
+                    <p className="text-[#D4AF37] text-xs uppercase tracking-wider mb-1">Booking Info</p>
+                    <p className="text-[#F5F5F0] text-sm">{event.booking_info}</p>
+                  </div>
+                )}
+                {event.contact && (
+                  <p className="text-[#A0A5B0] text-xs mt-3">Contact: {event.contact}</p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 };
 
