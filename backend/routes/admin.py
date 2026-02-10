@@ -46,6 +46,7 @@ def create_admin_routes(db):
             "bio": talent.get("bio", ""),
             "profile_image": talent.get("profile_image", ""),
             "portfolio_images": talent.get("portfolio_images", []),
+            "portfolio_video": talent.get("portfolio_video", ""),
             "is_approved": talent.get("is_approved", False),
             "rank": talent.get("rank", 999),
             "votes": talent.get("votes", 0),
