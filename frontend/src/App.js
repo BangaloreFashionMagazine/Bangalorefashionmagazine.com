@@ -1685,7 +1685,11 @@ const AdminDashboard = () => {
               <input type="text" placeholder="Description" value={newAward.description} onChange={e => setNewAward({...newAward, description: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
             </div>
             <div className="flex items-center gap-4 mb-6">
-              <input type="file" accept="image/*" onChange={handleAwardImg} className="text-[#A0A5B0]" />
+              <ImageUploadWithCrop 
+                onImageSelect={(img) => setNewAward({...newAward, winner_image: img})} 
+                aspectRatio={3/4}
+                buttonText="Choose Winner Image"
+              />
               {newAward.winner_image && <img src={newAward.winner_image} alt="Preview" className="h-16 rounded" />}
               <button onClick={addAward} className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold">Add Winner</button>
             </div>
