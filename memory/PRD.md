@@ -154,6 +154,8 @@ Build a fashion magazine website for Bangalore with talent management, admin pan
 - `/api/admin/awards` - POST/PUT/DELETE awards with multi-image support (admin only)
 - `/api/hero-images` - GET up to 10 hero images (public)
 - `/api/admin/hero-images` - POST/PUT/DELETE hero images (admin only)
+- `/api/party-events` - GET active party events only (public)
+- `/api/admin/party-events` - GET all, POST, PUT, DELETE party events (admin only)
 
 ## Database Collections
 - users, talents, hero_images, awards, advertisements
