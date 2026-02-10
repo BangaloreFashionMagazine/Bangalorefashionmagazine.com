@@ -64,15 +64,22 @@ def create_content_routes(db):
 
 
     @router.post("/admin/awards")
-    async def create_award(data: AwardCreate):
+    async def create_award(data: dict):
         award_id = str(uuid.uuid4())
+        # Support multiple images (up to 5)
+        images = data.get("winner_images", [])
+        if data.get("winner_image"):
+            images = [data.get("winner_image")] + images
+        images = images[:5]  # Limit to 5 images
+        
         doc = {
             "id": award_id,
-            "title": data.title,
-            "winner_name": data.winner_name,
-            "winner_image": data.winner_image,
-            "description": data.description,
-            "category": data.category,
+            "title": data.get("title", ""),
+            "winner_name": data.get("winner_name", ""),
+            "winner_image": images[0] if images else "",
+            "winner_images": images,
+            "description": data.get("description", ""),
+            "category": data.get("category", ""),
             "is_active": True,
             "created_at": datetime.now(timezone.utc).isoformat()
         }
