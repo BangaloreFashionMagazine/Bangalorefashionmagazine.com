@@ -256,5 +256,56 @@ def create_content_routes(db):
     async def delete_video():
         await db.homepage_video.delete_many({})
         return {"message": "Video deleted"}
+
+
+    # ============== Party Events ==============
+    @router.get("/party-events")
+    async def get_party_events():
+        events = await db.party_events.find({"is_active": True}, {"_id": 0}).sort("event_date", 1).to_list(20)
+        return events
+
+
+    @router.get("/admin/party-events")
+    async def get_all_party_events():
+        events = await db.party_events.find({}, {"_id": 0}).sort("created_at", -1).to_list(50)
+        return events
+
+
+    @router.post("/admin/party-events")
+    async def create_party_event(data: PartyEventCreate):
+        event_id = str(uuid.uuid4())
+        doc = {
+            "id": event_id,
+            "title": data.title,
+            "venue": data.venue,
+            "event_date": data.event_date,
+            "description": data.description,
+            "image": data.image,
+            "entry_code": data.entry_code,
+            "booking_info": data.booking_info,
+            "contact": data.contact,
+            "is_active": data.is_active,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.party_events.insert_one(doc)
+        logger.info(f"Party event created: {data.title}")
+        return {"message": "Party event created", "id": event_id}
+
+
+    @router.put("/admin/party-events/{event_id}")
+    async def update_party_event(event_id: str, data: PartyEventUpdate):
+        update_data = {k: v for k, v in data.model_dump().items() if v is not None}
+        if update_data:
+            await db.party_events.update_one({"id": event_id}, {"$set": update_data})
+        return {"message": "Party event updated"}
+
+
+    @router.delete("/admin/party-events/{event_id}")
+    async def delete_party_event(event_id: str):
+        result = await db.party_events.delete_one({"id": event_id})
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Party event not found")
+        return {"message": "Party event deleted"}
+
     
     return router
