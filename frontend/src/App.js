@@ -1855,6 +1855,201 @@ const AdminDashboard = () => {
           </div>
         )}
 
+        {/* Analytics Tab */}
+        {tab === "analytics" && (
+          <div className="space-y-4 md:space-y-6">
+            {/* Summary Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+              <div className="bg-[#0A1628] rounded-xl p-4 border border-[#D4AF37]/20">
+                <div className="flex items-center gap-2 text-[#D4AF37] mb-2">
+                  <Eye size={18} />
+                  <span className="text-xs uppercase">Total Views</span>
+                </div>
+                <p className="text-2xl md:text-3xl font-bold text-[#F5F5F0]">{analyticsSummary?.traffic?.total_page_views || 0}</p>
+                <p className="text-xs text-[#A0A5B0] mt-1">All time</p>
+              </div>
+              <div className="bg-[#0A1628] rounded-xl p-4 border border-[#D4AF37]/20">
+                <div className="flex items-center gap-2 text-green-500 mb-2">
+                  <TrendingUp size={18} />
+                  <span className="text-xs uppercase">This Week</span>
+                </div>
+                <p className="text-2xl md:text-3xl font-bold text-[#F5F5F0]">{analyticsSummary?.traffic?.week_views || 0}</p>
+                <p className="text-xs text-[#A0A5B0] mt-1">Page views</p>
+              </div>
+              <div className="bg-[#0A1628] rounded-xl p-4 border border-[#D4AF37]/20">
+                <div className="flex items-center gap-2 text-blue-500 mb-2">
+                  <Users size={18} />
+                  <span className="text-xs uppercase">Unique Visitors</span>
+                </div>
+                <p className="text-2xl md:text-3xl font-bold text-[#F5F5F0]">{analyticsSummary?.traffic?.unique_visitors || 0}</p>
+                <p className="text-xs text-[#A0A5B0] mt-1">All time</p>
+              </div>
+              <div className="bg-[#0A1628] rounded-xl p-4 border border-[#D4AF37]/20">
+                <div className="flex items-center gap-2 text-purple-500 mb-2">
+                  <Star size={18} />
+                  <span className="text-xs uppercase">Total Talents</span>
+                </div>
+                <p className="text-2xl md:text-3xl font-bold text-[#F5F5F0]">{analyticsSummary?.talents?.total || 0}</p>
+                <p className="text-xs text-[#A0A5B0] mt-1">{analyticsSummary?.talents?.approved || 0} approved</p>
+              </div>
+            </div>
+
+            {/* Second Row Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+              <div className="bg-[#0A1628] rounded-xl p-4 border border-[#D4AF37]/20">
+                <p className="text-[#A0A5B0] text-xs uppercase mb-1">Today's Views</p>
+                <p className="text-xl font-bold text-[#F5F5F0]">{analyticsSummary?.traffic?.today_views || 0}</p>
+              </div>
+              <div className="bg-[#0A1628] rounded-xl p-4 border border-[#D4AF37]/20">
+                <p className="text-[#A0A5B0] text-xs uppercase mb-1">Monthly Views</p>
+                <p className="text-xl font-bold text-[#F5F5F0]">{analyticsSummary?.traffic?.month_views || 0}</p>
+              </div>
+              <div className="bg-[#0A1628] rounded-xl p-4 border border-[#D4AF37]/20">
+                <p className="text-[#A0A5B0] text-xs uppercase mb-1">Total Votes</p>
+                <p className="text-xl font-bold text-[#F5F5F0]">{analyticsSummary?.talents?.total_votes || 0}</p>
+              </div>
+              <div className="bg-[#0A1628] rounded-xl p-4 border border-[#D4AF37]/20">
+                <p className="text-[#A0A5B0] text-xs uppercase mb-1">Active Parties</p>
+                <p className="text-xl font-bold text-[#F5F5F0]">{analyticsSummary?.content?.active_parties || 0}</p>
+              </div>
+            </div>
+
+            {/* Daily Views Chart */}
+            <div className="bg-[#0A1628] rounded-xl p-4 md:p-6 border border-[#D4AF37]/20">
+              <h3 className="text-lg font-bold text-[#F5F5F0] mb-4">Daily Page Views (Last 30 Days)</h3>
+              <div className="overflow-x-auto">
+                <div className="flex items-end gap-1 h-40 min-w-[600px]">
+                  {dailyViews.map((d, i) => {
+                    const maxViews = Math.max(...dailyViews.map(x => x.views), 1);
+                    const height = (d.views / maxViews) * 100;
+                    return (
+                      <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                        <div 
+                          className="w-full bg-[#D4AF37] rounded-t hover:bg-[#F5F5F0] transition-colors cursor-pointer" 
+                          style={{ height: `${height}%`, minHeight: d.views > 0 ? '4px' : '0' }}
+                          title={`${d.date}: ${d.views} views`}
+                        />
+                        {i % 5 === 0 && <span className="text-[8px] text-[#A0A5B0] rotate-45">{d.date.slice(5)}</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Popular Talents */}
+            <div className="bg-[#0A1628] rounded-xl p-4 md:p-6 border border-[#D4AF37]/20">
+              <h3 className="text-lg font-bold text-[#F5F5F0] mb-4">Most Viewed Talents</h3>
+              {popularTalents.length === 0 ? (
+                <p className="text-[#A0A5B0] text-center py-4">No talent views recorded yet</p>
+              ) : (
+                <div className="space-y-2">
+                  {popularTalents.slice(0, 10).map((t, i) => (
+                    <div key={t.talent_id} className="flex items-center gap-3 p-2 bg-[#050A14] rounded">
+                      <span className="text-[#D4AF37] font-bold w-6">#{i + 1}</span>
+                      <img src={t.profile_image || "https://via.placeholder.com/40"} alt={t.name} className="w-10 h-10 rounded-full object-cover" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[#F5F5F0] font-medium truncate">{t.name}</p>
+                        <p className="text-[#A0A5B0] text-xs">{t.category}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[#D4AF37] font-bold">{t.views}</p>
+                        <p className="text-[#A0A5B0] text-xs">views</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Party & Ad Stats */}
+            <div className="grid md:grid-cols-2 gap-4">
+              {/* Party Event Stats */}
+              <div className="bg-[#0A1628] rounded-xl p-4 md:p-6 border border-[#D4AF37]/20">
+                <h3 className="text-lg font-bold text-[#F5F5F0] mb-4">Party Event Views</h3>
+                {partyStats.length === 0 ? (
+                  <p className="text-[#A0A5B0] text-center py-4">No party views recorded yet</p>
+                ) : (
+                  <div className="space-y-2">
+                    {partyStats.map(p => (
+                      <div key={p.party_id} className="flex items-center justify-between p-2 bg-[#050A14] rounded">
+                        <div>
+                          <p className="text-[#F5F5F0] font-medium">{p.title}</p>
+                          <p className="text-[#A0A5B0] text-xs">{p.venue} • {p.event_date}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[#D4AF37] font-bold">{p.views}</p>
+                          <p className="text-[#A0A5B0] text-xs">views</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Ad Stats */}
+              <div className="bg-[#0A1628] rounded-xl p-4 md:p-6 border border-[#D4AF37]/20">
+                <h3 className="text-lg font-bold text-[#F5F5F0] mb-4">Advertisement Clicks</h3>
+                {adStats.length === 0 ? (
+                  <p className="text-[#A0A5B0] text-center py-4">No ad clicks recorded yet</p>
+                ) : (
+                  <div className="space-y-2">
+                    {adStats.map(a => (
+                      <div key={a.ad_id} className="flex items-center justify-between p-2 bg-[#050A14] rounded">
+                        <div>
+                          <p className="text-[#F5F5F0] font-medium">{a.title}</p>
+                          {a.link && <p className="text-[#A0A5B0] text-xs truncate max-w-[150px]">{a.link}</p>}
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[#D4AF37] font-bold">{a.clicks}</p>
+                          <p className="text-[#A0A5B0] text-xs">clicks</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Recent Activity */}
+            <div className="bg-[#0A1628] rounded-xl p-4 md:p-6 border border-[#D4AF37]/20">
+              <h3 className="text-lg font-bold text-[#F5F5F0] mb-4">Recent Activity</h3>
+              {recentActivity.length === 0 ? (
+                <p className="text-[#A0A5B0] text-center py-4">No activity recorded yet</p>
+              ) : (
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {recentActivity.slice(0, 20).map((a, i) => (
+                    <div key={i} className="flex items-center gap-3 p-2 bg-[#050A14] rounded text-sm">
+                      <span className={`w-2 h-2 rounded-full ${
+                        a.event_type === 'talent_view' ? 'bg-blue-500' :
+                        a.event_type === 'party_view' ? 'bg-green-500' :
+                        a.event_type === 'ad_click' ? 'bg-purple-500' : 'bg-[#D4AF37]'
+                      }`} />
+                      <div className="flex-1">
+                        <span className="text-[#F5F5F0]">
+                          {a.event_type === 'page_view' && `Visited ${a.page || 'page'}`}
+                          {a.event_type === 'talent_view' && `Viewed talent: ${a.talent_name || 'Unknown'}`}
+                          {a.event_type === 'party_view' && `Viewed party: ${a.party_title || 'Unknown'}`}
+                          {a.event_type === 'ad_click' && `Clicked ad: ${a.ad_title || 'Unknown'}`}
+                        </span>
+                      </div>
+                      <span className="text-[#A0A5B0] text-xs">{a.created_at ? new Date(a.created_at).toLocaleString() : ''}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Refresh Button */}
+            <div className="text-center">
+              <button onClick={() => { setLoadedTabs(prev => ({...prev, analytics: false})); loadTabData('analytics', true); }} 
+                className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold">
+                Refresh Analytics
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* All Talents */}
         {tab === "talents" && (
           <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20 overflow-x-auto">
