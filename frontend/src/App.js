@@ -393,11 +393,23 @@ const ContestWinnersSection = ({ awards }) => {
 const AdvertisementSidebar = ({ ads }) => {
   if (!ads || ads.length === 0) return null;
   
+  // Track ad click
+  const trackAdClick = (adId) => {
+    const sessionId = sessionStorage.getItem('bfm_session_id') || 'unknown';
+    axios.post(`${API}/analytics/track`, {
+      event_type: 'ad_click',
+      ad_id: adId,
+      page: window.location.pathname,
+      session_id: sessionId
+    }).catch(() => {});
+  };
+  
   return (
     <div className="w-full lg:w-64 space-y-4">
       <p className="text-[#A0A5B0] text-xs uppercase tracking-wider text-center">Sponsored</p>
       {ads.map((ad, i) => (
-        <a key={i} href={ad.link || "#"} target="_blank" rel="noopener noreferrer" className="block">
+        <a key={i} href={ad.link || "#"} target="_blank" rel="noopener noreferrer" className="block"
+          onClick={() => trackAdClick(ad.id)}>
           <img src={ad.image_data} alt={ad.title} className="w-full rounded-lg border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all" />
         </a>
       ))}
