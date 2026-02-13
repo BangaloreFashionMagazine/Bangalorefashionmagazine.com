@@ -110,14 +110,15 @@ def create_admin_routes(db):
         
         output = io.StringIO()
         writer = csv.writer(output)
-        writer.writerow(["Name", "Email", "Phone", "Instagram", "Category", "Status", "Rank", "Votes"])
+        writer.writerow(["Name", "Email", "Phone", "Instagram", "Category", "Status", "Rank", "Votes", "Registered Date"])
         
         for t in talents:
             writer.writerow([
                 t.get("name", ""), t.get("email", ""), t.get("phone", ""),
                 t.get("instagram_id", ""), t.get("category", ""),
                 "Approved" if t.get("is_approved") else "Pending",
-                t.get("rank", 999), t.get("votes", 0)
+                t.get("rank", 999), t.get("votes", 0),
+                t.get("created_at", "")[:10] if t.get("created_at") else ""
             ])
         
         output.seek(0)
