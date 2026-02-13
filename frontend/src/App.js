@@ -2073,11 +2073,19 @@ const AdminDashboard = () => {
               )}
             </div>
 
-            {/* Refresh Button */}
-            <div className="text-center">
+            {/* Download Buttons */}
+            <div className="flex flex-col md:flex-row gap-3 justify-center items-center">
+              <a href={`${API}/admin/analytics/export`} download 
+                className="px-6 py-3 bg-green-600 text-white rounded font-bold flex items-center gap-2 hover:bg-green-700">
+                <Download size={18} /> Download Analytics Report (CSV)
+              </a>
+              <a href={`${API}/admin/talents/export`} download 
+                className="px-6 py-3 bg-blue-600 text-white rounded font-bold flex items-center gap-2 hover:bg-blue-700">
+                <Download size={18} /> Download Talents with Instagram (CSV)
+              </a>
               <button onClick={() => { setLoadedTabs(prev => ({...prev, analytics: false})); loadTabData('analytics', true); }} 
-                className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold">
-                Refresh Analytics
+                className="px-6 py-3 bg-[#D4AF37] text-[#050A14] rounded font-bold flex items-center gap-2">
+                <TrendingUp size={18} /> Refresh Analytics
               </button>
             </div>
           </div>
