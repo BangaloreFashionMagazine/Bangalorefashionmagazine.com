@@ -1460,6 +1460,15 @@ const AdminDashboard = () => {
   const [editData, setEditData] = useState({});
   const [loadedTabs, setLoadedTabs] = useState({});
   const [categoryFilter, setCategoryFilter] = useState(""); // Category filter for All Talents
+  
+  // Analytics state
+  const [analyticsSummary, setAnalyticsSummary] = useState(null);
+  const [popularTalents, setPopularTalents] = useState([]);
+  const [partyStats, setPartyStats] = useState([]);
+  const [adStats, setAdStats] = useState([]);
+  const [dailyViews, setDailyViews] = useState([]);
+  const [recentActivity, setRecentActivity] = useState([]);
+  
   const { toast } = useToast();
 
   // Forms
