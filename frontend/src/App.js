@@ -856,6 +856,15 @@ const TalentProfilePage = () => {
         const res = await axios.get(`${API}/talent/${talentId}`);
         setTalent(res.data);
         setShowModal(true);
+        
+        // Track talent view
+        const sessionId = sessionStorage.getItem('bfm_session_id') || 'unknown';
+        axios.post(`${API}/analytics/track`, {
+          event_type: 'talent_view',
+          talent_id: talentId,
+          page: `/talent/${talentId}`,
+          session_id: sessionId
+        }).catch(() => {});
       } catch (err) {
         toast({ title: "Error", description: "Talent not found", variant: "destructive" });
       } finally {
