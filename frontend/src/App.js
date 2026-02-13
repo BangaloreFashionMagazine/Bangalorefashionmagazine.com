@@ -2967,6 +2967,38 @@ function App() {
     }).catch(console.error);
   }, []);
 
+  // Analytics tracking - generate session ID and track page views
+  useEffect(() => {
+    // Generate or get session ID
+    let sessionId = sessionStorage.getItem('bfm_session_id');
+    if (!sessionId) {
+      sessionId = 'sess_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+      sessionStorage.setItem('bfm_session_id', sessionId);
+    }
+
+    // Track page view
+    const trackPageView = () => {
+      const path = window.location.pathname;
+      axios.post(`${API}/analytics/track`, {
+        event_type: 'page_view',
+        page: path,
+        session_id: sessionId,
+        user_agent: navigator.userAgent,
+        referrer: document.referrer
+      }).catch(() => {}); // Silent fail
+    };
+
+    trackPageView();
+
+    // Track on route changes (for SPA navigation)
+    const handleRouteChange = () => {
+      setTimeout(trackPageView, 100);
+    };
+
+    window.addEventListener('popstate', handleRouteChange);
+    return () => window.removeEventListener('popstate', handleRouteChange);
+  }, []);
+
   // Handle music playback
   useEffect(() => {
     if (music?.file_data && audioRef) {
