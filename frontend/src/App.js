@@ -228,6 +228,17 @@ const HeroSlider = ({ customSlides }) => {
 const PartyUpdatesSection = ({ partyEvents }) => {
   if (!partyEvents || partyEvents.length === 0) return null;
   
+  // Track party view when user hovers/clicks
+  const trackPartyView = (partyId) => {
+    const sessionId = sessionStorage.getItem('bfm_session_id') || 'unknown';
+    axios.post(`${API}/analytics/track`, {
+      event_type: 'party_view',
+      party_id: partyId,
+      page: '/home',
+      session_id: sessionId
+    }).catch(() => {});
+  };
+  
   return (
     <section className="py-10 bg-gradient-to-b from-[#0A1628] to-[#050A14]">
       <div className="container mx-auto px-4">
@@ -237,7 +248,8 @@ const PartyUpdatesSection = ({ partyEvents }) => {
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {partyEvents.map((event, i) => (
-            <div key={i} className="bg-[#0A1628] border border-[#D4AF37]/20 rounded-xl overflow-hidden hover:border-[#D4AF37]/50 transition-all">
+            <div key={i} className="bg-[#0A1628] border border-[#D4AF37]/20 rounded-xl overflow-hidden hover:border-[#D4AF37]/50 transition-all"
+              onClick={() => trackPartyView(event.id)}>
               {event.image && (
                 <img src={event.image} alt={event.title} className="w-full h-48 object-cover" />
               )}
