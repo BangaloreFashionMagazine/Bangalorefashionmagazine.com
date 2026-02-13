@@ -1738,6 +1738,7 @@ const AdminDashboard = () => {
   const tabs = [
     { id: "pending", label: "Pending", icon: Users },
     { id: "talents", label: "All Talents", icon: Star },
+    { id: "analytics", label: "Analytics", icon: BarChart3 },
     { id: "hero", label: "Hero Images", icon: Image },
     { id: "party", label: "Party Updates", icon: Calendar },
     { id: "video", label: "Featured Video", icon: Video },
