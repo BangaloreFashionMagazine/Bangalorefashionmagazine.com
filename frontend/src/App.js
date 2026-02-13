@@ -1563,6 +1563,27 @@ const AdminDashboard = () => {
     setLoading(false);
   };
 
+  const fetchAnalytics = async () => {
+    setLoading(true);
+    try {
+      const [summary, popular, parties, ads, daily, recent] = await Promise.all([
+        axios.get(`${API}/admin/analytics/summary`),
+        axios.get(`${API}/admin/analytics/popular-talents`),
+        axios.get(`${API}/admin/analytics/party-stats`),
+        axios.get(`${API}/admin/analytics/ad-stats`),
+        axios.get(`${API}/admin/analytics/daily-views`),
+        axios.get(`${API}/admin/analytics/recent-activity`)
+      ]);
+      setAnalyticsSummary(summary.data);
+      setPopularTalents(popular.data);
+      setPartyStats(parties.data);
+      setAdStats(ads.data);
+      setDailyViews(daily.data);
+      setRecentActivity(recent.data);
+    } catch (err) { console.error(err); }
+    setLoading(false);
+  };
+
   // Load data for current tab
   const loadTabData = async (tabName, force = false) => {
     if (loadedTabs[tabName] && !force) return;
@@ -1570,6 +1591,7 @@ const AdminDashboard = () => {
     switch(tabName) {
       case 'pending': await fetchPending(); break;
       case 'talents': await fetchAllTalents(); break;
+      case 'analytics': await fetchAnalytics(); break;
       case 'hero': await fetchHeroImages(); break;
       case 'video': await fetchVideo(); break;
       case 'contests': await Promise.all([fetchAwards(), fetchAllTalents()]); break;
