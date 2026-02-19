@@ -85,11 +85,6 @@ android-sdk/
 .env.*.local
 *token.json
 *credentials.json
--e 
-# Environment files
-*.env
-*.env.*
--e 
 # Environment files
 *.env
 *.env.*
