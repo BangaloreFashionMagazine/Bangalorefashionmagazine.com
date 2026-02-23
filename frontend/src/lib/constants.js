@@ -2,14 +2,27 @@ export const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
 
 export const TALENT_CATEGORIES = [
-  "Model - Female",
-  "Model - Male",
+  "Women | Models",
+  "Men | Models",
   "Designers",
-  "Makeup & Hair",
-  "Photography",
-  "Event Management",
-  "Other"
+  "Beauty",
+  "Visual Stories",
+  "Experiences",
+  "Creative Collective"
 ];
+
+// Map old categories to new for backward compatibility
+export const CATEGORY_DISPLAY = {
+  "Model - Female": "Women | Models",
+  "Model - Male": "Men | Models",
+  "Makeup & Hair": "Beauty",
+  "Photography": "Visual Stories",
+  "Event Management": "Experiences",
+  "Other": "Creative Collective",
+  "Designers": "Designers"
+};
+
+export const getCategoryDisplay = (cat) => CATEGORY_DISPLAY[cat] || cat;
 
 export const DEFAULT_SLIDES = [
   { image: "https://images.unsplash.com/photo-1700150594432-7024e06005c4?w=1200", category: "Editorial", title: "Spring Collection 2025", subtitle: "Editorial Fashion Photography" },
