@@ -11,19 +11,27 @@ A full-stack web application for a fashion magazine featuring talent profiles, c
 
 ## Live URL
 - Production: https://bangalorefashionmagazine.com
+- Preview: https://fashion-mag-v2.preview.emergentagent.com
 
 ## Core Features
 
 ### Public Features
 1. **Homepage**
-   - Hero image slider
+   - Hero image slider with Playfair Display serif headings
    - Model of the Week showcase
    - Party Updates section
    - Contest Winners display
    - Featured video section
 
 2. **Talent Profiles**
-   - Browse by category (Model - Female, Model - Male, Designers, Makeup & Hair, Photography, Event Management, Other)
+   - Browse by category (NEW NAMES - Dec 2025):
+     - Women | Models (formerly Model - Female)
+     - Men | Models (formerly Model - Male)
+     - Designers
+     - Beauty (formerly Makeup & Hair)
+     - Visual Stories (formerly Photography)
+     - Experiences (formerly Event Management)
+     - Creative Collective (formerly Other)
    - Voting system
    - Portfolio gallery with images and video
 
@@ -32,6 +40,7 @@ A full-stack web application for a fashion magazine featuring talent profiles, c
    - Profile image upload with cropping
    - Portfolio images (up to 7)
    - Portfolio video (max 45 seconds)
+   - Required category selection with new category names
 
 ### Admin Features
 1. **Talent Management**
@@ -51,6 +60,33 @@ A full-stack web application for a fashion magazine featuring talent profiles, c
    - Background music
    - Featured video
 
+3. **Analytics Tab** (New)
+   - Site traffic tracking
+   - Popular profiles
+   - Event views
+
+4. **CSV Export** (New)
+   - Analytics reports
+   - Talent lists with Instagram IDs
+
+## UI/UX Design (Dec 2025 Update)
+
+### Color Theme
+- Background: Midnight blue (#050A14)
+- Primary accent: Soft gold (#D4AF37)
+- Secondary accent: Ivory (#F5F5F0)
+- Card background: Dark blue (#0A1628)
+
+### Typography
+- Headings: Playfair Display (serif)
+- Body text: Lato (sans-serif)
+
+### Talent Cards
+- Reduced overlay darkness (70% opacity gradient)
+- Increased name font weight with tracking
+- Gold divider line under name
+- Smaller, more subtle votes and Vote button
+
 ## Key API Endpoints
 - `POST /api/talent/login` - Talent authentication
 - `POST /api/auth/login` - Admin authentication
@@ -59,17 +95,42 @@ A full-stack web application for a fashion magazine featuring talent profiles, c
 - `DELETE /api/admin/party-events/{id}` - Delete party event
 - `GET /api/awards` - Get contest winners
 - `POST /api/admin/awards` - Create contest winner (with talent_id for linking)
+- `POST /api/track` - Log user interaction event
+- `GET /api/analytics/stats` - Get aggregated analytics
+- `GET /api/analytics/export` - Export analytics CSV
+- `GET /api/admin/talents/export` - Export talents CSV
 
-## Recent Fixes (Feb 2026)
-- Fixed deployment issue: `.gitignore` was blocking `.env` files
-- Site restored from 520 error
-- Verified admin panel functionality
-- Confirmed party updates delete button working
+## Category Mapping (Backend Compatibility)
+The database stores old category names. Frontend maps them:
+- "Model - Female" → "Women | Models"
+- "Model - Male" → "Men | Models"
+- "Makeup & Hair" → "Beauty"
+- "Photography" → "Visual Stories"
+- "Event Management" → "Experiences"
+- "Other" → "Creative Collective"
 
-## Pending User Actions
-- Link contest winners to talent profiles using Admin → Contest & Winners → "Link to Talent Profile" dropdown
-- Test talent login functionality on live site
+## Recent Updates (Dec 2025)
+- Complete UI/UX redesign with new color theme
+- New typography (Playfair Display + Lato)
+- Redesigned talent cards with gold dividers
+- Renamed all talent categories across the app
+- Added category mapping for backward compatibility
 
-## Admin Credentials
+## Known Issues
+- **CRITICAL**: Live site deployment (520 error) - Infrastructure issue requiring Emergent Support
+- Admin login on live site may require password reset on production database
+
+## Admin Credentials (Preview Environment)
 - Email: admin@bangalorefashionmag.com
 - Password: Admin@123BFM
+
+## Pending Tasks
+1. Contact Emergent Support about 520 deployment error
+2. User verification of all features once live site is restored
+3. Admin panel refactoring (break down 2000+ line Admin.jsx)
+
+## Files Modified (UI Redesign)
+- `/app/frontend/src/index.css` - Google Fonts import (Playfair Display, Lato)
+- `/app/frontend/src/lib/constants.js` - New category names, mapping functions
+- `/app/frontend/src/components/TalentCard.jsx` - Redesigned card styling
+- `/app/frontend/src/App.js` - Category mapping, TalentCard, TalentDetailModal updates
