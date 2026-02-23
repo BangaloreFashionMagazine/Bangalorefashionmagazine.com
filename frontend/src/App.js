@@ -1484,7 +1484,7 @@ const TalentDashboard = ({ talent, onUpdate }) => {
                 <p className="text-[#F5F5F0]"><strong>Email:</strong> {talent.email}</p>
                 <p className="text-[#F5F5F0]"><strong>Phone:</strong> {talent.phone}</p>
                 <p className="text-[#F5F5F0]"><strong>Instagram:</strong> @{talent.instagram_id}</p>
-                <p className="text-[#F5F5F0]"><strong>Category:</strong> {talent.category}</p>
+                <p className="text-[#F5F5F0]"><strong>Category:</strong> {getCategoryDisplay(talent.category)}</p>
                 <p className="text-[#F5F5F0]"><strong>Votes:</strong> {talent.votes || 0}</p>
                 {talent.bio && <p className="text-[#F5F5F0]"><strong>Bio:</strong> {talent.bio}</p>}
                 {portfolio.length > 0 && (
