@@ -683,6 +683,7 @@ const TalentsPage = ({ ads }) => {
 const LoginPage = ({ onLogin }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -714,8 +715,14 @@ const LoginPage = ({ onLogin }) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
             className="w-full px-4 py-3 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0]" placeholder="Email" />
-          <input type="password" required value={password} onChange={e => setPassword(e.target.value)}
-            className="w-full px-4 py-3 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0]" placeholder="Password" />
+          <div className="relative">
+            <input type={showPassword ? "text" : "password"} required value={password} onChange={e => setPassword(e.target.value)}
+              className="w-full px-4 py-3 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0] pr-12" placeholder="Password" />
+            <button type="button" onClick={() => setShowPassword(!showPassword)} 
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A0A5B0] hover:text-[#D4AF37]">
+              {showPassword ? <X size={20} /> : <Eye size={20} />}
+            </button>
+          </div>
           <button type="submit" disabled={loading} className="w-full bg-[#D4AF37] text-[#050A14] py-3 rounded-lg font-bold disabled:opacity-50">
             {loading ? "Signing in..." : "Sign In"}
           </button>
