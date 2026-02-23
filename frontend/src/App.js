@@ -463,8 +463,10 @@ const TalentDetailModal = ({ talent, onClose, onVote }) => {
         <div className="p-6">
           {/* Header with Name and Category */}
           <div className="text-center mb-6">
-            <span className="inline-block px-3 py-1 bg-[#D4AF37]/20 text-[#D4AF37] text-xs uppercase tracking-wider rounded mb-3">{talent.category}</span>
+            <span className="inline-block px-3 py-1 bg-[#D4AF37]/20 text-[#D4AF37] text-xs uppercase tracking-wider rounded mb-3">{getCategoryDisplay(talent.category)}</span>
             <h2 className="font-serif text-3xl font-bold text-[#F5F5F0]">{talent.name}</h2>
+            {/* Gold divider under name */}
+            <div className="w-16 h-[1px] bg-[#D4AF37]/60 mx-auto mt-3"></div>
           </div>
           
           {/* About Section - Only show if bio exists */}
