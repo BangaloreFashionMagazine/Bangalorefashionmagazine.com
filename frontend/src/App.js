@@ -653,10 +653,12 @@ const TalentsPage = ({ ads }) => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const decodedCategory = decodeURIComponent(category || "");
+  // Convert URL category (new name) to database category (old name)
+  const dbCategory = getCategoryForDB(decodedCategory);
 
   useEffect(() => {
     setLoading(true);
-    axios.get(`${API}/talents?approved_only=true&category=${encodeURIComponent(decodedCategory)}`)
+    axios.get(`${API}/talents?approved_only=true&category=${encodeURIComponent(dbCategory)}`)
       .then(res => {
         setTalents(res.data);
         setLoading(false);
@@ -665,14 +667,14 @@ const TalentsPage = ({ ads }) => {
         console.error(err);
         setLoading(false);
       });
-  }, [decodedCategory]);
+  }, [dbCategory]);
 
   const handleVote = async (talentId) => {
     try {
       await axios.post(`${API}/vote`, { talent_id: talentId });
       toast({ title: "Vote recorded!" });
       // Refresh
-      const res = await axios.get(`${API}/talents?approved_only=true&category=${encodeURIComponent(decodedCategory)}`);
+      const res = await axios.get(`${API}/talents?approved_only=true&category=${encodeURIComponent(dbCategory)}`);
       setTalents(res.data);
     } catch (err) {
       toast({ title: "Error", description: err.response?.data?.detail || "Failed to vote", variant: "destructive" });
