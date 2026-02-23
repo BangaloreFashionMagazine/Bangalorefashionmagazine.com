@@ -83,7 +83,19 @@ const CATEGORY_DISPLAY = {
   "Designers": "Designers"
 };
 
+// Reverse map: new category names to old database names
+const CATEGORY_DB = {
+  "Women | Models": "Model - Female",
+  "Men | Models": "Model - Male",
+  "Beauty": "Makeup & Hair",
+  "Visual Stories": "Photography",
+  "Experiences": "Event Management",
+  "Creative Collective": "Other",
+  "Designers": "Designers"
+};
+
 const getCategoryDisplay = (cat) => CATEGORY_DISPLAY[cat] || cat;
+const getCategoryForDB = (cat) => CATEGORY_DB[cat] || cat;
 
 const DEFAULT_SLIDES = [
   { image: "https://images.unsplash.com/photo-1700150594432-7024e06005c4?w=1200", category: "Editorial", title: "Spring Collection 2025", subtitle: "Editorial Fashion Photography" },
