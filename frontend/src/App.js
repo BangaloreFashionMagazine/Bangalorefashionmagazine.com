@@ -2915,7 +2915,46 @@ const AboutPage = () => (
 const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine, video, partyEvents }) => (
   <div className="min-h-screen bg-[#050A14]">
     <Navbar user={user} talent={talent} onLogout={onLogout} />
-    <HeroSlider customSlides={heroImages} />
+    
+    {/* Hero Section with Ads Sidebar */}
+    <div className="flex">
+      {/* Hero Slider - takes most of the width */}
+      <div className="flex-1">
+        <HeroSlider customSlides={heroImages} />
+      </div>
+      
+      {/* Ads Sidebar - right next to hero on desktop */}
+      {ads && ads.length > 0 && (
+        <div className="hidden lg:block w-72 bg-[#0A1628] border-l border-[#D4AF37]/20">
+          <div className="p-4 h-[70vh] overflow-y-auto">
+            <p className="text-[#A0A5B0] text-xs uppercase tracking-wider text-center mb-4">Sponsored</p>
+            <div className="flex flex-col gap-4">
+              {ads.map((ad, i) => (
+                <a key={i} href={ad.link || "#"} target="_blank" rel="noopener noreferrer" className="block">
+                  <img src={ad.image_data} alt={ad.title || "Advertisement"} className="w-full rounded-lg border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all" />
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+
+    {/* Mobile Ads - shown below hero on mobile */}
+    {ads && ads.length > 0 && (
+      <div className="lg:hidden bg-[#0A1628] py-4 border-y border-[#D4AF37]/20">
+        <div className="container mx-auto px-4">
+          <p className="text-[#A0A5B0] text-xs uppercase tracking-wider text-center mb-3">Sponsored</p>
+          <div className="flex gap-3 overflow-x-auto pb-2">
+            {ads.map((ad, i) => (
+              <a key={i} href={ad.link || "#"} target="_blank" rel="noopener noreferrer" className="flex-shrink-0 w-32">
+                <img src={ad.image_data} alt={ad.title || "Advertisement"} className="w-full rounded-lg border border-[#D4AF37]/10" />
+              </a>
+            ))}
+          </div>
+        </div>
+      </div>
+    )}
     
     {/* Party Updates Section - Only visible when there are active events */}
     <PartyUpdatesSection partyEvents={partyEvents} />
@@ -2980,26 +3019,9 @@ const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine, v
       </div>
     )}
 
+    {/* Contest Winners Section */}
     <div className="container mx-auto px-4">
-      <div className="flex flex-col lg:flex-row gap-8">
-        <div className="flex-1">
-          <ContestWinnersSection awards={awards} />
-        </div>
-        {ads && ads.length > 0 && (
-          <div className="w-full lg:w-72 py-8">
-            <div className="sticky top-20">
-              <p className="text-[#A0A5B0] text-xs uppercase tracking-wider text-center mb-4">Sponsored</p>
-              <div className="grid grid-cols-2 lg:grid-cols-1 gap-4">
-                {ads.map((ad, i) => (
-                  <a key={i} href={ad.link || "#"} target="_blank" rel="noopener noreferrer" className="block">
-                    <img src={ad.image_data} alt={ad.title || "Advertisement"} className="w-full rounded-lg border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all" />
-                  </a>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+      <ContestWinnersSection awards={awards} />
     </div>
   </div>
 );
