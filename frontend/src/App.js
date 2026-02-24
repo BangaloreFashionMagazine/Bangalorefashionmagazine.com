@@ -2917,29 +2917,27 @@ const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine, v
     <Navbar user={user} talent={talent} onLogout={onLogout} />
     
     {/* Hero Section with Ads Sidebar */}
-    <div className="flex">
-      {/* Hero Slider - takes most of the width */}
-      <div className="flex-1">
+    <div className="flex flex-row">
+      {/* Hero Slider - takes most of the width but leaves room for ads */}
+      <div className={ads && ads.length > 0 ? "w-[calc(100%-288px)]" : "w-full"}>
         <HeroSlider customSlides={heroImages} />
       </div>
       
       {/* Ads Sidebar - right next to hero */}
-      <div className="w-72 bg-[#0A1628] border-l border-[#D4AF37]/20 flex-shrink-0">
-        <div className="p-4 h-[70vh] overflow-y-auto">
-          <p className="text-[#A0A5B0] text-xs uppercase tracking-wider text-center mb-4">Sponsored</p>
-          <div className="flex flex-col gap-4">
-            {ads && ads.length > 0 ? (
-              ads.map((ad, i) => (
+      {ads && ads.length > 0 && (
+        <div className="w-72 bg-[#0A1628] border-l border-[#D4AF37]/20">
+          <div className="p-4 h-[70vh] overflow-y-auto">
+            <p className="text-[#A0A5B0] text-xs uppercase tracking-wider text-center mb-4">Sponsored</p>
+            <div className="flex flex-col gap-4">
+              {ads.map((ad, i) => (
                 <a key={i} href={ad.link || "#"} target="_blank" rel="noopener noreferrer" className="block">
                   <img src={ad.image_data} alt={ad.title || "Advertisement"} className="w-full rounded-lg border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all" />
                 </a>
-              ))
-            ) : (
-              <p className="text-[#A0A5B0] text-xs text-center">No ads available</p>
-            )}
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
     
     {/* Party Updates Section - Only visible when there are active events */}
