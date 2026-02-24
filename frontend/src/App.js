@@ -2968,22 +2968,109 @@ const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine, v
   <div className="min-h-screen bg-[#050A14]">
     <Navbar user={user} talent={talent} onLogout={onLogout} />
     
-    {/* Hero Section with Ads Sidebar */}
-    <div className="flex flex-row">
-      {/* Hero Slider - takes most of the width but leaves room for ads on desktop */}
-      <div className={ads && ads.length > 0 ? "w-full lg:w-[calc(100%-288px)]" : "w-full"}>
+    {/* Main Content with Sticky Ads Sidebar */}
+    <div className="flex">
+      {/* Main Content Area */}
+      <div className={ads && ads.length > 0 ? "w-full lg:w-[calc(100%-220px)]" : "w-full"}>
+        
+        {/* Hero Slider */}
         <HeroSlider customSlides={heroImages} />
+        
+        {/* Mobile Ads - smaller, shown below hero on mobile only */}
+        {ads && ads.length > 0 && (
+          <div className="lg:hidden bg-[#0A1628] py-3 border-y border-[#D4AF37]/20">
+            <div className="container mx-auto px-4">
+              <p className="text-[#A0A5B0] text-[10px] uppercase tracking-wider text-center mb-2">Sponsored</p>
+              <div className="flex gap-2 overflow-x-auto pb-2 justify-center">
+                {ads.map((ad, i) => (
+                  <a key={i} href={ad.link || "#"} target="_blank" rel="noopener noreferrer" className="flex-shrink-0 w-20">
+                    <img src={ad.image_data} alt={ad.title || "Ad"} className="w-full rounded border border-[#D4AF37]/10" />
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Magazine Download Section - Right below hero */}
+        {magazine && magazine.file_data && (
+          <div className="bg-[#0A1628] py-4 border-b border-[#D4AF37]/20">
+            <div className="container mx-auto px-4">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <h3 className="text-[#D4AF37] font-serif text-base">{magazine.title || "Download Our Magazine"}</h3>
+                <a href={magazine.file_data} download={magazine.file_name || "magazine.pdf"}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded-lg font-bold hover:bg-[#F5F5F0] transition-colors text-sm">
+                  <Download size={16} /> Download PDF
+                </a>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Party Updates Section - Can have N number of parties */}
+        <PartyUpdatesSection partyEvents={partyEvents} />
+        
+        {/* Featured Video Section */}
+        {video && video.video_url && (
+          <div className="bg-[#0A1628] py-8 border-y border-[#D4AF37]/20">
+            <div className="container mx-auto px-4">
+              <h3 className="text-[#D4AF37] font-serif text-xl text-center mb-4">{video.title || "Featured Video"}</h3>
+              <div className="max-w-3xl mx-auto aspect-video rounded-lg overflow-hidden border border-[#D4AF37]/20">
+                {video.video_type === "youtube" && (
+                  <iframe
+                    src={`https://www.youtube.com/embed/${video.video_url.includes("youtu.be") ? video.video_url.split("/").pop().split("?")[0] : video.video_url.includes("v=") ? video.video_url.split("v=")[1].split("&")[0] : video.video_url}`}
+                    className="w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    title={video.title}
+                  />
+                )}
+                {video.video_type === "vimeo" && (
+                  <iframe
+                    src={`https://player.vimeo.com/video/${video.video_url.split("/").pop()}`}
+                    className="w-full h-full"
+                    allow="autoplay; fullscreen; picture-in-picture"
+                    allowFullScreen
+                    title={video.title}
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Contact Section */}
+        <div className="bg-[#0A1628] py-6 border-y border-[#D4AF37]/20">
+          <div className="container mx-auto px-4">
+            <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12 text-center">
+              <p className="text-[#D4AF37] font-serif text-lg">For Booking Talents</p>
+              <a href="https://instagram.com/bangalorefashionmagazine" target="_blank" rel="noopener noreferrer" 
+                className="flex items-center gap-2 text-[#F5F5F0] hover:text-[#D4AF37] transition-colors">
+                <Instagram size={20} /> @bangalorefashionmagazine
+              </a>
+              <a href="mailto:bfm1magazine@gmail.com" 
+                className="flex items-center gap-2 text-[#F5F5F0] hover:text-[#D4AF37] transition-colors">
+                <Mail size={20} /> bfm1magazine@gmail.com
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Contest Winners Section */}
+        <div className="container mx-auto px-4">
+          <ContestWinnersSection awards={awards} />
+        </div>
       </div>
       
-      {/* Ads Sidebar - right next to hero on desktop only */}
+      {/* Sticky Ads Sidebar - Desktop Only */}
       {ads && ads.length > 0 && (
-        <div className="hidden lg:block w-72 bg-[#0A1628] border-l border-[#D4AF37]/20">
-          <div className="p-4 pt-6">
-            <p className="text-[#A0A5B0] text-xs uppercase tracking-wider text-center mb-4">Sponsored</p>
-            <div className="flex flex-col gap-4">
+        <div className="hidden lg:block w-[220px] bg-[#0A1628] border-l border-[#D4AF37]/20">
+          <div className="sticky top-16 p-3 max-h-[calc(100vh-64px)] overflow-y-auto">
+            <p className="text-[#A0A5B0] text-[10px] uppercase tracking-wider text-center mb-3">Sponsored</p>
+            <div className="flex flex-col gap-3">
               {ads.map((ad, i) => (
                 <a key={i} href={ad.link || "#"} target="_blank" rel="noopener noreferrer" className="block">
-                  <img src={ad.image_data} alt={ad.title || "Advertisement"} className="w-full rounded-lg border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all" />
+                  <img src={ad.image_data} alt={ad.title || "Ad"} className="w-full rounded-lg border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all" />
                 </a>
               ))}
             </div>
@@ -2992,92 +3079,21 @@ const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine, v
       )}
     </div>
 
-    {/* Mobile Ads - smaller and shown below hero on mobile */}
-    {ads && ads.length > 0 && (
-      <div className="lg:hidden bg-[#0A1628] py-3 border-y border-[#D4AF37]/20">
+    {/* Bottom Ads Section - Horizontal with spacing (shown when there are many ads) */}
+    {ads && ads.length > 3 && (
+      <div className="bg-[#050A14] py-12 mt-8">
         <div className="container mx-auto px-4">
-          <p className="text-[#A0A5B0] text-[10px] uppercase tracking-wider text-center mb-2">Sponsored</p>
-          <div className="flex gap-2 overflow-x-auto pb-2 justify-center">
+          <p className="text-[#A0A5B0] text-xs uppercase tracking-wider text-center mb-6">Our Sponsors</p>
+          <div className="flex flex-wrap justify-center gap-8">
             {ads.map((ad, i) => (
-              <a key={i} href={ad.link || "#"} target="_blank" rel="noopener noreferrer" className="flex-shrink-0 w-24">
-                <img src={ad.image_data} alt={ad.title || "Ad"} className="w-full rounded border border-[#D4AF37]/10" />
+              <a key={i} href={ad.link || "#"} target="_blank" rel="noopener noreferrer" className="w-40 md:w-48">
+                <img src={ad.image_data} alt={ad.title || "Ad"} className="w-full rounded-lg border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all" />
               </a>
             ))}
           </div>
         </div>
       </div>
     )}
-
-    {/* Magazine Download Section - Right below hero */}
-    {magazine && magazine.file_data && (
-      <div className="bg-[#0A1628] py-6 border-b border-[#D4AF37]/20">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <div className="text-center sm:text-left">
-              <h3 className="text-[#D4AF37] font-serif text-lg">{magazine.title || "Download Our Magazine"}</h3>
-            </div>
-            <a href={magazine.file_data} download={magazine.file_name || "magazine.pdf"}
-              className="inline-flex items-center gap-2 px-5 py-2 bg-[#D4AF37] text-[#050A14] rounded-lg font-bold hover:bg-[#F5F5F0] transition-colors text-sm">
-              <Download size={18} /> Download PDF
-            </a>
-          </div>
-        </div>
-      </div>
-    )}
-    
-    {/* Party Updates Section - Only visible when there are active events */}
-    <PartyUpdatesSection partyEvents={partyEvents} />
-    
-    {/* Featured Video Section */}
-    {video && video.video_url && (
-      <div className="bg-[#0A1628] py-8 border-y border-[#D4AF37]/20">
-        <div className="container mx-auto px-4">
-          <h3 className="text-[#D4AF37] font-serif text-xl text-center mb-4">{video.title || "Featured Video"}</h3>
-          <div className="max-w-3xl mx-auto aspect-video rounded-lg overflow-hidden border border-[#D4AF37]/20">
-            {video.video_type === "youtube" && (
-              <iframe
-                src={`https://www.youtube.com/embed/${video.video_url.includes("youtu.be") ? video.video_url.split("/").pop().split("?")[0] : video.video_url.includes("v=") ? video.video_url.split("v=")[1].split("&")[0] : video.video_url}`}
-                className="w-full h-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                title={video.title}
-              />
-            )}
-            {video.video_type === "vimeo" && (
-              <iframe
-                src={`https://player.vimeo.com/video/${video.video_url.split("/").pop()}`}
-                className="w-full h-full"
-                allow="autoplay; fullscreen; picture-in-picture"
-                allowFullScreen
-                title={video.title}
-              />
-            )}
-          </div>
-        </div>
-      </div>
-    )}
-    
-    {/* Contact Section */}
-    <div className="bg-[#0A1628] py-6 border-y border-[#D4AF37]/20">
-      <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12 text-center">
-          <p className="text-[#D4AF37] font-serif text-lg">For Booking Talents</p>
-          <a href="https://instagram.com/bangalorefashionmagazine" target="_blank" rel="noopener noreferrer" 
-            className="flex items-center gap-2 text-[#F5F5F0] hover:text-[#D4AF37] transition-colors">
-            <Instagram size={20} /> @bangalorefashionmagazine
-          </a>
-          <a href="mailto:bfm1magazine@gmail.com" 
-            className="flex items-center gap-2 text-[#F5F5F0] hover:text-[#D4AF37] transition-colors">
-            <Mail size={20} /> bfm1magazine@gmail.com
-          </a>
-        </div>
-      </div>
-    </div>
-
-    {/* Contest Winners Section */}
-    <div className="container mx-auto px-4">
-      <ContestWinnersSection awards={awards} />
-    </div>
   </div>
 );
 
