@@ -473,11 +473,19 @@ const TalentDetailModal = ({ talent, onClose, onVote }) => {
         </button>
         
         <div className="p-6">
-          {/* Header with Name and Category */}
+          {/* 1. BFM Magazine Title at Top */}
+          <div className="text-center mb-4">
+            <h1 className="font-serif text-xl md:text-2xl font-bold text-[#D4AF37]">BFM Magazine</h1>
+          </div>
+          
+          {/* 2. Category */}
+          <div className="text-center mb-2">
+            <span className="inline-block px-3 py-1 bg-[#D4AF37]/20 text-[#D4AF37] text-xs uppercase tracking-wider rounded">{getCategoryDisplay(talent.category)}</span>
+          </div>
+          
+          {/* 3. Model Name */}
           <div className="text-center mb-6">
-            <span className="inline-block px-3 py-1 bg-[#D4AF37]/20 text-[#D4AF37] text-xs uppercase tracking-wider rounded mb-3">{getCategoryDisplay(talent.category)}</span>
-            <h2 className="font-serif text-3xl font-bold text-[#F5F5F0]">{talent.name}</h2>
-            {/* Gold divider under name */}
+            <h2 className="font-serif text-2xl md:text-3xl font-bold text-[#F5F5F0]">{talent.name}</h2>
             <div className="w-16 h-[1px] bg-[#D4AF37]/60 mx-auto mt-3"></div>
           </div>
           
@@ -489,21 +497,8 @@ const TalentDetailModal = ({ talent, onClose, onVote }) => {
             </div>
           )}
           
-          {/* Voting Section */}
-          <div className="flex items-center justify-center gap-4 mb-6 pb-6 border-b border-[#D4AF37]/20">
-            <span className="text-[#F5F5F0]"><strong className="text-[#D4AF37] text-2xl">{talent.votes || 0}</strong> votes</span>
-            <button 
-              onClick={handleVote} 
-              disabled={voting}
-              className="px-6 py-2 bg-[#D4AF37] text-[#050A14] rounded-lg font-bold hover:bg-[#F5F5F0] disabled:opacity-50 flex items-center gap-2"
-            >
-              <Vote size={18} />
-              {voting ? "Voting..." : "Vote"}
-            </button>
-          </div>
-          
-          {/* Photo Gallery - Profile + Portfolio Images */}
-          <div>
+          {/* 4. Photo Gallery - Profile + Portfolio Images */}
+          <div className="mb-6">
             <h3 className="text-[#D4AF37] text-sm uppercase tracking-wider mb-4 text-center">Photo Gallery</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {allImages.map((img, i) => (
@@ -525,7 +520,7 @@ const TalentDetailModal = ({ talent, onClose, onVote }) => {
 
           {/* Portfolio Video */}
           {talent.portfolio_video && (
-            <div className="mt-6">
+            <div className="mb-6">
               <h3 className="text-[#D4AF37] text-sm uppercase tracking-wider mb-4 text-center">Portfolio Video</h3>
               <div className="relative">
                 <video 
@@ -538,6 +533,19 @@ const TalentDetailModal = ({ talent, onClose, onVote }) => {
               </div>
             </div>
           )}
+          
+          {/* 5. Voting Section - At the END below all images */}
+          <div className="flex items-center justify-center gap-4 pt-6 border-t border-[#D4AF37]/20">
+            <span className="text-[#F5F5F0]"><strong className="text-[#D4AF37] text-2xl">{talent.votes || 0}</strong> votes</span>
+            <button 
+              onClick={handleVote} 
+              disabled={voting}
+              className="px-6 py-2 bg-[#D4AF37] text-[#050A14] rounded-lg font-bold hover:bg-[#F5F5F0] disabled:opacity-50 flex items-center gap-2"
+            >
+              <Vote size={18} />
+              {voting ? "Voting..." : "Vote"}
+            </button>
+          </div>
         </div>
         
         {/* Full Image Gallery with Swipe */}
