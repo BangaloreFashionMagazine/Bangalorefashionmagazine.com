@@ -3007,6 +3007,23 @@ const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine, v
         </div>
       </div>
     )}
+
+    {/* Magazine Download Section - Right below hero */}
+    {magazine && magazine.file_data && (
+      <div className="bg-[#0A1628] py-6 border-b border-[#D4AF37]/20">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <div className="text-center sm:text-left">
+              <h3 className="text-[#D4AF37] font-serif text-lg">{magazine.title || "Download Our Magazine"}</h3>
+            </div>
+            <a href={magazine.file_data} download={magazine.file_name || "magazine.pdf"}
+              className="inline-flex items-center gap-2 px-5 py-2 bg-[#D4AF37] text-[#050A14] rounded-lg font-bold hover:bg-[#F5F5F0] transition-colors text-sm">
+              <Download size={18} /> Download PDF
+            </a>
+          </div>
+        </div>
+      </div>
+    )}
     
     {/* Party Updates Section - Only visible when there are active events */}
     <PartyUpdatesSection partyEvents={partyEvents} />
