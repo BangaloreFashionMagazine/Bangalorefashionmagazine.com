@@ -3074,20 +3074,6 @@ const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine, v
       </div>
     </div>
 
-    {/* Magazine Download Section */}
-    {magazine && magazine.file_data && (
-      <div className="bg-[#050A14] py-8 border-b border-[#D4AF37]/20">
-        <div className="container mx-auto px-4 text-center">
-          <h3 className="text-[#D4AF37] font-serif text-xl mb-2">Download Our Latest Magazine</h3>
-          <p className="text-[#F5F5F0] text-lg mb-4">{magazine.title}</p>
-          <a href={magazine.file_data} download={magazine.file_name || "magazine.pdf"}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-[#D4AF37] text-[#050A14] rounded-lg font-bold hover:bg-[#F5F5F0] transition-colors">
-            <Download size={20} /> Download PDF
-          </a>
-        </div>
-      </div>
-    )}
-
     {/* Contest Winners Section */}
     <div className="container mx-auto px-4">
       <ContestWinnersSection awards={awards} />
