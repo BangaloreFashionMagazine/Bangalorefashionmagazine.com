@@ -655,6 +655,7 @@ const TalentsPage = ({ ads }) => {
   const decodedCategory = decodeURIComponent(category || "");
   // Convert URL category (new name) to database category (old name)
   const dbCategory = getCategoryForDB(decodedCategory);
+  const hasAds = ads && ads.length > 0;
 
   useEffect(() => {
     setLoading(true);
@@ -681,23 +682,40 @@ const TalentsPage = ({ ads }) => {
     }
   };
 
+  // Grid classes: 7 per row with ads, 10 without ads on large screens
+  const gridClass = hasAds 
+    ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-3"
+    : "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-10 gap-3";
+
   return (
     <div className="min-h-screen bg-[#050A14] pt-20 pb-12">
       <div className="container mx-auto px-4">
-        <div className="flex gap-8">
+        <div className="flex gap-4">
           <div className="flex-1">
-            <h1 className="font-serif text-3xl font-bold text-[#F5F5F0] mb-8">{decodedCategory || "All Talents"}</h1>
+            <h1 className="font-serif text-2xl font-bold text-[#F5F5F0] mb-6">{decodedCategory || "All Talents"}</h1>
             {loading ? (
               <p className="text-[#A0A5B0]">Loading...</p>
             ) : talents.length === 0 ? (
               <p className="text-[#A0A5B0]">No approved talents in this category yet.</p>
             ) : (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {talents.map(t => <TalentCard key={t.id} talent={t} onVote={handleVote} onClick={setSelectedTalent} />)}
+              <div className={gridClass}>
+                {talents.map(t => <TalentCardSmall key={t.id} talent={t} onVote={handleVote} onClick={setSelectedTalent} />)}
               </div>
             )}
           </div>
-          <AdvertisementSidebar ads={ads} />
+          {/* Ads sidebar - smaller on category pages */}
+          {hasAds && (
+            <div className="hidden lg:block w-48 flex-shrink-0">
+              <p className="text-[#A0A5B0] text-xs uppercase tracking-wider text-center mb-3">Sponsored</p>
+              <div className="flex flex-col gap-3">
+                {ads.map((ad, i) => (
+                  <a key={i} href={ad.link || "#"} target="_blank" rel="noopener noreferrer" className="block">
+                    <img src={ad.image_data} alt={ad.title || "Ad"} className="w-full rounded-lg border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all" />
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
       
