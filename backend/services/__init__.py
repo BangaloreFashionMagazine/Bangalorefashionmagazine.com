@@ -25,7 +25,7 @@ def generate_token(user_id: str) -> str:
     return hashlib.sha256(token_data.encode()).hexdigest()
 
 
-# Talent Categories
+# Talent Categories - Old names (stored in database)
 TALENT_CATEGORIES = [
     "Model - Female",
     "Model - Male", 
@@ -35,3 +35,32 @@ TALENT_CATEGORIES = [
     "Event Management",
     "Other"
 ]
+
+# New category names (displayed in UI)
+NEW_TALENT_CATEGORIES = [
+    "Women | Models",
+    "Men | Models",
+    "Designers",
+    "Beauty",
+    "Visual Stories",
+    "Experiences",
+    "Creative Collective"
+]
+
+# Map new names to old database names
+CATEGORY_TO_DB = {
+    "Women | Models": "Model - Female",
+    "Men | Models": "Model - Male",
+    "Beauty": "Makeup & Hair",
+    "Visual Stories": "Photography",
+    "Experiences": "Event Management",
+    "Creative Collective": "Other",
+    "Designers": "Designers"
+}
+
+# All valid categories (both old and new)
+ALL_VALID_CATEGORIES = TALENT_CATEGORIES + NEW_TALENT_CATEGORIES
+
+def normalize_category(category):
+    """Convert new category name to old database name if needed"""
+    return CATEGORY_TO_DB.get(category, category)
