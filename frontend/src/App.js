@@ -2992,15 +2992,15 @@ const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine, v
       )}
     </div>
 
-    {/* Mobile Ads - shown below hero on mobile */}
+    {/* Mobile Ads - smaller and shown below hero on mobile */}
     {ads && ads.length > 0 && (
-      <div className="lg:hidden bg-[#0A1628] py-4 border-y border-[#D4AF37]/20">
+      <div className="lg:hidden bg-[#0A1628] py-3 border-y border-[#D4AF37]/20">
         <div className="container mx-auto px-4">
-          <p className="text-[#A0A5B0] text-xs uppercase tracking-wider text-center mb-3">Sponsored</p>
-          <div className="flex gap-3 overflow-x-auto pb-2">
+          <p className="text-[#A0A5B0] text-[10px] uppercase tracking-wider text-center mb-2">Sponsored</p>
+          <div className="flex gap-2 overflow-x-auto pb-2 justify-center">
             {ads.map((ad, i) => (
-              <a key={i} href={ad.link || "#"} target="_blank" rel="noopener noreferrer" className="flex-shrink-0 w-40">
-                <img src={ad.image_data} alt={ad.title || "Advertisement"} className="w-full rounded-lg border border-[#D4AF37]/10" />
+              <a key={i} href={ad.link || "#"} target="_blank" rel="noopener noreferrer" className="flex-shrink-0 w-24">
+                <img src={ad.image_data} alt={ad.title || "Ad"} className="w-full rounded border border-[#D4AF37]/10" />
               </a>
             ))}
           </div>
