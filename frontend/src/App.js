@@ -645,6 +645,40 @@ const TalentCard = ({ talent, onVote, onClick }) => {
   );
 };
 
+// Small Talent Card for category pages (7-10 per row)
+const TalentCardSmall = ({ talent, onVote, onClick }) => {
+  const [voting, setVoting] = useState(false);
+  
+  const handleVote = async (e) => {
+    e.stopPropagation();
+    setVoting(true);
+    await onVote(talent.id);
+    setVoting(false);
+  };
+
+  return (
+    <div 
+      className="group relative overflow-hidden rounded-lg bg-[#0A1628] border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all cursor-pointer"
+      onClick={() => onClick(talent)}
+      data-testid={`talent-card-small-${talent.id}`}
+    >
+      <div className="aspect-[3/4] overflow-hidden relative">
+        <img src={talent.profile_image || "https://via.placeholder.com/150x200"} alt={talent.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+      </div>
+      <div className="absolute inset-0 bg-gradient-to-t from-[#050A14]/80 via-transparent to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 p-2">
+        <h3 className="font-serif text-xs sm:text-sm font-bold text-[#F5F5F0] truncate">{talent.name}</h3>
+        <div className="flex items-center justify-between mt-1">
+          <span className="text-[#F5F5F0]/60 text-[10px]">{talent.votes || 0}</span>
+          <button onClick={handleVote} disabled={voting} className="px-1.5 py-0.5 bg-[#D4AF37]/20 text-[#D4AF37] text-[8px] rounded hover:bg-[#D4AF37]/40 disabled:opacity-50 transition-colors">
+            {voting ? ".." : "Vote"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Talents Page by Category
 const TalentsPage = ({ ads }) => {
   const { category } = useParams();
