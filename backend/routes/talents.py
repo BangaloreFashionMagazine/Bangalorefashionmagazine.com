@@ -8,7 +8,7 @@ from models import (
     TalentCreate, TalentUpdate, TalentResponse, TalentLoginResponse,
     UserLogin, ForgotPasswordRequest, ResetPasswordRequest
 )
-from services import hash_password, verify_password, generate_token, TALENT_CATEGORIES
+from services import hash_password, verify_password, generate_token, ALL_VALID_CATEGORIES, normalize_category
 
 import logging
 logger = logging.getLogger(__name__)
@@ -27,8 +27,12 @@ def create_talent_routes(db):
         if not talent_data.category:
             raise HTTPException(status_code=400, detail="Category is required")
         
-        if talent_data.category not in TALENT_CATEGORIES:
-            raise HTTPException(status_code=400, detail=f"Invalid category. Must be one of: {TALENT_CATEGORIES}")
+        # Accept both old and new category names
+        if talent_data.category not in ALL_VALID_CATEGORIES:
+            raise HTTPException(status_code=400, detail=f"Invalid category. Must be one of: {ALL_VALID_CATEGORIES}")
+        
+        # Normalize category to database format (convert new names to old)
+        db_category = normalize_category(talent_data.category)
         
         if len(talent_data.password) < 6:
             raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
@@ -47,7 +51,7 @@ def create_talent_routes(db):
             "password_plain": talent_data.password,
             "phone": talent_data.phone,
             "instagram_id": talent_data.instagram_id or "",
-            "category": talent_data.category,
+            "category": db_category,
             "bio": talent_data.bio or "",
             "profile_image": talent_data.profile_image,
             "portfolio_images": portfolio,
