@@ -473,8 +473,9 @@ const TalentDetailModal = ({ talent, onClose, onVote }) => {
         </button>
         
         <div className="p-6">
-          {/* 1. BFM Magazine Title at Top */}
+          {/* 1. BFM Logo + Magazine Title at Top */}
           <div className="text-center mb-4">
+            <img src={BFM_LOGO} alt="BFM" className="w-12 h-12 rounded-full object-cover border border-[#D4AF37]/30 mx-auto mb-2" />
             <h1 className="font-serif text-xl md:text-2xl font-bold text-[#D4AF37]">BFM Magazine</h1>
           </div>
           
