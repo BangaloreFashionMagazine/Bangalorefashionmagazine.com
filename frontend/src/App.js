@@ -180,6 +180,7 @@ const Navbar = ({ user, talent, onLogout }) => {
               ))}
             </div>
             <Link to="/about" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-2 text-[#A0A5B0]">About Us</Link>
+            <Link to="/designer-store" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-2 text-[#A0A5B0]">Designer Store</Link>
             {user ? (
               <>
                 {isAdmin && <Link to="/admin" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-2 text-[#D4AF37]">Admin Panel</Link>}
