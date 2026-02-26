@@ -210,6 +210,11 @@ The database stores old category names. Frontend maps them:
 - **Video Duration Validation**: Fixed missing 45-second duration validation for product video uploads in:
   - TalentDashboard.jsx (DesignerProductsSection)
   - AdminDashboard.jsx (product management)
+- **Product Category Dropdown**: Added dropdown selector for 4 store categories in Add/Edit Product form:
+  - 👕 Everyday Chic - Casuals
+  - ✨ After Dark - Party
+  - 🪔 Heritage Luxe - Ethnic
+  - 👜 Accessories Room - Accessories
 
 ## New Files Created (Refactoring - Feb 2026)
 - `/app/frontend/src/pages/Admin/AdminDashboard.jsx` - Complete admin dashboard with all tabs
