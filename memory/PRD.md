@@ -195,11 +195,19 @@ The database stores old category names. Frontend maps them:
 ## Pending Tasks
 1. Contact Emergent Support about 520 deployment error (live site)
 2. User verification of all features once live site is restored
-3. Further code refactoring (optional):
-   - Admin.jsx (2000+ lines) → Split into tab components
+3. Video feature end-to-end testing (upload & playback for products)
+4. Image optimization integration across all upload points
 
 ## Completed Tasks (Feb 26, 2026)
 - **Designer Store Hidden from Talents Tab**: Filtered "Designer Store" category from the Talents dropdown menu in both desktop and mobile navigation. Designer Store now has its own separate navigation link and is not mixed with regular talent categories.
+- **Major Code Refactoring (App.js)**: Reduced App.js from ~3800 lines to ~1680 lines (56% reduction!)
+  - Extracted AdminDashboard (~1650 lines) to `/app/frontend/src/pages/Admin/AdminDashboard.jsx`
+  - Extracted TalentDashboard + DesignerProductsSection (~470 lines) to `/app/frontend/src/pages/TalentDashboard.jsx`
+  - Added STORE_SUBCATEGORIES to shared config at `/app/frontend/src/lib/config.js`
+
+## New Files Created (Refactoring - Feb 2026)
+- `/app/frontend/src/pages/Admin/AdminDashboard.jsx` - Complete admin dashboard with all tabs
+- `/app/frontend/src/pages/TalentDashboard.jsx` - Talent profile dashboard + Designer products section
 
 ## New Files Created (Refactoring - Dec 2025)
 - `/app/frontend/src/lib/config.js` - Shared constants (categories, API URL, etc.)
