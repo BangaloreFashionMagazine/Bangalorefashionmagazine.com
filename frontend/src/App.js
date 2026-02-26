@@ -2002,7 +2002,6 @@ const AdminDashboard = () => {
       fetchStoreProducts();
     } catch (err) { toast({ title: "Failed to update product", variant: "destructive" }); }
   };
-  };
   
   const saveStoreSettings = async () => {
     try {
