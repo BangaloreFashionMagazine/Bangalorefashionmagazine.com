@@ -262,6 +262,7 @@ class OrderResponse(BaseModel):
     product_id: str
     product_name: str = ""
     product_price: float = 0
+    product_size: str = ""
     designer_id: str = ""
     designer_name: str = ""
     customer_name: str
