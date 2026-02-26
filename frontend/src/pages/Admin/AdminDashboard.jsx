@@ -1067,11 +1067,23 @@ const AdminDashboard = () => {
         {tab === "export" && (
           <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20">
             <h2 className="text-lg font-bold text-[#F5F5F0] mb-4">Export Data</h2>
-            <p className="text-[#A0A5B0] mb-4">Download all talents: Name, Email, Phone, Instagram, Category, Status, Rank, Votes</p>
-            <a href={`${API}/admin/talents/export`} download 
-              className="inline-flex items-center gap-2 px-6 py-3 bg-[#D4AF37] text-[#050A14] rounded font-bold">
-              <Download size={18} /> Export Talents CSV
-            </a>
+            
+            <div className="space-y-6">
+              <div>
+                <p className="text-[#A0A5B0] mb-4">Download all talents: Name, Email, Phone, Instagram, Category, Status, Rank, Votes</p>
+                <a href={`${API}/admin/talents/export`} download 
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-[#D4AF37] text-[#050A14] rounded font-bold">
+                  <Download size={18} /> Export Talents CSV
+                </a>
+              </div>
+              
+              <div className="border-t border-[#D4AF37]/20 pt-6">
+                <p className="text-[#A0A5B0] mb-4">Download sales data: Order Date, Product, MRP, Discount, Final Price, Size, Designer, Customer details</p>
+                <button onClick={exportSalesToExcel} className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded font-bold">
+                  <Download size={18} /> Export Sales CSV
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
