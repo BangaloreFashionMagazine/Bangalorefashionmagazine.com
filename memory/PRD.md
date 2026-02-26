@@ -195,8 +195,6 @@ The database stores old category names. Frontend maps them:
 ## Pending Tasks
 1. Contact Emergent Support about 520 deployment error (live site)
 2. User verification of all features once live site is restored
-3. Video feature end-to-end testing (upload & playback for products)
-4. Image optimization integration across all upload points
 
 ## Completed Tasks (Feb 26, 2026)
 - **Designer Store Hidden from Talents Tab**: Filtered "Designer Store" category from the Talents dropdown menu in both desktop and mobile navigation. Designer Store now has its own separate navigation link and is not mixed with regular talent categories.
