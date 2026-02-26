@@ -1968,7 +1968,7 @@ const AdminDashboard = () => {
         discount_percent: parseInt(newProduct.discount_percent) || 0
       });
       toast({ title: "Product added!" });
-      setNewProduct({ name: "", description: "", size: "", material: "", price: "", discount_percent: "", shipping_info: "", images: [], designer_id: "" });
+      setNewProduct({ name: "", description: "", store_category: "Everyday Chic", size: "", material: "", price: "", discount_percent: "", shipping_info: "", images: [], video: "", designer_id: "" });
       fetchStoreProducts();
     } catch (err) { toast({ title: err.response?.data?.detail || "Failed to add product", variant: "destructive" }); }
   };
@@ -1988,17 +1988,20 @@ const AdminDashboard = () => {
       await axios.put(`${API}/store/products/${editingProduct.id}`, {
         name: editingProduct.name,
         description: editingProduct.description,
+        store_category: editingProduct.store_category,
         size: editingProduct.size,
         material: editingProduct.material,
         price: parseFloat(editingProduct.price),
         discount_percent: parseInt(editingProduct.discount_percent) || 0,
         shipping_info: editingProduct.shipping_info,
-        images: editingProduct.images
+        images: editingProduct.images,
+        video: editingProduct.video
       });
       toast({ title: "Product updated!" });
       setEditingProduct(null);
       fetchStoreProducts();
     } catch (err) { toast({ title: "Failed to update product", variant: "destructive" }); }
+  };
   };
   
   const saveStoreSettings = async () => {
