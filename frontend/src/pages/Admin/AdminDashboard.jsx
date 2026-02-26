@@ -4,6 +4,7 @@ import { Users, Star, Award, Image, Download, Check, X, Phone, Mail, Trash2, Ext
 import { useToast } from "@/hooks/use-toast";
 import ImageUploadWithCrop from "@/components/ImageUploadWithCrop";
 import { API, TALENT_CATEGORIES, STORE_CATEGORIES } from "@/lib/config";
+import { autoCompressImage } from "@/lib/imageOptimization";
 
 const AdminDashboard = () => {
   const [tab, setTab] = useState("pending");
