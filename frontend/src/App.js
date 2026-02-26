@@ -1009,7 +1009,7 @@ const TalentProfilePage = () => {
 // Join Us (Talent Registration)
 const JoinPage = () => {
   const [formData, setFormData] = useState({
-    name: "", email: "", password: "", phone: "", instagram_id: "", category: "", store_subcategory: "", bio: ""
+    name: "", email: "", password: "", phone: "", instagram_id: "", category: "", store_subcategories: [], bio: ""
   });
   const [profileImage, setProfileImage] = useState("");
   const [portfolio, setPortfolio] = useState([]);
@@ -1023,11 +1023,27 @@ const JoinPage = () => {
   
   // Store sub-categories
   const STORE_SUBCATEGORIES = [
-    { id: "Everyday Chic", label: "Everyday Chic (Casuals)" },
-    { id: "After Dark", label: "After Dark (Party)" },
-    { id: "Heritage Luxe", label: "Heritage Luxe (Ethnic)" },
-    { id: "Accessories Room", label: "Accessories Room" }
+    { id: "Everyday Chic", label: "Everyday Chic (Casuals)", icon: "👕" },
+    { id: "After Dark", label: "After Dark (Party)", icon: "✨" },
+    { id: "Heritage Luxe", label: "Heritage Luxe (Ethnic)", icon: "🪔" },
+    { id: "Accessories Room", label: "Accessories Room", icon: "👜" }
   ];
+  
+  const toggleStoreCategory = (catId) => {
+    setFormData(prev => ({
+      ...prev,
+      store_subcategories: prev.store_subcategories.includes(catId)
+        ? prev.store_subcategories.filter(c => c !== catId)
+        : [...prev.store_subcategories, catId]
+    }));
+  };
+  
+  const selectAllCategories = () => {
+    setFormData(prev => ({
+      ...prev,
+      store_subcategories: STORE_SUBCATEGORIES.map(c => c.id)
+    }));
+  };
 
   const declarationText = `User Declaration, Complete Disclaimer & Absolute Consent
 
