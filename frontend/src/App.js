@@ -3137,80 +3137,102 @@ const AdminDashboard = () => {
         {/* Designer Store Management */}
         {tab === "store" && (
           <div className="space-y-6">
-            {/* Store Settings */}
+            {/* Store Settings - Hero Images */}
             <div className="bg-[#0A1628] rounded-xl p-4 md:p-6 border border-[#D4AF37]/20">
-              <h2 className="text-lg font-bold text-[#F5F5F0] mb-4">Store Settings</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="text-[#A0A5B0] text-sm">Hero Image URL</label>
-                  <input type="text" placeholder="https://..." value={storeSettings.hero_image} onChange={e => setStoreSettings({...storeSettings, hero_image: e.target.value})} className="w-full mt-1 px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
-                </div>
+              <h2 className="text-lg font-bold text-[#F5F5F0] mb-4">Store Hero Images (Up to 5)</h2>
+              <div className="flex flex-wrap gap-4 mb-4">
+                {(storeSettings.hero_images || []).map((img, i) => (
+                  <div key={i} className="relative">
+                    <img src={img} alt={`Hero ${i + 1}`} className="w-32 h-20 object-cover rounded-lg border border-[#D4AF37]/20" />
+                    <button onClick={() => setStoreSettings({...storeSettings, hero_images: storeSettings.hero_images.filter((_, idx) => idx !== i)})} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 text-sm font-bold">×</button>
+                  </div>
+                ))}
+                {(storeSettings.hero_images || []).length < 5 && (
+                  <div className="w-32 h-20 border-2 border-dashed border-[#D4AF37]/30 rounded-lg flex items-center justify-center">
+                    <ImageUploadWithCrop onImageSelect={(img) => setStoreSettings({...storeSettings, hero_images: [...(storeSettings.hero_images || []), img]})} buttonText="+ Add" />
+                  </div>
+                )}
+              </div>
+              
+              <h3 className="text-md font-bold text-[#F5F5F0] mb-3 mt-6">Contact Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div>
                   <label className="text-[#A0A5B0] text-sm">Contact Email</label>
-                  <input type="email" placeholder="contact@email.com" value={storeSettings.contact_email} onChange={e => setStoreSettings({...storeSettings, contact_email: e.target.value})} className="w-full mt-1 px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+                  <input type="email" placeholder="contact@email.com" value={storeSettings.contact_email || ""} onChange={e => setStoreSettings({...storeSettings, contact_email: e.target.value})} className="w-full mt-1 px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
                 </div>
                 <div>
                   <label className="text-[#A0A5B0] text-sm">Contact Phone</label>
-                  <input type="tel" placeholder="+91 98765 43210" value={storeSettings.contact_phone} onChange={e => setStoreSettings({...storeSettings, contact_phone: e.target.value})} className="w-full mt-1 px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+                  <input type="tel" placeholder="+91 98765 43210" value={storeSettings.contact_phone || ""} onChange={e => setStoreSettings({...storeSettings, contact_phone: e.target.value})} className="w-full mt-1 px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
                 </div>
                 <div>
                   <label className="text-[#A0A5B0] text-sm">Instagram Handle</label>
-                  <input type="text" placeholder="yourinsta" value={storeSettings.contact_instagram} onChange={e => setStoreSettings({...storeSettings, contact_instagram: e.target.value})} className="w-full mt-1 px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+                  <input type="text" placeholder="yourinsta" value={storeSettings.contact_instagram || ""} onChange={e => setStoreSettings({...storeSettings, contact_instagram: e.target.value})} className="w-full mt-1 px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
                 </div>
               </div>
-              <button onClick={saveStoreSettings} className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold">Save Settings</button>
+              <button onClick={saveStoreSettings} className="px-6 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold">Save Settings</button>
             </div>
 
             {/* Add Product */}
             <div className="bg-[#0A1628] rounded-xl p-4 md:p-6 border border-[#D4AF37]/20">
-              <h2 className="text-lg font-bold text-[#F5F5F0] mb-4">Add New Product</h2>
+              <h2 className="text-lg font-bold text-[#F5F5F0] mb-4">{editingProduct ? "Edit Product" : "Add New Product"}</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                <input type="text" placeholder="Product Name *" value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
-                <input type="number" placeholder="Price *" value={newProduct.price} onChange={e => setNewProduct({...newProduct, price: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
-                <select value={newProduct.designer_id} onChange={e => setNewProduct({...newProduct, designer_id: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]">
+                <input type="text" placeholder="Product Name *" value={editingProduct ? editingProduct.name : newProduct.name} onChange={e => editingProduct ? setEditingProduct({...editingProduct, name: e.target.value}) : setNewProduct({...newProduct, name: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+                <input type="number" placeholder="Price *" value={editingProduct ? editingProduct.price : newProduct.price} onChange={e => editingProduct ? setEditingProduct({...editingProduct, price: e.target.value}) : setNewProduct({...newProduct, price: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+                <select value={editingProduct ? editingProduct.designer_id : newProduct.designer_id} onChange={e => editingProduct ? setEditingProduct({...editingProduct, designer_id: e.target.value}) : setNewProduct({...newProduct, designer_id: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" disabled={!!editingProduct}>
                   <option value="">Select Designer *</option>
                   {allTalents.filter(t => t.category === "Designer Store").map(d => (
                     <option key={d.id} value={d.id}>{d.name}</option>
                   ))}
                 </select>
-                <input type="text" placeholder="Size" value={newProduct.size} onChange={e => setNewProduct({...newProduct, size: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
-                <input type="text" placeholder="Material" value={newProduct.material} onChange={e => setNewProduct({...newProduct, material: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
-                <input type="text" placeholder="Shipping Info" value={newProduct.shipping_info} onChange={e => setNewProduct({...newProduct, shipping_info: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+                <input type="text" placeholder="Size" value={editingProduct ? editingProduct.size : newProduct.size} onChange={e => editingProduct ? setEditingProduct({...editingProduct, size: e.target.value}) : setNewProduct({...newProduct, size: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+                <input type="text" placeholder="Material" value={editingProduct ? editingProduct.material : newProduct.material} onChange={e => editingProduct ? setEditingProduct({...editingProduct, material: e.target.value}) : setNewProduct({...newProduct, material: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+                <input type="text" placeholder="Shipping Info" value={editingProduct ? editingProduct.shipping_info : newProduct.shipping_info} onChange={e => editingProduct ? setEditingProduct({...editingProduct, shipping_info: e.target.value}) : setNewProduct({...newProduct, shipping_info: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
               </div>
-              <textarea placeholder="Description" value={newProduct.description} onChange={e => setNewProduct({...newProduct, description: e.target.value})} className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] mb-4" rows={2} />
+              <textarea placeholder="Description" value={editingProduct ? editingProduct.description : newProduct.description} onChange={e => editingProduct ? setEditingProduct({...editingProduct, description: e.target.value}) : setNewProduct({...newProduct, description: e.target.value})} className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] mb-4" rows={2} />
               <div className="mb-4">
                 <label className="text-[#A0A5B0] text-sm mb-2 block">Product Images (up to 5)</label>
                 <div className="flex flex-wrap gap-2">
-                  {newProduct.images.map((img, i) => (
+                  {(editingProduct ? editingProduct.images : newProduct.images).map((img, i) => (
                     <div key={i} className="relative">
                       <img src={img} alt="" className="w-16 h-16 object-cover rounded" />
-                      <button onClick={() => setNewProduct({...newProduct, images: newProduct.images.filter((_, idx) => idx !== i)})} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs">×</button>
+                      <button onClick={() => editingProduct ? setEditingProduct({...editingProduct, images: editingProduct.images.filter((_, idx) => idx !== i)}) : setNewProduct({...newProduct, images: newProduct.images.filter((_, idx) => idx !== i)})} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs">×</button>
                     </div>
                   ))}
-                  {newProduct.images.length < 5 && (
-                    <ImageUploadWithCrop onImageSelect={(img) => setNewProduct({...newProduct, images: [...newProduct.images, img]})} buttonText="Add Image" />
+                  {(editingProduct ? editingProduct.images : newProduct.images).length < 5 && (
+                    <ImageUploadWithCrop onImageSelect={(img) => editingProduct ? setEditingProduct({...editingProduct, images: [...editingProduct.images, img]}) : setNewProduct({...newProduct, images: [...newProduct.images, img]})} buttonText="Add Image" />
                   )}
                 </div>
               </div>
-              <button onClick={addProduct} className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold">Add Product</button>
+              <div className="flex gap-3">
+                {editingProduct ? (
+                  <>
+                    <button onClick={() => { updateProduct(); }} className="px-6 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold">Save Changes</button>
+                    <button onClick={() => setEditingProduct(null)} className="px-6 py-2 border border-[#A0A5B0] text-[#A0A5B0] rounded">Cancel</button>
+                  </>
+                ) : (
+                  <button onClick={addProduct} className="px-6 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold">Add Product</button>
+                )}
+              </div>
             </div>
 
             {/* All Products */}
             <div className="bg-[#0A1628] rounded-xl p-4 md:p-6 border border-[#D4AF37]/20">
               <h2 className="text-lg font-bold text-[#F5F5F0] mb-4">All Products ({storeProducts.length})</h2>
               {storeProducts.length === 0 ? (
-                <p className="text-[#A0A5B0]">No products added yet.</p>
+                <p className="text-[#A0A5B0]">No products added yet. Add designers with "Designer Store" category first, then add products.</p>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {storeProducts.map(p => (
                     <div key={p.id} className="bg-[#050A14] rounded-lg p-4 border border-[#D4AF37]/10">
                       <img src={p.images?.[0] || "https://via.placeholder.com/150"} alt={p.name} className="w-full h-32 object-cover rounded mb-3" />
-                      <h3 className="text-[#F5F5F0] font-bold">{p.name}</h3>
-                      <p className="text-[#D4AF37]">₹{p.price?.toLocaleString()}</p>
-                      <p className="text-[#A0A5B0] text-sm">By {p.designer_name}</p>
-                      <button onClick={() => deleteProduct(p.id)} className="mt-3 w-full px-3 py-2 bg-red-500/20 text-red-500 rounded text-sm flex items-center justify-center gap-1">
-                        <Trash2 size={14} /> Delete
-                      </button>
+                      <h3 className="text-[#F5F5F0] font-bold truncate">{p.name}</h3>
+                      <p className="text-[#D4AF37] font-bold">₹{p.price?.toLocaleString()}</p>
+                      <p className="text-[#A0A5B0] text-sm truncate">By {p.designer_name}</p>
+                      <p className="text-[#A0A5B0] text-xs mt-1">Size: {p.size || "N/A"} | Material: {p.material || "N/A"}</p>
+                      <div className="flex gap-2 mt-3">
+                        <button onClick={() => setEditingProduct({...p, price: p.price.toString()})} className="flex-1 px-2 py-1.5 bg-[#D4AF37]/20 text-[#D4AF37] rounded text-sm">Edit</button>
+                        <button onClick={() => deleteProduct(p.id)} className="flex-1 px-2 py-1.5 bg-red-500/20 text-red-500 rounded text-sm">Delete</button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -3233,7 +3255,7 @@ const AdminDashboard = () => {
                           <p className="text-[#A0A5B0] text-sm">Designer: {o.designer_name}</p>
                         </div>
                         <div className="text-right">
-                          <span className={`px-2 py-1 rounded text-xs ${o.status === 'delivered' ? 'bg-green-500/20 text-green-500' : o.status === 'shipped' ? 'bg-blue-500/20 text-blue-500' : o.status === 'confirmed' ? 'bg-yellow-500/20 text-yellow-500' : 'bg-gray-500/20 text-gray-500'}`}>
+                          <span className={`px-2 py-1 rounded text-xs ${o.status === 'delivered' ? 'bg-green-500/20 text-green-500' : o.status === 'shipped' ? 'bg-blue-500/20 text-blue-500' : o.status === 'confirmed' ? 'bg-yellow-500/20 text-yellow-500' : o.status === 'cancelled' ? 'bg-red-500/20 text-red-500' : 'bg-gray-500/20 text-gray-500'}`}>
                             {o.status?.toUpperCase()}
                           </span>
                         </div>
