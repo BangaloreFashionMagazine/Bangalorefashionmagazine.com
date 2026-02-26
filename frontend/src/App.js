@@ -1749,6 +1749,7 @@ const AdminDashboard = () => {
       case 'magazine': await fetchMagazine(); break;
       case 'music': await fetchMusic(); break;
       case 'party': await fetchPartyEvents(); break;
+      case 'store': await fetchStoreOrders(); await fetchStoreProducts(); await fetchStoreSettings(); break;
       default: break;
     }
     setLoadedTabs(prev => ({...prev, [tabName]: true}));
