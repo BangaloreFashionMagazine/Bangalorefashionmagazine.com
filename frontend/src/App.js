@@ -1769,6 +1769,65 @@ const AdminDashboard = () => {
   };
   const deleteTalent = async (id) => { if (window.confirm("Delete?")) { await axios.delete(`${API}/admin/talent/${id}`); fetchPending(); fetchAllTalents(); setSelectedTalent(null); } };
   const exportTalents = () => window.open(`${API}/admin/talents/export`, '_blank');
+  
+  // Store functions
+  const fetchStoreOrders = async () => {
+    try {
+      const res = await axios.get(`${API}/store/orders`);
+      setStoreOrders(res.data);
+    } catch (err) { console.error(err); }
+  };
+  
+  const fetchStoreProducts = async () => {
+    try {
+      const res = await axios.get(`${API}/store/products?active_only=false`);
+      setStoreProducts(res.data);
+    } catch (err) { console.error(err); }
+  };
+  
+  const fetchStoreSettings = async () => {
+    try {
+      const res = await axios.get(`${API}/store/settings`);
+      setStoreSettings(res.data);
+    } catch (err) { console.error(err); }
+  };
+  
+  const updateOrderStatus = async (orderId, status) => {
+    try {
+      await axios.put(`${API}/store/orders/${orderId}/status?status=${status}`);
+      toast({ title: `Order status updated to ${status}` });
+      fetchStoreOrders();
+    } catch (err) { toast({ title: "Failed to update status", variant: "destructive" }); }
+  };
+  
+  const addProduct = async () => {
+    if (!newProduct.name || !newProduct.price || !newProduct.designer_id) {
+      toast({ title: "Name, price and designer are required", variant: "destructive" });
+      return;
+    }
+    try {
+      await axios.post(`${API}/store/products`, { ...newProduct, price: parseFloat(newProduct.price) });
+      toast({ title: "Product added!" });
+      setNewProduct({ name: "", description: "", size: "", material: "", price: "", shipping_info: "", images: [], designer_id: "" });
+      fetchStoreProducts();
+    } catch (err) { toast({ title: err.response?.data?.detail || "Failed to add product", variant: "destructive" }); }
+  };
+  
+  const deleteProduct = async (productId) => {
+    if (!window.confirm("Delete this product?")) return;
+    try {
+      await axios.delete(`${API}/store/products/${productId}`);
+      toast({ title: "Product deleted" });
+      fetchStoreProducts();
+    } catch (err) { toast({ title: "Failed to delete", variant: "destructive" }); }
+  };
+  
+  const saveStoreSettings = async () => {
+    try {
+      await axios.put(`${API}/store/settings`, storeSettings);
+      toast({ title: "Store settings saved!" });
+    } catch (err) { toast({ title: "Failed to save settings", variant: "destructive" }); }
+  };
 
   const openTalentDetail = async (talent) => {
     // Show immediately with existing data
