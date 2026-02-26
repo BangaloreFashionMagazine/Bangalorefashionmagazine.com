@@ -30,6 +30,7 @@ TALENT_CATEGORIES = [
     "Model - Female",
     "Model - Male", 
     "Designers",
+    "Designer Store",
     "Makeup & Hair",
     "Photography",
     "Event Management",
