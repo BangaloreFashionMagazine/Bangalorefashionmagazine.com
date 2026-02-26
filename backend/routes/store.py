@@ -7,15 +7,23 @@ from models import (
     ProductCreate, ProductUpdate, ProductResponse,
     OrderCreate, OrderResponse,
     ProductReviewCreate, ProductReviewResponse,
-    DesignerStoreSettingsCreate
+    DesignerStoreSettingsCreate,
+    STORE_CATEGORIES
 )
 
 import logging
 logger = logging.getLogger(__name__)
 
+# Valid store categories
+VALID_STORE_CATEGORIES = ["Everyday Chic", "After Dark", "Heritage Luxe", "Accessories Room"]
 
 def create_store_routes(db):
     router = APIRouter()
+    
+    # ============== Store Categories ==============
+    @router.get("/store/categories")
+    async def get_store_categories():
+        return {"categories": VALID_STORE_CATEGORIES}
     
     # ============== Products ==============
     @router.post("/store/products", response_model=ProductResponse)
@@ -30,6 +38,9 @@ def create_store_routes(db):
         if product_count >= 10:
             raise HTTPException(status_code=400, detail="Designer already has 10 products (maximum limit)")
         
+        # Validate store category
+        store_category = product.store_category if product.store_category in VALID_STORE_CATEGORIES else "Everyday Chic"
+        
         # Limit images to 5
         images = (product.images or [])[:5]
         
@@ -41,6 +52,7 @@ def create_store_routes(db):
             "id": product_id,
             "name": product.name,
             "description": product.description,
+            "store_category": store_category,
             "size": product.size,
             "material": product.material,
             "price": product.price,
@@ -48,6 +60,7 @@ def create_store_routes(db):
             "discounted_price": round(discounted_price, 2),
             "shipping_info": product.shipping_info,
             "images": images,
+            "video": product.video or "",
             "designer_id": product.designer_id,
             "designer_name": designer.get("name", ""),
             "is_active": True,
@@ -55,26 +68,32 @@ def create_store_routes(db):
         }
         
         await db.products.insert_one(product_doc)
-        logger.info(f"Product created: {product.name} by designer {designer.get('name')}")
+        logger.info(f"Product created: {product.name} in {store_category} by designer {designer.get('name')}")
         
         return ProductResponse(**{k: v for k, v in product_doc.items() if k != "_id"})
     
     @router.get("/store/products", response_model=List[ProductResponse])
-    async def get_products(designer_id: str = None, active_only: bool = True):
+    async def get_products(designer_id: str = None, store_category: str = None, active_only: bool = True):
         query = {}
         if designer_id:
             query["designer_id"] = designer_id
+        if store_category and store_category in VALID_STORE_CATEGORIES:
+            query["store_category"] = store_category
         if active_only:
             query["is_active"] = True
         
         products = await db.products.find(query, {"_id": 0}).sort("created_at", -1).to_list(100)
-        # Calculate discounted_price for products that don't have it
+        # Calculate discounted_price and ensure all fields exist
         for p in products:
             if "discounted_price" not in p:
                 discount = p.get("discount_percent", 0)
                 p["discounted_price"] = round(p["price"] * (1 - discount / 100), 2) if discount > 0 else p["price"]
             if "discount_percent" not in p:
                 p["discount_percent"] = 0
+            if "store_category" not in p:
+                p["store_category"] = "Everyday Chic"
+            if "video" not in p:
+                p["video"] = ""
         return [ProductResponse(**p) for p in products]
     
     @router.get("/store/products/{product_id}", response_model=ProductResponse)
