@@ -235,11 +235,13 @@ const AdminDashboard = () => {
       return;
     }
     
-    // Create CSV content
-    const headers = ["Order Date", "Product Name", "Price", "Size", "Designer Name", "Customer Name", "Customer Phone", "Customer Email", "Customer Address", "Notes", "Status"];
+    // Create CSV content with MRP, Discount, Final Price
+    const headers = ["Order Date", "Product Name", "MRP (₹)", "Discount %", "Final Price (₹)", "Size", "Designer Name", "Customer Name", "Customer Phone", "Customer Email", "Customer Address", "Notes", "Status"];
     const rows = storeOrders.map(o => [
       o.created_at ? new Date(o.created_at).toLocaleDateString() : "N/A",
       o.product_name || "",
+      o.product_mrp || o.product_price || "",
+      o.product_discount || 0,
       o.product_price || "",
       o.product_size || "",
       o.designer_name || "",
@@ -260,6 +262,54 @@ const AdminDashboard = () => {
     link.click();
     URL.revokeObjectURL(url);
     toast({ title: "Orders exported to Excel/CSV" });
+  };
+  
+  const exportSalesToExcel = () => {
+    if (storeOrders.length === 0) {
+      toast({ title: "No sales data to export", variant: "destructive" });
+      return;
+    }
+    
+    // Filter only delivered/completed orders for sales report
+    const completedOrders = storeOrders.filter(o => o.status === 'delivered' || o.status === 'confirmed' || o.status === 'shipped');
+    
+    if (completedOrders.length === 0) {
+      toast({ title: "No completed sales to export", variant: "destructive" });
+      return;
+    }
+    
+    // Calculate totals
+    const totalSales = completedOrders.reduce((sum, o) => sum + (o.product_price || 0), 0);
+    
+    const headers = ["Sale Date", "Product Name", "MRP (₹)", "Discount %", "Sale Price (₹)", "Size", "Designer", "Customer Name", "Customer Phone", "Customer Email", "Delivery Address"];
+    const rows = completedOrders.map(o => [
+      o.created_at ? new Date(o.created_at).toLocaleDateString() : "N/A",
+      o.product_name || "",
+      o.product_mrp || o.product_price || "",
+      o.product_discount || 0,
+      o.product_price || "",
+      o.product_size || "",
+      o.designer_name || "",
+      o.customer_name || "",
+      o.customer_phone || "",
+      o.customer_email || "",
+      `"${(o.customer_address || "").replace(/"/g, '""')}"`
+    ]);
+    
+    // Add summary row
+    rows.push([]);
+    rows.push(["TOTAL SALES", "", "", "", totalSales, "", "", "", "", "", ""]);
+    rows.push(["Total Orders", completedOrders.length, "", "", "", "", "", "", "", "", ""]);
+    
+    const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `sales_report_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast({ title: "Sales report exported to Excel/CSV" });
   };
   
   const addProduct = async () => {
