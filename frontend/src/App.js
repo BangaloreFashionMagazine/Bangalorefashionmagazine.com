@@ -1022,14 +1022,6 @@ const JoinPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   
-  // Store sub-categories
-  const STORE_SUBCATEGORIES = [
-    { id: "Everyday Chic", label: "Everyday Chic (Casuals)", icon: "👕" },
-    { id: "After Dark", label: "After Dark (Party)", icon: "✨" },
-    { id: "Heritage Luxe", label: "Heritage Luxe (Ethnic)", icon: "🪔" },
-    { id: "Accessories Room", label: "Accessories Room", icon: "👜" }
-  ];
-  
   const toggleStoreCategory = (catId) => {
     setFormData(prev => ({
       ...prev,
