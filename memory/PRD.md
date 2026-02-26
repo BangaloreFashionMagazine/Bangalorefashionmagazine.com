@@ -11,7 +11,7 @@ A full-stack web application for a fashion magazine featuring talent profiles, c
 
 ## Live URL
 - Production: https://bangalorefashionmagazine.com
-- Preview: https://fashion-mag-v2.preview.emergentagent.com
+- Preview: https://store-preview-12.preview.emergentagent.com
 
 ## Core Features
 
