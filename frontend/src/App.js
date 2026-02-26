@@ -1144,6 +1144,11 @@ I confirm that I have read, understood, and voluntarily accepted this declaratio
       toast({ title: "Error", description: "You must agree to the declaration to register", variant: "destructive" });
       return;
     }
+    // Validate store_subcategory for Designer Store
+    if (formData.category === "Designer Store" && !formData.store_subcategory) {
+      toast({ title: "Error", description: "Please select a store category (Everyday Chic, After Dark, etc.)", variant: "destructive" });
+      return;
+    }
     setLoading(true);
     try {
       await axios.post(`${API}/talent/register`, { 
