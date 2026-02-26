@@ -562,10 +562,7 @@ const AdminDashboard = () => {
                       <p className="text-[#A0A5B0] text-xs truncate">{t.email} {t.phone ? `• ${t.phone}` : ""}</p>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap md:flex-nowrap">
-                      <select onClick={(e) => e.stopPropagation()} value={t.rank || ""} onChange={(e) => updateRank(t.id, parseInt(e.target.value) || null)} className="px-2 py-1 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-sm w-24">
-                        <option value="">No Rank</option>
-                        {[1,2,3,4,5,6,7,8,9,10].map(r => <option key={r} value={r}>#{r}</option>)}
-                      </select>
+                      <input type="number" min="1" max="9999" placeholder="Rank" onClick={(e) => e.stopPropagation()} value={t.rank || ""} onChange={(e) => updateRank(t.id, parseInt(e.target.value) || null)} className="px-2 py-1 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-sm w-20" />
                       <span className="text-[#A0A5B0] text-sm">{t.votes || 0} votes</span>
                       <button onClick={(e) => { e.stopPropagation(); deleteTalent(t.id); }} className="px-3 py-1 bg-red-500/20 text-red-500 rounded text-sm">Delete</button>
                     </div>
