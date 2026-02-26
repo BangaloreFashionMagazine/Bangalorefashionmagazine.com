@@ -355,7 +355,14 @@ const AdminDashboard = () => {
   // Ads
   const handleAdImg = (e) => {
     const file = e.target.files[0];
-    if (file) { const r = new FileReader(); r.onloadend = () => setNewAd({...newAd, image_data: r.result}); r.readAsDataURL(file); }
+    if (file) { 
+      const r = new FileReader(); 
+      r.onloadend = async () => {
+        const compressed = await autoCompressImage(r.result, 500);
+        setNewAd({...newAd, image_data: compressed});
+      }; 
+      r.readAsDataURL(file); 
+    }
   };
   const addAd = async () => {
     if (!newAd.image_data || !newAd.title) { toast({ title: "Fill all fields", variant: "destructive" }); return; }
