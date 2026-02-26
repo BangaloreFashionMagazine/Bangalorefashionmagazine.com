@@ -1080,12 +1080,24 @@ const AdminDashboard = () => {
                     const file = e.target.files?.[0];
                     if (file) {
                       if (file.size > 50 * 1024 * 1024) { toast({ title: "Video must be under 50MB", variant: "destructive" }); return; }
-                      const reader = new FileReader();
-                      reader.onloadend = () => {
-                        if (editingProduct) setEditingProduct({...editingProduct, video: reader.result});
-                        else setNewProduct({...newProduct, video: reader.result});
+                      // Validate video duration
+                      const video = document.createElement('video');
+                      video.preload = 'metadata';
+                      video.onloadedmetadata = () => {
+                        window.URL.revokeObjectURL(video.src);
+                        if (video.duration > 45) {
+                          toast({ title: "Video must be 45 seconds or less", description: `Your video is ${Math.round(video.duration)} seconds`, variant: "destructive" });
+                          return;
+                        }
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          if (editingProduct) setEditingProduct({...editingProduct, video: reader.result});
+                          else setNewProduct({...newProduct, video: reader.result});
+                          toast({ title: "Video uploaded!", description: `Duration: ${Math.round(video.duration)} seconds` });
+                        };
+                        reader.readAsDataURL(file);
                       };
-                      reader.readAsDataURL(file);
+                      video.src = URL.createObjectURL(file);
                     }
                   }} className="text-[#A0A5B0]" />
                 )}
