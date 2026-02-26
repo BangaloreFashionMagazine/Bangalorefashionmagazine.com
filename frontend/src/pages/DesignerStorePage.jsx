@@ -1,8 +1,16 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Mail, Phone, Instagram, Star, X, ShoppingBag } from "lucide-react";
+import { Mail, Phone, Instagram, Star, X, ShoppingBag, Play } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { API } from "@/lib/config";
+import { API, STORE_CATEGORIES } from "@/lib/config";
+
+// Store Category Tabs
+const CATEGORY_ICONS = {
+  "Everyday Chic": "👕",
+  "After Dark": "✨",
+  "Heritage Luxe": "🪔",
+  "Accessories Room": "👜"
+};
 
 // Product Card Component
 export const ProductCard = ({ product, onClick }) => {
@@ -16,16 +24,33 @@ export const ProductCard = ({ product, onClick }) => {
       data-testid={`product-card-${product.id}`}
     >
       <div className="aspect-square overflow-hidden relative">
-        <img 
-          src={product.images?.[0] || "https://via.placeholder.com/300"} 
-          alt={product.name} 
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
-        />
+        {product.video ? (
+          <div className="relative w-full h-full">
+            <img 
+              src={product.images?.[0] || "https://via.placeholder.com/300"} 
+              alt={product.name} 
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+            />
+            <div className="absolute bottom-2 left-2 bg-black/70 rounded-full p-1.5">
+              <Play size={14} className="text-white fill-white" />
+            </div>
+          </div>
+        ) : (
+          <img 
+            src={product.images?.[0] || "https://via.placeholder.com/300"} 
+            alt={product.name} 
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+          />
+        )}
         {hasDiscount && (
           <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-md shadow-lg">
             {product.discount_percent}% OFF
           </div>
         )}
+        {/* Category badge */}
+        <div className="absolute top-2 left-2 bg-[#0A1628]/80 text-[#D4AF37] text-xs px-2 py-1 rounded">
+          {product.store_category || "Everyday Chic"}
+        </div>
       </div>
       <div className="p-3">
         <h3 className="font-serif text-sm font-bold text-[#F5F5F0] truncate">{product.name}</h3>
