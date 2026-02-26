@@ -39,6 +39,7 @@ from routes import (
     create_content_routes
 )
 from routes.analytics import create_analytics_routes
+from routes.store import create_store_routes
 from services import TALENT_CATEGORIES
 
 
