@@ -4,6 +4,7 @@ import { X, Video, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ImageUploadWithCrop from "@/components/ImageUploadWithCrop";
 import { API, TALENT_CATEGORIES, getCategoryDisplay } from "@/lib/config";
+import { autoCompressImage } from "@/lib/imageOptimization";
 
 // Designer Products Section Component
 const DesignerProductsSection = ({ designerId, designerCategories = [] }) => {
