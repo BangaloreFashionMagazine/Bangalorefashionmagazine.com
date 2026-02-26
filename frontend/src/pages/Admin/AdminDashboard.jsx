@@ -169,6 +169,7 @@ const AdminDashboard = () => {
       case 'music': await fetchMusic(); break;
       case 'party': await fetchPartyEvents(); break;
       case 'store': await fetchStoreOrders(); await fetchStoreProducts(); await fetchStoreSettings(); break;
+      case 'export': await fetchStoreOrders(); break;
       default: break;
     }
     setLoadedTabs(prev => ({...prev, [tabName]: true}));
