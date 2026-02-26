@@ -145,6 +145,7 @@ const Navbar = ({ user, talent, onLogout }) => {
                 </div>
               )}
             </div>
+            <Link to="/designer-store" className="text-xs uppercase tracking-wider text-[#A0A5B0] hover:text-[#D4AF37]">Designer Store</Link>
             <Link to="/about" className="text-xs uppercase tracking-wider text-[#A0A5B0] hover:text-[#D4AF37]">About Us</Link>
             {user ? (
               <>
