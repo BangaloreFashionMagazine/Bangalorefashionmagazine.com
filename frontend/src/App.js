@@ -3632,12 +3632,13 @@ const ProductDetailModal = ({ product, onClose, onOrder }) => {
 
 // Designer Store Page
 const DesignerStorePage = () => {
-  const [storeSettings, setStoreSettings] = useState({ hero_image: "", contact_email: "", contact_phone: "", contact_instagram: "" });
+  const [storeSettings, setStoreSettings] = useState({ hero_images: [], contact_email: "", contact_phone: "", contact_instagram: "" });
   const [designers, setDesigners] = useState([]);
   const [products, setProducts] = useState([]);
   const [selectedDesigner, setSelectedDesigner] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [currentSlide, setCurrentSlide] = useState(0);
   
   useEffect(() => {
     const fetchData = async () => {
@@ -3658,6 +3659,16 @@ const DesignerStorePage = () => {
     fetchData();
   }, []);
   
+  // Auto-slide hero images
+  useEffect(() => {
+    if (storeSettings.hero_images?.length > 1) {
+      const timer = setInterval(() => {
+        setCurrentSlide(prev => (prev + 1) % storeSettings.hero_images.length);
+      }, 4000);
+      return () => clearInterval(timer);
+    }
+  }, [storeSettings.hero_images]);
+  
   const filteredProducts = selectedDesigner 
     ? products.filter(p => p.designer_id === selectedDesigner) 
     : products;
@@ -3666,20 +3677,39 @@ const DesignerStorePage = () => {
     ? designers.find(d => d.id === selectedDesigner) 
     : null;
   
+  const heroImages = storeSettings.hero_images?.length > 0 
+    ? storeSettings.hero_images 
+    : ["https://images.unsplash.com/photo-1558171813-4c088753af8f?w=1600"];
+  
   return (
     <div className="min-h-screen bg-[#050A14] pt-16">
-      {/* Hero Section */}
+      {/* Hero Slider Section */}
       <div className="relative h-[50vh] md:h-[60vh] overflow-hidden">
-        <img 
-          src={storeSettings.hero_image || "https://images.unsplash.com/photo-1558171813-4c088753af8f?w=1600"} 
-          alt="Designer Store" 
-          className="w-full h-full object-cover"
-        />
+        {heroImages.map((img, i) => (
+          <div 
+            key={i}
+            className={`absolute inset-0 transition-opacity duration-1000 ${i === currentSlide ? 'opacity-100' : 'opacity-0'}`}
+          >
+            <img src={img} alt={`Designer Store ${i + 1}`} className="w-full h-full object-cover" />
+          </div>
+        ))}
         <div className="absolute inset-0 bg-gradient-to-t from-[#050A14] via-[#050A14]/50 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-8 text-center">
           <h1 className="font-serif text-4xl md:text-5xl font-bold text-[#F5F5F0]">Designer Store</h1>
           <p className="text-[#A0A5B0] mt-2">Exclusive fashion from talented designers</p>
         </div>
+        {/* Slide Indicators */}
+        {heroImages.length > 1 && (
+          <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 flex gap-2">
+            {heroImages.map((_, i) => (
+              <button 
+                key={i} 
+                onClick={() => setCurrentSlide(i)}
+                className={`w-2 h-2 rounded-full transition-all ${i === currentSlide ? 'bg-[#D4AF37] w-6' : 'bg-[#F5F5F0]/50'}`}
+              />
+            ))}
+          </div>
+        )}
       </div>
       
       {/* Contact Section */}
