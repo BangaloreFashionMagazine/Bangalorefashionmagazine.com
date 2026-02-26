@@ -1242,9 +1242,14 @@ const AdminDashboard = () => {
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-bold text-[#F5F5F0]">Orders ({storeOrders.length})</h2>
                 {storeOrders.length > 0 && (
-                  <button onClick={exportOrdersToExcel} className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded text-sm font-bold flex items-center gap-2">
-                    <Download size={16} /> Export Excel
-                  </button>
+                  <div className="flex gap-2">
+                    <button onClick={exportOrdersToExcel} className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded text-sm font-bold flex items-center gap-2">
+                      <Download size={16} /> Export Orders
+                    </button>
+                    <button onClick={exportSalesToExcel} className="px-4 py-2 bg-green-600 text-white rounded text-sm font-bold flex items-center gap-2">
+                      <Download size={16} /> Export Sales
+                    </button>
+                  </div>
                 )}
               </div>
               {storeOrders.length === 0 ? (
