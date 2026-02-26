@@ -1987,7 +1987,8 @@ const AdminDashboard = () => {
     { id: "ads", label: "Advertisements", icon: ExternalLink },
     { id: "magazine", label: "Magazine", icon: Download },
     { id: "music", label: "Background Music", icon: Music },
-    { id: "export", label: "Export", icon: Download }
+    { id: "export", label: "Export", icon: Download },
+    { id: "store", label: "Designer Store", icon: ShoppingBag }
   ];
 
   return (
