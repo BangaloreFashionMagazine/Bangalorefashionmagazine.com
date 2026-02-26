@@ -3238,6 +3238,12 @@ const AdminDashboard = () => {
               <h2 className="text-lg font-bold text-[#F5F5F0] mb-4">{editingProduct ? "Edit Product" : "Add New Product"}</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                 <input type="text" placeholder="Product Name *" value={editingProduct ? editingProduct.name : newProduct.name} onChange={e => editingProduct ? setEditingProduct({...editingProduct, name: e.target.value}) : setNewProduct({...newProduct, name: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+                <select value={editingProduct ? editingProduct.store_category : newProduct.store_category} onChange={e => editingProduct ? setEditingProduct({...editingProduct, store_category: e.target.value}) : setNewProduct({...newProduct, store_category: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]">
+                  <option value="Everyday Chic">Everyday Chic (Casuals)</option>
+                  <option value="After Dark">After Dark (Party)</option>
+                  <option value="Heritage Luxe">Heritage Luxe (Ethnic)</option>
+                  <option value="Accessories Room">Accessories Room</option>
+                </select>
                 <input type="number" placeholder="Price (₹) *" value={editingProduct ? editingProduct.price : newProduct.price} onChange={e => editingProduct ? setEditingProduct({...editingProduct, price: e.target.value}) : setNewProduct({...newProduct, price: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
                 <input type="number" placeholder="Discount % (0-100)" min="0" max="100" value={editingProduct ? editingProduct.discount_percent : newProduct.discount_percent} onChange={e => editingProduct ? setEditingProduct({...editingProduct, discount_percent: e.target.value}) : setNewProduct({...newProduct, discount_percent: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
                 <select value={editingProduct ? editingProduct.designer_id : newProduct.designer_id} onChange={e => editingProduct ? setEditingProduct({...editingProduct, designer_id: e.target.value}) : setNewProduct({...newProduct, designer_id: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" disabled={!!editingProduct}>
@@ -3248,20 +3254,44 @@ const AdminDashboard = () => {
                 </select>
                 <input type="text" placeholder="Size" value={editingProduct ? editingProduct.size : newProduct.size} onChange={e => editingProduct ? setEditingProduct({...editingProduct, size: e.target.value}) : setNewProduct({...newProduct, size: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
                 <input type="text" placeholder="Material" value={editingProduct ? editingProduct.material : newProduct.material} onChange={e => editingProduct ? setEditingProduct({...editingProduct, material: e.target.value}) : setNewProduct({...newProduct, material: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
-                <input type="text" placeholder="Shipping Info" value={editingProduct ? editingProduct.shipping_info : newProduct.shipping_info} onChange={e => editingProduct ? setEditingProduct({...editingProduct, shipping_info: e.target.value}) : setNewProduct({...newProduct, shipping_info: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] md:col-span-1" />
+                <input type="text" placeholder="Shipping Info" value={editingProduct ? editingProduct.shipping_info : newProduct.shipping_info} onChange={e => editingProduct ? setEditingProduct({...editingProduct, shipping_info: e.target.value}) : setNewProduct({...newProduct, shipping_info: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
               </div>
               <textarea placeholder="Description" value={editingProduct ? editingProduct.description : newProduct.description} onChange={e => editingProduct ? setEditingProduct({...editingProduct, description: e.target.value}) : setNewProduct({...newProduct, description: e.target.value})} className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] mb-4" rows={2} />
-              <div className="mb-4">
-                <label className="text-[#A0A5B0] text-sm mb-2 block">Product Images (up to 5)</label>
-                <div className="flex flex-wrap gap-2">
-                  {(editingProduct ? editingProduct.images : newProduct.images).map((img, i) => (
-                    <div key={i} className="relative">
-                      <img src={img} alt="" className="w-16 h-16 object-cover rounded" />
-                      <button onClick={() => editingProduct ? setEditingProduct({...editingProduct, images: editingProduct.images.filter((_, idx) => idx !== i)}) : setNewProduct({...newProduct, images: newProduct.images.filter((_, idx) => idx !== i)})} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs">×</button>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="text-[#A0A5B0] text-sm mb-2 block">Product Images (up to 5)</label>
+                  <div className="flex flex-wrap gap-2">
+                    {(editingProduct ? editingProduct.images : newProduct.images).map((img, i) => (
+                      <div key={i} className="relative">
+                        <img src={img} alt="" className="w-16 h-16 object-cover rounded" />
+                        <button onClick={() => editingProduct ? setEditingProduct({...editingProduct, images: editingProduct.images.filter((_, idx) => idx !== i)}) : setNewProduct({...newProduct, images: newProduct.images.filter((_, idx) => idx !== i)})} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs">×</button>
+                      </div>
+                    ))}
+                    {(editingProduct ? editingProduct.images : newProduct.images).length < 5 && (
+                      <ImageUploadWithCrop onImageSelect={(img) => editingProduct ? setEditingProduct({...editingProduct, images: [...editingProduct.images, img]}) : setNewProduct({...newProduct, images: [...newProduct.images, img]})} buttonText="Add Image" />
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[#A0A5B0] text-sm mb-2 block">Product Video (max 45 seconds, optional)</label>
+                  {(editingProduct ? editingProduct.video : newProduct.video) ? (
+                    <div className="flex items-center gap-2">
+                      <video src={editingProduct ? editingProduct.video : newProduct.video} className="h-16 rounded" />
+                      <button onClick={() => editingProduct ? setEditingProduct({...editingProduct, video: ""}) : setNewProduct({...newProduct, video: ""})} className="px-3 py-1 bg-red-500/20 text-red-500 rounded text-sm">Remove</button>
                     </div>
-                  ))}
-                  {(editingProduct ? editingProduct.images : newProduct.images).length < 5 && (
-                    <ImageUploadWithCrop onImageSelect={(img) => editingProduct ? setEditingProduct({...editingProduct, images: [...editingProduct.images, img]}) : setNewProduct({...newProduct, images: [...newProduct.images, img]})} buttonText="Add Image" />
+                  ) : (
+                    <input type="file" accept="video/*" onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        if (file.size > 50 * 1024 * 1024) { toast({ title: "Video must be under 50MB", variant: "destructive" }); return; }
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          if (editingProduct) setEditingProduct({...editingProduct, video: reader.result});
+                          else setNewProduct({...newProduct, video: reader.result});
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }} className="text-[#A0A5B0]" />
                   )}
                 </div>
               </div>
@@ -3291,6 +3321,8 @@ const AdminDashboard = () => {
                         {p.discount_percent > 0 && (
                           <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">{p.discount_percent}% OFF</div>
                         )}
+                        <div className="absolute top-2 left-2 bg-[#0A1628]/80 text-[#D4AF37] text-xs px-2 py-1 rounded">{p.store_category || "Everyday Chic"}</div>
+                        {p.video && <div className="absolute bottom-2 left-2 bg-black/70 rounded-full p-1"><Video size={12} className="text-white" /></div>}
                       </div>
                       <h3 className="text-[#F5F5F0] font-bold truncate">{p.name}</h3>
                       <div className="flex items-center gap-2">
@@ -3300,7 +3332,7 @@ const AdminDashboard = () => {
                       <p className="text-[#A0A5B0] text-sm truncate">By {p.designer_name}</p>
                       <p className="text-[#A0A5B0] text-xs mt-1">Size: {p.size || "N/A"} | Material: {p.material || "N/A"}</p>
                       <div className="flex gap-2 mt-3">
-                        <button onClick={() => setEditingProduct({...p, price: p.price.toString(), discount_percent: (p.discount_percent || 0).toString()})} className="flex-1 px-2 py-1.5 bg-[#D4AF37]/20 text-[#D4AF37] rounded text-sm">Edit</button>
+                        <button onClick={() => setEditingProduct({...p, price: p.price.toString(), discount_percent: (p.discount_percent || 0).toString(), store_category: p.store_category || "Everyday Chic", video: p.video || ""})} className="flex-1 px-2 py-1.5 bg-[#D4AF37]/20 text-[#D4AF37] rounded text-sm">Edit</button>
                         <button onClick={() => deleteProduct(p.id)} className="flex-1 px-2 py-1.5 bg-red-500/20 text-red-500 rounded text-sm">Delete</button>
                       </div>
                     </div>
