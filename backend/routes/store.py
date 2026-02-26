@@ -101,12 +101,16 @@ def create_store_routes(db):
         product = await db.products.find_one({"id": product_id}, {"_id": 0})
         if not product:
             raise HTTPException(status_code=404, detail="Product not found")
-        # Calculate discounted_price if missing
+        # Ensure all fields exist
         if "discounted_price" not in product:
             discount = product.get("discount_percent", 0)
             product["discounted_price"] = round(product["price"] * (1 - discount / 100), 2) if discount > 0 else product["price"]
         if "discount_percent" not in product:
             product["discount_percent"] = 0
+        if "store_category" not in product:
+            product["store_category"] = "Everyday Chic"
+        if "video" not in product:
+            product["video"] = ""
         return ProductResponse(**product)
     
     @router.put("/store/products/{product_id}", response_model=ProductResponse)
@@ -120,6 +124,10 @@ def create_store_routes(db):
         # Limit images to 5
         if "images" in update_data:
             update_data["images"] = update_data["images"][:5]
+        
+        # Validate store category
+        if "store_category" in update_data and update_data["store_category"] not in VALID_STORE_CATEGORIES:
+            update_data["store_category"] = "Everyday Chic"
         
         # Clamp discount to 0-100 and recalculate discounted_price
         if "discount_percent" in update_data:
@@ -135,11 +143,15 @@ def create_store_routes(db):
             await db.products.update_one({"id": product_id}, {"$set": update_data})
         
         updated = await db.products.find_one({"id": product_id}, {"_id": 0})
-        # Ensure discount fields exist
+        # Ensure all fields exist
         if "discount_percent" not in updated:
             updated["discount_percent"] = 0
         if "discounted_price" not in updated:
             updated["discounted_price"] = updated["price"]
+        if "store_category" not in updated:
+            updated["store_category"] = "Everyday Chic"
+        if "video" not in updated:
+            updated["video"] = ""
         return ProductResponse(**updated)
     
     @router.delete("/store/products/{product_id}")
