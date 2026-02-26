@@ -70,76 +70,7 @@ class TestDesignersEndpoint:
 
 
 class TestProductsCRUD:
-    """Products CRUD tests - requires designer setup"""
-    
-    @pytest.fixture(scope="class")
-    def designer_talent(self, request):
-        """Create a test designer talent for product testing"""
-        import uuid
-        talent_id = f"TEST_{uuid.uuid4().hex[:8]}"
-        talent_data = {
-            "id": talent_id,
-            "name": f"Test Designer {talent_id[:8]}",
-            "email": f"test_designer_{talent_id[:8]}@test.com",
-            "password": "TestPass123",
-            "phone": "9876543210",
-            "category": "Designer Store",
-            "profile_image": "https://via.placeholder.com/300",
-            "is_approved": True,
-            "bio": "Test designer for product testing"
-        }
-        
-        # Create designer using admin endpoint (need to login first)
-        login_response = requests.post(f"{BASE_URL}/api/auth/login", json={
-            "email": ADMIN_EMAIL,
-            "password": ADMIN_PASSWORD
-        })
-        
-        if login_response.status_code != 200:
-            pytest.skip("Admin login failed - skipping product tests")
-        
-        token = login_response.json().get("token")
-        headers = {"Authorization": f"Bearer {token}"}
-        
-        # Check if we can create talent via admin endpoint
-        # For now, we'll use the talents register endpoint
-        register_response = requests.post(f"{BASE_URL}/api/talents/register", json={
-            "name": talent_data["name"],
-            "email": talent_data["email"],
-            "password": talent_data["password"],
-            "phone": talent_data["phone"],
-            "category": "Designer Store",
-            "profile_image": talent_data["profile_image"],
-            "agreed_to_terms": True
-        })
-        
-        if register_response.status_code == 200:
-            created_talent = register_response.json().get("talent", {})
-            talent_id = created_talent.get("id")
-            
-            # Try to approve the talent
-            requests.put(f"{BASE_URL}/api/admin/talent/{talent_id}/approve", headers=headers)
-            
-            request.cls.designer_id = talent_id
-            request.cls.headers = headers
-            print(f"✓ Created test designer with ID: {talent_id}")
-            
-            yield talent_id
-            
-            # Cleanup - delete test talent
-            requests.delete(f"{BASE_URL}/api/admin/talent/{talent_id}", headers=headers)
-        else:
-            # If registration fails (possibly duplicate), try to find existing test designer
-            talents_response = requests.get(f"{BASE_URL}/api/talents/all", headers=headers)
-            if talents_response.status_code == 200:
-                all_talents = talents_response.json()
-                test_designer = next((t for t in all_talents if t.get("category") == "Designer Store"), None)
-                if test_designer:
-                    request.cls.designer_id = test_designer.get("id")
-                    request.cls.headers = headers
-                    yield test_designer.get("id")
-                    return
-            pytest.skip("Could not create or find designer for product testing")
+    """Products CRUD tests"""
     
     def test_get_products_empty(self):
         """GET /api/store/products should work even with no products"""
@@ -168,32 +99,21 @@ class TestProductsWithDesigner:
     @pytest.fixture(autouse=True)
     def setup_designer(self):
         """Setup or find a designer for product tests"""
-        # Login as admin
-        login_response = requests.post(f"{BASE_URL}/api/auth/login", json={
-            "email": ADMIN_EMAIL,
-            "password": ADMIN_PASSWORD
-        })
+        # Get all approved talents with Designer Store category
+        talents_response = requests.get(f"{BASE_URL}/api/talents?category=Designer Store&approved_only=false")
         
-        if login_response.status_code != 200:
-            pytest.skip("Admin login failed")
-        
-        self.token = login_response.json().get("token")
-        self.headers = {"Authorization": f"Bearer {self.token}"}
-        
-        # Get all talents and find a Designer Store talent
-        talents_response = requests.get(f"{BASE_URL}/api/admin/talents/all", headers=self.headers)
         if talents_response.status_code == 200:
             all_talents = talents_response.json()
-            designer = next((t for t in all_talents if t.get("category") == "Designer Store"), None)
-            if designer:
-                self.designer_id = designer.get("id")
-                self.designer_name = designer.get("name")
+            # Find any Designer Store talent (approved or not)
+            if all_talents:
+                self.designer_id = all_talents[0].get("id")
+                self.designer_name = all_talents[0].get("name")
                 return
         
-        # Create a new designer if none exists
-        register_response = requests.post(f"{BASE_URL}/api/talents/register", json={
-            "name": "Test Store Designer",
-            "email": f"test_store_designer_{uuid.uuid4().hex[:6]}@test.com",
+        # If no designer found, create one
+        register_response = requests.post(f"{BASE_URL}/api/talent/register", json={
+            "name": "Test Store Designer Auto",
+            "email": f"test_auto_designer_{uuid.uuid4().hex[:6]}@test.com",
             "password": "TestPass123",
             "phone": "9876543210",
             "category": "Designer Store",
@@ -202,11 +122,9 @@ class TestProductsWithDesigner:
         })
         
         if register_response.status_code == 200:
-            created_talent = register_response.json().get("talent", {})
+            created_talent = register_response.json()
             self.designer_id = created_talent.get("id")
             self.designer_name = created_talent.get("name")
-            # Approve the talent
-            requests.put(f"{BASE_URL}/api/admin/talents/{self.designer_id}/approve", headers=self.headers)
         else:
             pytest.skip("Could not find or create designer for product tests")
     
@@ -296,28 +214,16 @@ class TestOrders:
     @pytest.fixture(autouse=True)
     def setup_product(self):
         """Create a product for order testing"""
-        # Login as admin
-        login_response = requests.post(f"{BASE_URL}/api/auth/login", json={
-            "email": ADMIN_EMAIL,
-            "password": ADMIN_PASSWORD
-        })
-        
-        if login_response.status_code != 200:
-            pytest.skip("Admin login failed")
-        
-        self.token = login_response.json().get("token")
-        self.headers = {"Authorization": f"Bearer {self.token}"}
-        
         # Get a designer
-        talents_response = requests.get(f"{BASE_URL}/api/admin/talents/all", headers=self.headers)
+        talents_response = requests.get(f"{BASE_URL}/api/talents?category=Designer Store&approved_only=false")
         designer = None
         if talents_response.status_code == 200:
             all_talents = talents_response.json()
-            designer = next((t for t in all_talents if t.get("category") == "Designer Store"), None)
+            designer = all_talents[0] if all_talents else None
         
         if not designer:
             # Create one
-            register_response = requests.post(f"{BASE_URL}/api/talents/register", json={
+            register_response = requests.post(f"{BASE_URL}/api/talent/register", json={
                 "name": "Order Test Designer",
                 "email": f"order_test_{uuid.uuid4().hex[:6]}@test.com",
                 "password": "TestPass123",
@@ -327,8 +233,7 @@ class TestOrders:
                 "agreed_to_terms": True
             })
             if register_response.status_code == 200:
-                designer = register_response.json().get("talent", {})
-                requests.put(f"{BASE_URL}/api/admin/talents/{designer['id']}/approve", headers=self.headers)
+                designer = register_response.json()
             else:
                 pytest.skip("Could not create designer for order tests")
         
@@ -450,27 +355,15 @@ class TestReviews:
     @pytest.fixture(autouse=True)
     def setup_product_for_review(self):
         """Create a product for review testing"""
-        # Login as admin
-        login_response = requests.post(f"{BASE_URL}/api/auth/login", json={
-            "email": ADMIN_EMAIL,
-            "password": ADMIN_PASSWORD
-        })
-        
-        if login_response.status_code != 200:
-            pytest.skip("Admin login failed")
-        
-        self.token = login_response.json().get("token")
-        self.headers = {"Authorization": f"Bearer {self.token}"}
-        
         # Get a designer
-        talents_response = requests.get(f"{BASE_URL}/api/admin/talents/all", headers=self.headers)
+        talents_response = requests.get(f"{BASE_URL}/api/talents?category=Designer Store&approved_only=false")
         designer = None
         if talents_response.status_code == 200:
             all_talents = talents_response.json()
-            designer = next((t for t in all_talents if t.get("category") == "Designer Store"), None)
+            designer = all_talents[0] if all_talents else None
         
         if not designer:
-            register_response = requests.post(f"{BASE_URL}/api/talents/register", json={
+            register_response = requests.post(f"{BASE_URL}/api/talent/register", json={
                 "name": "Review Test Designer",
                 "email": f"review_test_{uuid.uuid4().hex[:6]}@test.com",
                 "password": "TestPass123",
@@ -480,8 +373,7 @@ class TestReviews:
                 "agreed_to_terms": True
             })
             if register_response.status_code == 200:
-                designer = register_response.json().get("talent", {})
-                requests.put(f"{BASE_URL}/api/admin/talents/{designer['id']}/approve", headers=self.headers)
+                designer = register_response.json()
             else:
                 pytest.skip("Could not create designer for review tests")
         
