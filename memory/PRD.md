@@ -204,6 +204,14 @@ The database stores old category names. Frontend maps them:
   - Extracted AdminDashboard (~1650 lines) to `/app/frontend/src/pages/Admin/AdminDashboard.jsx`
   - Extracted TalentDashboard + DesignerProductsSection (~470 lines) to `/app/frontend/src/pages/TalentDashboard.jsx`
   - Added STORE_SUBCATEGORIES to shared config at `/app/frontend/src/lib/config.js`
+- **Image Optimization Integration**: Added `autoCompressImage` to all image upload points:
+  - JoinPage (profile image, portfolio images)
+  - AdminDashboard (hero images, advertisement images)
+  - TalentDashboard (profile image, portfolio images)
+  - ImageUploadWithCrop component (already had it)
+- **Video Duration Validation**: Fixed missing 45-second duration validation for product video uploads in:
+  - TalentDashboard.jsx (DesignerProductsSection)
+  - AdminDashboard.jsx (product management)
 
 ## New Files Created (Refactoring - Feb 2026)
 - `/app/frontend/src/pages/Admin/AdminDashboard.jsx` - Complete admin dashboard with all tabs
