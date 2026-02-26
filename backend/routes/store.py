@@ -196,12 +196,16 @@ def create_store_routes(db):
     # ============== Designers for Store ==============
     @router.get("/store/designers")
     async def get_store_designers():
-        # Get designers who have products
+        # Get only talents with "Designer Store" category who have products
         designers_with_products = await db.products.distinct("designer_id")
         
         designers = []
         for designer_id in designers_with_products:
-            designer = await db.talents.find_one({"id": designer_id}, {"_id": 0})
+            # Only include talents with "Designer Store" category
+            designer = await db.talents.find_one({
+                "id": designer_id, 
+                "category": "Designer Store"
+            }, {"_id": 0})
             if designer:
                 product_count = await db.products.count_documents({"designer_id": designer_id, "is_active": True})
                 designers.append({
