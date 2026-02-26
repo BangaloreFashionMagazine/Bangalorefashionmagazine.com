@@ -124,6 +124,20 @@ A full-stack web application for a fashion magazine featuring talent profiles, c
 - `GET /api/analytics/export` - Export analytics CSV
 - `GET /api/admin/talents/export` - Export talents CSV
 
+### Designer Store API Endpoints (NEW - Dec 2025)
+- `GET /api/store/settings` - Get store settings
+- `PUT /api/store/settings` - Update store settings (hero images, contact info)
+- `GET /api/store/products` - List products
+- `POST /api/store/products` - Create product (requires designer_id)
+- `PUT /api/store/products/{id}` - Update product
+- `DELETE /api/store/products/{id}` - Delete product
+- `GET /api/store/orders` - List orders
+- `POST /api/store/orders` - Create order (customer details)
+- `PUT /api/store/orders/{id}/status` - Update order status
+- `GET /api/store/designers` - List designers with products
+- `POST /api/store/reviews` - Create product review
+- `GET /api/store/reviews/{product_id}` - Get product reviews
+
 ## Category Mapping (Backend Compatibility)
 The database stores old category names. Frontend maps them:
 - "Model - Female" → "Women | Models"
