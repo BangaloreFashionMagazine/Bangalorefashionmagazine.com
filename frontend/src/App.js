@@ -3168,7 +3168,7 @@ const AdminDashboard = () => {
                 <input type="number" placeholder="Price *" value={newProduct.price} onChange={e => setNewProduct({...newProduct, price: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
                 <select value={newProduct.designer_id} onChange={e => setNewProduct({...newProduct, designer_id: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]">
                   <option value="">Select Designer *</option>
-                  {allTalents.filter(t => t.category === "Designers" || t.category === "Designer").map(d => (
+                  {allTalents.filter(t => t.category === "Designer Store").map(d => (
                     <option key={d.id} value={d.id}>{d.name}</option>
                   ))}
                 </select>
