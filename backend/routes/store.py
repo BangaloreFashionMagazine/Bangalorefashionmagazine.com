@@ -68,6 +68,13 @@ def create_store_routes(db):
             query["is_active"] = True
         
         products = await db.products.find(query, {"_id": 0}).sort("created_at", -1).to_list(100)
+        # Calculate discounted_price for products that don't have it
+        for p in products:
+            if "discounted_price" not in p:
+                discount = p.get("discount_percent", 0)
+                p["discounted_price"] = round(p["price"] * (1 - discount / 100), 2) if discount > 0 else p["price"]
+            if "discount_percent" not in p:
+                p["discount_percent"] = 0
         return [ProductResponse(**p) for p in products]
     
     @router.get("/store/products/{product_id}", response_model=ProductResponse)
@@ -75,6 +82,12 @@ def create_store_routes(db):
         product = await db.products.find_one({"id": product_id}, {"_id": 0})
         if not product:
             raise HTTPException(status_code=404, detail="Product not found")
+        # Calculate discounted_price if missing
+        if "discounted_price" not in product:
+            discount = product.get("discount_percent", 0)
+            product["discounted_price"] = round(product["price"] * (1 - discount / 100), 2) if discount > 0 else product["price"]
+        if "discount_percent" not in product:
+            product["discount_percent"] = 0
         return ProductResponse(**product)
     
     @router.put("/store/products/{product_id}", response_model=ProductResponse)
@@ -89,10 +102,25 @@ def create_store_routes(db):
         if "images" in update_data:
             update_data["images"] = update_data["images"][:5]
         
+        # Clamp discount to 0-100 and recalculate discounted_price
+        if "discount_percent" in update_data:
+            update_data["discount_percent"] = min(max(update_data["discount_percent"], 0), 100)
+        
+        # Recalculate discounted_price if price or discount changed
+        if "price" in update_data or "discount_percent" in update_data:
+            price = update_data.get("price", product.get("price", 0))
+            discount = update_data.get("discount_percent", product.get("discount_percent", 0))
+            update_data["discounted_price"] = round(price * (1 - discount / 100), 2) if discount > 0 else price
+        
         if update_data:
             await db.products.update_one({"id": product_id}, {"$set": update_data})
         
         updated = await db.products.find_one({"id": product_id}, {"_id": 0})
+        # Ensure discount fields exist
+        if "discount_percent" not in updated:
+            updated["discount_percent"] = 0
+        if "discounted_price" not in updated:
+            updated["discounted_price"] = updated["price"]
         return ProductResponse(**updated)
     
     @router.delete("/store/products/{product_id}")
