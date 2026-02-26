@@ -1,13 +1,15 @@
 import { useState, useRef, useCallback } from 'react';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
-import { X, Check, RotateCcw, Upload } from 'lucide-react';
+import { X, Check, Upload } from 'lucide-react';
+import { autoCompressImage, getBase64Size } from '@/lib/imageOptimization';
 
-const ImageUploadWithCrop = ({ onImageSelect, aspectRatio, buttonText = "Choose Image", className = "" }) => {
+const ImageUploadWithCrop = ({ onImageSelect, aspectRatio, buttonText = "Choose Image", className = "", maxSizeKB = 500 }) => {
   const [imageSrc, setImageSrc] = useState(null);
   const [crop, setCrop] = useState({ unit: '%', width: 80, height: 80, x: 10, y: 10 });
   const [completedCrop, setCompletedCrop] = useState(null);
   const [showCropper, setShowCropper] = useState(false);
+  const [isCompressing, setIsCompressing] = useState(false);
   const imgRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -21,7 +23,6 @@ const ImageUploadWithCrop = ({ onImageSelect, aspectRatio, buttonText = "Choose 
       };
       reader.readAsDataURL(file);
     }
-    // Reset input so same file can be selected again
     e.target.value = '';
   };
 
@@ -50,12 +51,28 @@ const ImageUploadWithCrop = ({ onImageSelect, aspectRatio, buttonText = "Choose 
     });
   }, [aspectRatio]);
 
-  const getCroppedImage = useCallback(() => {
+  const compressAndReturn = async (base64Image) => {
+    setIsCompressing(true);
+    try {
+      const originalSize = getBase64Size(base64Image);
+      const compressed = await autoCompressImage(base64Image, maxSizeKB);
+      const newSize = getBase64Size(compressed);
+      if (originalSize > newSize) {
+        console.log(`Image optimized: ${originalSize}KB → ${newSize}KB`);
+      }
+      onImageSelect(compressed);
+    } catch (err) {
+      console.error('Compression failed, using original:', err);
+      onImageSelect(base64Image);
+    }
+    setIsCompressing(false);
+    setShowCropper(false);
+    setImageSrc(null);
+  };
+
+  const getCroppedImage = useCallback(async () => {
     if (!completedCrop || !imgRef.current) {
-      // If no crop made, use original image
-      onImageSelect(imageSrc);
-      setShowCropper(false);
-      setImageSrc(null);
+      await compressAndReturn(imageSrc);
       return;
     }
 
@@ -64,10 +81,23 @@ const ImageUploadWithCrop = ({ onImageSelect, aspectRatio, buttonText = "Choose 
     const scaleX = image.naturalWidth / image.width;
     const scaleY = image.naturalHeight / image.height;
     
-    canvas.width = completedCrop.width * scaleX;
-    canvas.height = completedCrop.height * scaleY;
+    // Limit canvas size for optimization
+    const maxDim = 1200;
+    let canvasWidth = completedCrop.width * scaleX;
+    let canvasHeight = completedCrop.height * scaleY;
+    
+    if (canvasWidth > maxDim || canvasHeight > maxDim) {
+      const ratio = Math.min(maxDim / canvasWidth, maxDim / canvasHeight);
+      canvasWidth *= ratio;
+      canvasHeight *= ratio;
+    }
+    
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
     
     const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
     ctx.drawImage(
       image,
       completedCrop.x * scaleX,
@@ -76,32 +106,22 @@ const ImageUploadWithCrop = ({ onImageSelect, aspectRatio, buttonText = "Choose 
       completedCrop.height * scaleY,
       0,
       0,
-      canvas.width,
-      canvas.height
+      canvasWidth,
+      canvasHeight
     );
 
-    canvas.toBlob((blob) => {
-      if (blob) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          onImageSelect(reader.result);
-          setShowCropper(false);
-          setImageSrc(null);
-        };
-        reader.readAsDataURL(blob);
-      }
-    }, 'image/jpeg', 0.9);
-  }, [completedCrop, imageSrc, onImageSelect]);
+    // Use JPEG at 80% quality for smaller file size
+    const croppedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+    await compressAndReturn(croppedBase64);
+  }, [completedCrop, imageSrc, onImageSelect, maxSizeKB]);
 
   const cancelCrop = () => {
     setShowCropper(false);
     setImageSrc(null);
   };
 
-  const useOriginal = () => {
-    onImageSelect(imageSrc);
-    setShowCropper(false);
-    setImageSrc(null);
+  const useOriginal = async () => {
+    await compressAndReturn(imageSrc);
   };
 
   return (
@@ -129,21 +149,24 @@ const ImageUploadWithCrop = ({ onImageSelect, aspectRatio, buttonText = "Choose 
               <h3 className="text-[#D4AF37] font-serif text-lg">Crop Image</h3>
               <div className="flex gap-2">
                 <button 
-                  onClick={useOriginal} 
-                  className="px-3 py-1.5 bg-[#050A14] rounded text-[#A0A5B0] hover:text-[#F5F5F0] text-sm"
+                  onClick={useOriginal}
+                  disabled={isCompressing}
+                  className="px-3 py-1.5 bg-[#050A14] rounded text-[#A0A5B0] hover:text-[#F5F5F0] text-sm disabled:opacity-50"
                 >
-                  Use Original
+                  {isCompressing ? 'Optimizing...' : 'Use Original'}
                 </button>
                 <button 
-                  onClick={cancelCrop} 
-                  className="p-2 bg-red-500/20 rounded text-red-500 hover:bg-red-500 hover:text-white" 
+                  onClick={cancelCrop}
+                  disabled={isCompressing}
+                  className="p-2 bg-red-500/20 rounded text-red-500 hover:bg-red-500 hover:text-white disabled:opacity-50" 
                   title="Cancel"
                 >
                   <X size={20} />
                 </button>
                 <button 
-                  onClick={getCroppedImage} 
-                  className="p-2 bg-green-500/20 rounded text-green-500 hover:bg-green-500 hover:text-white" 
+                  onClick={getCroppedImage}
+                  disabled={isCompressing}
+                  className="p-2 bg-green-500/20 rounded text-green-500 hover:bg-green-500 hover:text-white disabled:opacity-50" 
                   title="Apply Crop"
                 >
                   <Check size={20} />
@@ -168,7 +191,7 @@ const ImageUploadWithCrop = ({ onImageSelect, aspectRatio, buttonText = "Choose 
             </div>
             
             <p className="text-[#A0A5B0] text-sm text-center mt-4">
-              Drag to adjust crop area, then click ✓ to apply or "Use Original" to skip cropping
+              {isCompressing ? 'Optimizing image...' : 'Drag to adjust crop area, then click ✓ to apply. Images are auto-optimized for faster loading.'}
             </p>
           </div>
         </div>
