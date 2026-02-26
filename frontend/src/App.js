@@ -1715,6 +1715,8 @@ const DesignerProductsSection = ({ designerId }) => {
                   {p.discount_percent > 0 && (
                     <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">{p.discount_percent}% OFF</div>
                   )}
+                  <div className="absolute top-2 left-2 bg-[#0A1628]/80 text-[#D4AF37] text-xs px-2 py-1 rounded">{p.store_category || "Everyday Chic"}</div>
+                  {p.video && <div className="absolute bottom-2 left-2 bg-black/70 rounded-full p-1"><Video size={12} className="text-white" /></div>}
                 </div>
                 <div className="p-4">
                   <h3 className="text-[#F5F5F0] font-bold">{p.name}</h3>
@@ -1724,7 +1726,7 @@ const DesignerProductsSection = ({ designerId }) => {
                   </div>
                   {p.size && <p className="text-[#A0A5B0] text-sm">Size: {p.size}</p>}
                   <div className="flex gap-2 mt-3">
-                    <button onClick={() => setEditingProduct({...p, price: p.price.toString(), discount_percent: (p.discount_percent || 0).toString(), images: p.images || []})} className="flex-1 px-3 py-2 bg-[#D4AF37]/20 text-[#D4AF37] rounded text-sm">Edit</button>
+                    <button onClick={() => setEditingProduct({...p, price: p.price.toString(), discount_percent: (p.discount_percent || 0).toString(), store_category: p.store_category || "Everyday Chic", images: p.images || [], video: p.video || ""})} className="flex-1 px-3 py-2 bg-[#D4AF37]/20 text-[#D4AF37] rounded text-sm">Edit</button>
                     <button onClick={() => deleteProduct(p.id)} className="flex-1 px-3 py-2 bg-red-500/20 text-red-500 rounded text-sm flex items-center justify-center gap-1">
                       <Trash2 size={14} /> Delete
                     </button>
