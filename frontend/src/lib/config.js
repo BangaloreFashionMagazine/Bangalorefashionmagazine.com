@@ -51,6 +51,14 @@ export const STORE_CATEGORIES = [
   { id: "Accessories Room", label: "Accessories Room", description: "Accessories" }
 ];
 
+// Store sub-categories with icons (for registration form)
+export const STORE_SUBCATEGORIES = [
+  { id: "Everyday Chic", label: "Everyday Chic (Casuals)", icon: "👕" },
+  { id: "After Dark", label: "After Dark (Party)", icon: "✨" },
+  { id: "Heritage Luxe", label: "Heritage Luxe (Ethnic)", icon: "🪔" },
+  { id: "Accessories Room", label: "Accessories Room", icon: "👜" }
+];
+
 export const DEFAULT_SLIDES = [
   { image: "https://images.unsplash.com/photo-1700150594432-7024e06005c4?w=1200", category: "Editorial", title: "Spring Collection 2025", subtitle: "Editorial Fashion Photography" },
   { image: "https://images.unsplash.com/photo-1700150624576-c6c0641e54fe?w=1200", category: "Haute Couture", title: "Haute Couture Series", subtitle: "Luxury Fashion Campaign" },
