@@ -198,6 +198,9 @@ The database stores old category names. Frontend maps them:
 3. Further code refactoring (optional):
    - Admin.jsx (2000+ lines) → Split into tab components
 
+## Completed Tasks (Feb 26, 2026)
+- **Designer Store Hidden from Talents Tab**: Filtered "Designer Store" category from the Talents dropdown menu in both desktop and mobile navigation. Designer Store now has its own separate navigation link and is not mixed with regular talent categories.
+
 ## New Files Created (Refactoring - Dec 2025)
 - `/app/frontend/src/lib/config.js` - Shared constants (categories, API URL, etc.)
 - `/app/frontend/src/lib/imageOptimization.js` - Image compression utilities
