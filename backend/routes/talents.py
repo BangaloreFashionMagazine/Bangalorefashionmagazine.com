@@ -34,14 +34,14 @@ def create_talent_routes(db):
         # Normalize category to database format (convert new names to old)
         db_category = normalize_category(talent_data.category)
         
-        # Validate store_subcategory for Designer Store
-        store_subcategory = ""
+        # Validate store_subcategories for Designer Store (can select multiple)
+        store_subcategories = []
         if db_category == "Designer Store" or talent_data.category == "Designer Store":
             valid_subcategories = ["Everyday Chic", "After Dark", "Heritage Luxe", "Accessories Room"]
-            if talent_data.store_subcategory and talent_data.store_subcategory in valid_subcategories:
-                store_subcategory = talent_data.store_subcategory
-            else:
-                raise HTTPException(status_code=400, detail="Designer Store requires selecting a sub-category: Everyday Chic, After Dark, Heritage Luxe, or Accessories Room")
+            if talent_data.store_subcategories:
+                store_subcategories = [s for s in talent_data.store_subcategories if s in valid_subcategories]
+            if not store_subcategories:
+                raise HTTPException(status_code=400, detail="Designer Store requires selecting at least one category: Everyday Chic, After Dark, Heritage Luxe, or Accessories Room")
         
         if len(talent_data.password) < 6:
             raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
