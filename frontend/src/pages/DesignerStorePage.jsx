@@ -427,7 +427,7 @@ const DesignerStorePage = () => {
               onClick={() => setSelectedDesigner(null)}
               className={`px-4 py-2 rounded-lg border transition-colors ${!selectedDesigner ? 'bg-[#D4AF37] text-[#050A14] border-[#D4AF37]' : 'border-[#D4AF37]/30 text-[#A0A5B0] hover:border-[#D4AF37]'}`}
             >
-              All Products
+              All Designers
             </button>
             {designers.map(d => (
               <button 
@@ -452,10 +452,15 @@ const DesignerStorePage = () => {
           </div>
         )}
         
-        <h2 className="font-serif text-2xl text-[#D4AF37] mb-6">{selectedDesigner ? `Products by ${selectedDesignerInfo?.name}` : 'All Products'}</h2>
+        {/* Products Title */}
+        <h2 className="font-serif text-2xl text-[#D4AF37] mb-6">
+          {selectedCategory ? `${selectedCategory}` : 'All Products'}
+          {selectedDesigner && ` by ${selectedDesignerInfo?.name}`}
+          <span className="text-[#A0A5B0] text-lg ml-2">({filteredProducts.length})</span>
+        </h2>
         
         {filteredProducts.length === 0 ? (
-          <p className="text-[#A0A5B0] text-center py-12">No products available.</p>
+          <p className="text-[#A0A5B0] text-center py-12">No products available in this category.</p>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {filteredProducts.map(p => (
