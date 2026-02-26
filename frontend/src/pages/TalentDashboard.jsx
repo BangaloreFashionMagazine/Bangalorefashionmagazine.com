@@ -103,28 +103,21 @@ const DesignerProductsSection = ({ designerId, designerCategories = [] }) => {
           <div className="bg-[#050A14] rounded-lg p-4 mb-6 border border-[#D4AF37]/20">
             <h3 className="text-[#D4AF37] font-bold mb-4">{editingProduct ? "Edit Product" : "Add New Product"}</h3>
             
-            {/* Category Selection */}
-            {designerCategories.length > 0 && (
-              <div className="mb-4">
-                <label className="text-[#A0A5B0] text-sm mb-2 block">Product Category *</label>
-                <div className="flex flex-wrap gap-2">
-                  {designerCategories.map(cat => (
-                    <button
-                      key={cat}
-                      type="button"
-                      onClick={() => editingProduct ? setEditingProduct({...editingProduct, store_category: cat}) : setNewProduct({...newProduct, store_category: cat})}
-                      className={`px-4 py-2 rounded-lg border transition-all ${
-                        (editingProduct ? editingProduct.store_category : newProduct.store_category) === cat
-                          ? 'bg-[#D4AF37] text-[#050A14] border-[#D4AF37]'
-                          : 'border-[#D4AF37]/30 text-[#A0A5B0] hover:border-[#D4AF37]'
-                      }`}
-                    >
-                      {cat === "Everyday Chic" && "👕"} {cat === "After Dark" && "✨"} {cat === "Heritage Luxe" && "🪔"} {cat === "Accessories Room" && "👜"} {cat}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* Category Dropdown - Always show all 4 categories */}
+            <div className="mb-4">
+              <label className="text-[#A0A5B0] text-sm mb-2 block">Product Category *</label>
+              <select 
+                value={editingProduct ? editingProduct.store_category : newProduct.store_category} 
+                onChange={e => editingProduct ? setEditingProduct({...editingProduct, store_category: e.target.value}) : setNewProduct({...newProduct, store_category: e.target.value})}
+                className="w-full md:w-auto px-4 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0]"
+              >
+                {STORE_CATEGORIES.map(cat => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.id === "Everyday Chic" ? "👕" : cat.id === "After Dark" ? "✨" : cat.id === "Heritage Luxe" ? "🪔" : "👜"} {cat.label} - {cat.description}
+                  </option>
+                ))}
+              </select>
+            </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
               <input type="text" placeholder="Product Name *" value={editingProduct ? editingProduct.name : newProduct.name} onChange={e => editingProduct ? setEditingProduct({...editingProduct, name: e.target.value}) : setNewProduct({...newProduct, name: e.target.value})} className="px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
