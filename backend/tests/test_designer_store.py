@@ -118,7 +118,7 @@ class TestProductsCRUD:
             talent_id = created_talent.get("id")
             
             # Try to approve the talent
-            requests.put(f"{BASE_URL}/api/admin/talents/{talent_id}/approve", headers=headers)
+            requests.put(f"{BASE_URL}/api/admin/talent/{talent_id}/approve", headers=headers)
             
             request.cls.designer_id = talent_id
             request.cls.headers = headers
@@ -127,10 +127,10 @@ class TestProductsCRUD:
             yield talent_id
             
             # Cleanup - delete test talent
-            requests.delete(f"{BASE_URL}/api/admin/talents/{talent_id}", headers=headers)
+            requests.delete(f"{BASE_URL}/api/admin/talent/{talent_id}", headers=headers)
         else:
             # If registration fails (possibly duplicate), try to find existing test designer
-            talents_response = requests.get(f"{BASE_URL}/api/admin/talents/all", headers=headers)
+            talents_response = requests.get(f"{BASE_URL}/api/talents/all", headers=headers)
             if talents_response.status_code == 200:
                 all_talents = talents_response.json()
                 test_designer = next((t for t in all_talents if t.get("category") == "Designer Store"), None)
