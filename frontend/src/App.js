@@ -3466,26 +3466,42 @@ const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine, v
 // ============== Designer Store Components ==============
 
 // Product Card
-const ProductCard = ({ product, onClick }) => (
-  <div 
-    className="group bg-[#0A1628] rounded-lg border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 overflow-hidden cursor-pointer transition-all"
-    onClick={() => onClick(product)}
-    data-testid={`product-card-${product.id}`}
-  >
-    <div className="aspect-square overflow-hidden">
-      <img 
-        src={product.images?.[0] || "https://via.placeholder.com/300"} 
-        alt={product.name} 
-        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
-      />
+const ProductCard = ({ product, onClick }) => {
+  const hasDiscount = product.discount_percent > 0;
+  const displayPrice = hasDiscount ? product.discounted_price : product.price;
+  
+  return (
+    <div 
+      className="group bg-[#0A1628] rounded-lg border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 overflow-hidden cursor-pointer transition-all"
+      onClick={() => onClick(product)}
+      data-testid={`product-card-${product.id}`}
+    >
+      <div className="aspect-square overflow-hidden relative">
+        <img 
+          src={product.images?.[0] || "https://via.placeholder.com/300"} 
+          alt={product.name} 
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+        />
+        {/* Discount Badge - Top Right */}
+        {hasDiscount && (
+          <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-md shadow-lg">
+            {product.discount_percent}% OFF
+          </div>
+        )}
+      </div>
+      <div className="p-3">
+        <h3 className="font-serif text-sm font-bold text-[#F5F5F0] truncate">{product.name}</h3>
+        <div className="mt-1 flex items-center gap-2">
+          <p className="text-[#D4AF37] font-bold">₹{displayPrice?.toLocaleString()}</p>
+          {hasDiscount && (
+            <p className="text-[#A0A5B0] text-sm line-through">₹{product.price?.toLocaleString()}</p>
+          )}
+        </div>
+        <p className="text-[#A0A5B0] text-xs mt-1 truncate">By {product.designer_name}</p>
+      </div>
     </div>
-    <div className="p-3">
-      <h3 className="font-serif text-sm font-bold text-[#F5F5F0] truncate">{product.name}</h3>
-      <p className="text-[#D4AF37] font-bold mt-1">₹{product.price?.toLocaleString()}</p>
-      <p className="text-[#A0A5B0] text-xs mt-1 truncate">By {product.designer_name}</p>
-    </div>
-  </div>
-);
+  );
+};
 
 // Product Detail Modal
 const ProductDetailModal = ({ product, onClose, onOrder }) => {
