@@ -1598,7 +1598,8 @@ const DesignerProductsSection = ({ designerId }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [newProduct, setNewProduct] = useState({ name: "", description: "", size: "", material: "", price: "", shipping_info: "", images: [] });
+  const [newProduct, setNewProduct] = useState({ name: "", description: "", size: "", material: "", price: "", discount_percent: "", shipping_info: "", images: [] });
+  const [editingProduct, setEditingProduct] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
   
@@ -1619,12 +1620,36 @@ const DesignerProductsSection = ({ designerId }) => {
     }
     setSubmitting(true);
     try {
-      await axios.post(`${API}/store/products`, { ...newProduct, price: parseFloat(newProduct.price), designer_id: designerId });
+      await axios.post(`${API}/store/products`, { 
+        ...newProduct, 
+        price: parseFloat(newProduct.price), 
+        discount_percent: parseInt(newProduct.discount_percent) || 0,
+        designer_id: designerId 
+      });
       toast({ title: "Product added!" });
-      setNewProduct({ name: "", description: "", size: "", material: "", price: "", shipping_info: "", images: [] });
+      setNewProduct({ name: "", description: "", size: "", material: "", price: "", discount_percent: "", shipping_info: "", images: [] });
       setShowAddForm(false);
       fetchProducts();
     } catch (err) { toast({ title: err.response?.data?.detail || "Failed to add product", variant: "destructive" }); }
+    setSubmitting(false);
+  };
+  
+  const updateProduct = async () => {
+    if (!editingProduct.name || !editingProduct.price) {
+      toast({ title: "Name and price are required", variant: "destructive" });
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await axios.put(`${API}/store/products/${editingProduct.id}`, { 
+        ...editingProduct, 
+        price: parseFloat(editingProduct.price),
+        discount_percent: parseInt(editingProduct.discount_percent) || 0
+      });
+      toast({ title: "Product updated!" });
+      setEditingProduct(null);
+      fetchProducts();
+    } catch (err) { toast({ title: err.response?.data?.detail || "Failed to update product", variant: "destructive" }); }
     setSubmitting(false);
   };
   
@@ -1642,41 +1667,54 @@ const DesignerProductsSection = ({ designerId }) => {
       <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold text-[#F5F5F0]">My Products ({products.length}/10)</h2>
-          {products.length < 10 && (
+          {products.length < 10 && !editingProduct && (
             <button onClick={() => setShowAddForm(!showAddForm)} className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold text-sm">
               {showAddForm ? "Cancel" : "+ Add Product"}
             </button>
           )}
         </div>
         
-        {showAddForm && (
+        {/* Add/Edit Form */}
+        {(showAddForm || editingProduct) && (
           <div className="bg-[#050A14] rounded-lg p-4 mb-6 border border-[#D4AF37]/20">
-            <h3 className="text-[#D4AF37] font-bold mb-4">Add New Product</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <input type="text" placeholder="Product Name *" value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} className="px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
-              <input type="number" placeholder="Price (₹) *" value={newProduct.price} onChange={e => setNewProduct({...newProduct, price: e.target.value})} className="px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
-              <input type="text" placeholder="Size" value={newProduct.size} onChange={e => setNewProduct({...newProduct, size: e.target.value})} className="px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
-              <input type="text" placeholder="Material" value={newProduct.material} onChange={e => setNewProduct({...newProduct, material: e.target.value})} className="px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+            <h3 className="text-[#D4AF37] font-bold mb-4">{editingProduct ? "Edit Product" : "Add New Product"}</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+              <input type="text" placeholder="Product Name *" value={editingProduct ? editingProduct.name : newProduct.name} onChange={e => editingProduct ? setEditingProduct({...editingProduct, name: e.target.value}) : setNewProduct({...newProduct, name: e.target.value})} className="px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+              <input type="number" placeholder="Price (₹) *" value={editingProduct ? editingProduct.price : newProduct.price} onChange={e => editingProduct ? setEditingProduct({...editingProduct, price: e.target.value}) : setNewProduct({...newProduct, price: e.target.value})} className="px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+              <input type="number" placeholder="Discount % (0-100)" min="0" max="100" value={editingProduct ? editingProduct.discount_percent : newProduct.discount_percent} onChange={e => editingProduct ? setEditingProduct({...editingProduct, discount_percent: e.target.value}) : setNewProduct({...newProduct, discount_percent: e.target.value})} className="px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+              <input type="text" placeholder="Size" value={editingProduct ? editingProduct.size : newProduct.size} onChange={e => editingProduct ? setEditingProduct({...editingProduct, size: e.target.value}) : setNewProduct({...newProduct, size: e.target.value})} className="px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+              <input type="text" placeholder="Material" value={editingProduct ? editingProduct.material : newProduct.material} onChange={e => editingProduct ? setEditingProduct({...editingProduct, material: e.target.value}) : setNewProduct({...newProduct, material: e.target.value})} className="px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+              <input type="text" placeholder="Shipping Info" value={editingProduct ? editingProduct.shipping_info : newProduct.shipping_info} onChange={e => editingProduct ? setEditingProduct({...editingProduct, shipping_info: e.target.value}) : setNewProduct({...newProduct, shipping_info: e.target.value})} className="px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
             </div>
-            <input type="text" placeholder="Shipping Info" value={newProduct.shipping_info} onChange={e => setNewProduct({...newProduct, shipping_info: e.target.value})} className="w-full px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0] mb-4" />
-            <textarea placeholder="Description" value={newProduct.description} onChange={e => setNewProduct({...newProduct, description: e.target.value})} className="w-full px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0] mb-4" rows={2} />
+            <textarea placeholder="Description" value={editingProduct ? editingProduct.description : newProduct.description} onChange={e => editingProduct ? setEditingProduct({...editingProduct, description: e.target.value}) : setNewProduct({...newProduct, description: e.target.value})} className="w-full px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0] mb-4" rows={2} />
             <div className="mb-4">
               <label className="text-[#A0A5B0] text-sm mb-2 block">Product Images (up to 5)</label>
               <div className="flex flex-wrap gap-2">
-                {newProduct.images.map((img, i) => (
+                {(editingProduct ? editingProduct.images : newProduct.images).map((img, i) => (
                   <div key={i} className="relative">
                     <img src={img} alt="" className="w-16 h-16 object-cover rounded" />
-                    <button onClick={() => setNewProduct({...newProduct, images: newProduct.images.filter((_, idx) => idx !== i)})} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs">×</button>
+                    <button onClick={() => editingProduct ? setEditingProduct({...editingProduct, images: editingProduct.images.filter((_, idx) => idx !== i)}) : setNewProduct({...newProduct, images: newProduct.images.filter((_, idx) => idx !== i)})} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs">×</button>
                   </div>
                 ))}
-                {newProduct.images.length < 5 && (
-                  <ImageUploadWithCrop onImageSelect={(img) => setNewProduct({...newProduct, images: [...newProduct.images, img]})} buttonText="Add Image" />
+                {(editingProduct ? editingProduct.images : newProduct.images).length < 5 && (
+                  <ImageUploadWithCrop onImageSelect={(img) => editingProduct ? setEditingProduct({...editingProduct, images: [...editingProduct.images, img]}) : setNewProduct({...newProduct, images: [...newProduct.images, img]})} buttonText="Add Image" />
                 )}
               </div>
             </div>
-            <button onClick={addProduct} disabled={submitting} className="px-6 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold disabled:opacity-50">
-              {submitting ? "Adding..." : "Add Product"}
-            </button>
+            <div className="flex gap-3">
+              {editingProduct ? (
+                <>
+                  <button onClick={updateProduct} disabled={submitting} className="px-6 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold disabled:opacity-50">
+                    {submitting ? "Saving..." : "Save Changes"}
+                  </button>
+                  <button onClick={() => setEditingProduct(null)} className="px-6 py-2 border border-[#A0A5B0] text-[#A0A5B0] rounded">Cancel</button>
+                </>
+              ) : (
+                <button onClick={addProduct} disabled={submitting} className="px-6 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold disabled:opacity-50">
+                  {submitting ? "Adding..." : "Add Product"}
+                </button>
+              )}
+            </div>
           </div>
         )}
         
@@ -1688,14 +1726,25 @@ const DesignerProductsSection = ({ designerId }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {products.map(p => (
               <div key={p.id} className="bg-[#050A14] rounded-lg overflow-hidden border border-[#D4AF37]/10">
-                <img src={p.images?.[0] || "https://via.placeholder.com/200"} alt={p.name} className="w-full h-40 object-cover" />
+                <div className="relative">
+                  <img src={p.images?.[0] || "https://via.placeholder.com/200"} alt={p.name} className="w-full h-40 object-cover" />
+                  {p.discount_percent > 0 && (
+                    <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">{p.discount_percent}% OFF</div>
+                  )}
+                </div>
                 <div className="p-4">
                   <h3 className="text-[#F5F5F0] font-bold">{p.name}</h3>
-                  <p className="text-[#D4AF37] font-bold">₹{p.price?.toLocaleString()}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-[#D4AF37] font-bold">₹{(p.discount_percent > 0 ? p.discounted_price : p.price)?.toLocaleString()}</p>
+                    {p.discount_percent > 0 && <p className="text-[#A0A5B0] text-sm line-through">₹{p.price?.toLocaleString()}</p>}
+                  </div>
                   {p.size && <p className="text-[#A0A5B0] text-sm">Size: {p.size}</p>}
-                  <button onClick={() => deleteProduct(p.id)} className="mt-3 w-full px-3 py-2 bg-red-500/20 text-red-500 rounded text-sm flex items-center justify-center gap-1">
-                    <Trash2 size={14} /> Delete
-                  </button>
+                  <div className="flex gap-2 mt-3">
+                    <button onClick={() => setEditingProduct({...p, price: p.price.toString(), discount_percent: (p.discount_percent || 0).toString(), images: p.images || []})} className="flex-1 px-3 py-2 bg-[#D4AF37]/20 text-[#D4AF37] rounded text-sm">Edit</button>
+                    <button onClick={() => deleteProduct(p.id)} className="flex-1 px-3 py-2 bg-red-500/20 text-red-500 rounded text-sm flex items-center justify-center gap-1">
+                      <Trash2 size={14} /> Delete
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
