@@ -1602,7 +1602,7 @@ const DesignerProductsSection = ({ designerId }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [newProduct, setNewProduct] = useState({ name: "", description: "", store_category: "Everyday Chic", size: "", material: "", price: "", discount_percent: "", shipping_info: "", images: [], video: "" });
+  const [newProduct, setNewProduct] = useState({ name: "", description: "", size: "", material: "", price: "", discount_percent: "", shipping_info: "", images: [], video: "" });
   const [editingProduct, setEditingProduct] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
@@ -1618,8 +1618,8 @@ const DesignerProductsSection = ({ designerId }) => {
   useEffect(() => { fetchProducts(); }, [designerId]);
   
   const addProduct = async () => {
-    if (!newProduct.name || !newProduct.price || !newProduct.store_category) {
-      toast({ title: "Name, price and category are required", variant: "destructive" });
+    if (!newProduct.name || !newProduct.price) {
+      toast({ title: "Name and price are required", variant: "destructive" });
       return;
     }
     setSubmitting(true);
@@ -1631,7 +1631,7 @@ const DesignerProductsSection = ({ designerId }) => {
         designer_id: designerId 
       });
       toast({ title: "Product added!" });
-      setNewProduct({ name: "", description: "", store_category: "Everyday Chic", size: "", material: "", price: "", discount_percent: "", shipping_info: "", images: [], video: "" });
+      setNewProduct({ name: "", description: "", size: "", material: "", price: "", discount_percent: "", shipping_info: "", images: [], video: "" });
       setShowAddForm(false);
       fetchProducts();
     } catch (err) { toast({ title: err.response?.data?.detail || "Failed to add product", variant: "destructive" }); }
@@ -1646,9 +1646,15 @@ const DesignerProductsSection = ({ designerId }) => {
     setSubmitting(true);
     try {
       await axios.put(`${API}/store/products/${editingProduct.id}`, { 
-        ...editingProduct, 
+        name: editingProduct.name,
+        description: editingProduct.description,
+        size: editingProduct.size,
+        material: editingProduct.material,
         price: parseFloat(editingProduct.price),
-        discount_percent: parseInt(editingProduct.discount_percent) || 0
+        discount_percent: parseInt(editingProduct.discount_percent) || 0,
+        shipping_info: editingProduct.shipping_info,
+        images: editingProduct.images,
+        video: editingProduct.video
       });
       toast({ title: "Product updated!" });
       setEditingProduct(null);
