@@ -46,6 +46,10 @@ A full-stack web application for a fashion magazine featuring talent profiles, c
 4. **Designer Store** (NEW - Dec 2025)
    - Browse fashion products from designers
    - Filter by designer
+   - **Discount Feature:**
+     - Discount badge on top-right corner of product images (e.g., "20% OFF")
+     - Discounted price shown with original price strikethrough
+     - Both Admin and Designers can set discounts (0-100%)
    - Product detail modal with:
      - Multiple images (up to 5)
      - Size, material, shipping info
