@@ -257,11 +257,14 @@ const TalentDashboard = ({ talent, onUpdate }) => {
     }
   }, [talent?.id]);
 
-  const handleProfileImage = (e) => {
+  const handleProfileImage = async (e) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => setFormData({...formData, profile_image: reader.result});
+      reader.onloadend = async () => {
+        const compressed = await autoCompressImage(reader.result, 500);
+        setFormData({...formData, profile_image: compressed});
+      };
       reader.readAsDataURL(file);
     }
   };
@@ -274,7 +277,10 @@ const TalentDashboard = ({ talent, onUpdate }) => {
     }
     files.forEach(file => {
       const reader = new FileReader();
-      reader.onloadend = () => setPortfolio(prev => [...prev, reader.result].slice(0, 7));
+      reader.onloadend = async () => {
+        const compressed = await autoCompressImage(reader.result, 500);
+        setPortfolio(prev => [...prev, compressed].slice(0, 7));
+      };
       reader.readAsDataURL(file);
     });
   };
