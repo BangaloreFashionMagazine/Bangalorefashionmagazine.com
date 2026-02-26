@@ -13,6 +13,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
 import ImageUploadWithCrop from "@/components/ImageUploadWithCrop";
 import { API, BFM_LOGO, TALENT_CATEGORIES, CATEGORY_DISPLAY, CATEGORY_DB, getCategoryDisplay, getCategoryForDB, DEFAULT_SLIDES, STORE_SUBCATEGORIES } from "@/lib/config";
+import { autoCompressImage } from "@/lib/imageOptimization";
 import DesignerStorePageComponent from "@/pages/DesignerStorePage";
 import AdminDashboard from "@/pages/Admin/AdminDashboard";
 import TalentDashboard from "@/pages/TalentDashboard";
