@@ -267,7 +267,7 @@ class ProductReviewResponse(BaseModel):
     created_at: str = ""
 
 class DesignerStoreSettingsCreate(BaseModel):
-    hero_image: str = ""
+    hero_images: List[str] = []  # Up to 5 hero images
     contact_email: str = ""
     contact_phone: str = ""
     contact_instagram: str = ""
