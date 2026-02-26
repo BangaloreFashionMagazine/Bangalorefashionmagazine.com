@@ -1009,7 +1009,7 @@ const TalentProfilePage = () => {
 // Join Us (Talent Registration)
 const JoinPage = () => {
   const [formData, setFormData] = useState({
-    name: "", email: "", password: "", phone: "", instagram_id: "", category: "", bio: ""
+    name: "", email: "", password: "", phone: "", instagram_id: "", category: "", store_subcategory: "", bio: ""
   });
   const [profileImage, setProfileImage] = useState("");
   const [portfolio, setPortfolio] = useState([]);
@@ -1020,6 +1020,14 @@ const JoinPage = () => {
   const [showDeclaration, setShowDeclaration] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  
+  // Store sub-categories
+  const STORE_SUBCATEGORIES = [
+    { id: "Everyday Chic", label: "Everyday Chic (Casuals)" },
+    { id: "After Dark", label: "After Dark (Party)" },
+    { id: "Heritage Luxe", label: "Heritage Luxe (Ethnic)" },
+    { id: "Accessories Room", label: "Accessories Room" }
+  ];
 
   const declarationText = `User Declaration, Complete Disclaimer & Absolute Consent
 
