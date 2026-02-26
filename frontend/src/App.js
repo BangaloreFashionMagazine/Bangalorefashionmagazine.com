@@ -1585,8 +1585,8 @@ const TalentDashboard = ({ talent, onUpdate }) => {
         </div>
       </div>
       
-      {/* My Products Section - Only for Designers */}
-      {(talent?.category === "Designers" || talent?.category === "Designer") && (
+      {/* My Products Section - Only for Designer Store category */}
+      {talent?.category === "Designer Store" && (
         <DesignerProductsSection designerId={talent.id} />
       )}
     </div>
