@@ -42,10 +42,17 @@ def create_store_routes(db):
         if product_count >= 10:
             raise HTTPException(status_code=400, detail="Designer already has 10 products (maximum limit)")
         
-        # Use designer's store_subcategory (not product-level category)
-        store_category = designer.get("store_subcategory", "Everyday Chic")
+        # Validate product category - must be one of designer's selected categories
+        designer_categories = designer.get("store_subcategories", [])
+        # Backward compatibility: check old store_subcategory field too
+        if not designer_categories and designer.get("store_subcategory"):
+            designer_categories = [designer.get("store_subcategory")]
+        
+        store_category = product.store_category
         if store_category not in VALID_STORE_CATEGORIES:
-            store_category = "Everyday Chic"
+            store_category = designer_categories[0] if designer_categories else "Everyday Chic"
+        elif designer_categories and store_category not in designer_categories:
+            raise HTTPException(status_code=400, detail=f"Product category must be one of your selected categories: {', '.join(designer_categories)}")
         
         # Limit images to 5
         images = (product.images or [])[:5]
@@ -58,7 +65,7 @@ def create_store_routes(db):
             "id": product_id,
             "name": product.name,
             "description": product.description,
-            "store_category": store_category,  # From designer's subcategory
+            "store_category": store_category,
             "size": product.size,
             "material": product.material,
             "price": product.price,
