@@ -139,17 +139,30 @@ export const ProductDetailModal = ({ product, onClose }) => {
             <div className="aspect-square overflow-hidden rounded-lg mb-3">
               <img src={images[currentImage]} alt={product.name} className="w-full h-full object-cover" />
             </div>
-            {images.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto">
-                {images.map((img, i) => (
-                  <img key={i} src={img} alt="" onClick={() => setCurrentImage(i)} 
-                    className={`w-16 h-16 object-cover rounded cursor-pointer border-2 ${i === currentImage ? 'border-[#D4AF37]' : 'border-transparent'}`} />
-                ))}
+            <div className="flex gap-2 overflow-x-auto">
+              {images.map((img, i) => (
+                <img key={i} src={img} alt="" onClick={() => setCurrentImage(i)} 
+                  className={`w-16 h-16 object-cover rounded cursor-pointer border-2 ${i === currentImage ? 'border-[#D4AF37]' : 'border-transparent'}`} />
+              ))}
+            </div>
+            {/* Video Section */}
+            {product.video && (
+              <div className="mt-4">
+                <p className="text-[#D4AF37] text-sm mb-2">Product Video</p>
+                <video 
+                  src={product.video} 
+                  controls 
+                  className="w-full rounded-lg max-h-48"
+                  style={{ maxHeight: '200px' }}
+                />
               </div>
             )}
           </div>
           
           <div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="bg-[#D4AF37]/20 text-[#D4AF37] text-xs px-2 py-1 rounded">{product.store_category || "Everyday Chic"}</span>
+            </div>
             <h2 className="font-serif text-2xl font-bold text-[#F5F5F0]">{product.name}</h2>
             <p className="text-[#A0A5B0] text-sm mt-1">By {product.designer_name}</p>
             
