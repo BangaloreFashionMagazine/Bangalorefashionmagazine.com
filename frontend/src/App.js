@@ -1624,6 +1624,12 @@ const AdminDashboard = () => {
   const [newVideo, setNewVideo] = useState({ title: "", video_url: "", video_type: "youtube" });
   const [video, setVideo] = useState(null);
   const [newPartyEvent, setNewPartyEvent] = useState({ title: "", venue: "", event_date: "", description: "", image: "", entry_code: "", booking_info: "", contact: "", is_active: true });
+  
+  // Designer Store state
+  const [storeOrders, setStoreOrders] = useState([]);
+  const [storeProducts, setStoreProducts] = useState([]);
+  const [storeSettings, setStoreSettings] = useState({ hero_image: "", contact_email: "", contact_phone: "", contact_instagram: "" });
+  const [newProduct, setNewProduct] = useState({ name: "", description: "", size: "", material: "", price: "", shipping_info: "", images: [], designer_id: "" });
 
   // Tab-specific data fetchers
   const fetchPending = async () => {
