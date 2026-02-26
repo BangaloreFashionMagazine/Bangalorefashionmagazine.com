@@ -44,7 +44,12 @@ A full-stack web application for a fashion magazine featuring talent profiles, c
    - Required category selection with new category names
 
 4. **Designer Store** (NEW - Dec 2025)
-   - Browse fashion products from designers
+   - **4 Store Categories:**
+     - Everyday Chic (Casuals)
+     - After Dark (Party)
+     - Heritage Luxe (Ethnic)
+     - Accessories Room (Accessories)
+   - Browse fashion products filtered by category
    - Filter by designer
    - **Discount Feature:**
      - Discount badge on top-right corner of product images (e.g., "20% OFF")
@@ -52,6 +57,7 @@ A full-stack web application for a fashion magazine featuring talent profiles, c
      - Both Admin and Designers can set discounts (0-100%)
    - Product detail modal with:
      - Multiple images (up to 5)
+     - Product video (max 45 seconds)
      - Size, material, shipping info
      - Customer reviews with star ratings
    - Buy Now flow (offline payment):
