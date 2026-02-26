@@ -12,12 +12,10 @@ import { ChevronLeft, ChevronRight, Users, Palette, Sparkles, Camera, Briefcase,
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
 import ImageUploadWithCrop from "@/components/ImageUploadWithCrop";
+import { API, BFM_LOGO, TALENT_CATEGORIES, CATEGORY_DISPLAY, CATEGORY_DB, getCategoryDisplay, getCategoryForDB, DEFAULT_SLIDES } from "@/lib/config";
+import DesignerStorePageComponent from "@/pages/DesignerStorePage";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
-
-// BFM Logo URL
-const BFM_LOGO = "/bfm-logo.jpeg";
 
 // Welcome Splash Screen (auto-dismisses after 1 second)
 const WelcomeSplash = ({ onClose }) => {
