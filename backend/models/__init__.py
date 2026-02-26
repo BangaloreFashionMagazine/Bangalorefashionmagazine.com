@@ -201,6 +201,7 @@ class ProductCreate(BaseModel):
     size: str = ""
     material: str = ""
     price: float
+    discount_percent: Optional[int] = 0  # Discount percentage (0-100)
     shipping_info: str = ""
     images: List[str] = []  # Max 5 images
     designer_id: str  # Talent ID of the designer
@@ -211,6 +212,7 @@ class ProductUpdate(BaseModel):
     size: Optional[str] = None
     material: Optional[str] = None
     price: Optional[float] = None
+    discount_percent: Optional[int] = None  # Discount percentage (0-100)
     shipping_info: Optional[str] = None
     images: Optional[List[str]] = None
     is_active: Optional[bool] = None
@@ -222,6 +224,8 @@ class ProductResponse(BaseModel):
     size: str = ""
     material: str = ""
     price: float
+    discount_percent: int = 0  # Discount percentage
+    discounted_price: float = 0  # Calculated discounted price
     shipping_info: str = ""
     images: List[str] = []
     designer_id: str
