@@ -14,7 +14,7 @@ This guide will help you deploy your website on FREE platforms:
 
 1. Open this link in your browser:
    ```
-   https://store-preview-12.preview.emergentagent.com/bfm_complete_backup.zip
+   https://store-feature-test.preview.emergentagent.com/bfm_complete_backup.zip
    ```
 
 2. The file will download automatically
