@@ -1752,7 +1752,7 @@ const AdminDashboard = () => {
   const [storeOrders, setStoreOrders] = useState([]);
   const [storeProducts, setStoreProducts] = useState([]);
   const [storeSettings, setStoreSettings] = useState({ hero_images: [], contact_email: "", contact_phone: "", contact_instagram: "" });
-  const [newProduct, setNewProduct] = useState({ name: "", description: "", size: "", material: "", price: "", discount_percent: "", shipping_info: "", images: [], designer_id: "" });
+  const [newProduct, setNewProduct] = useState({ name: "", description: "", store_category: "Everyday Chic", size: "", material: "", price: "", discount_percent: "", shipping_info: "", images: [], video: "", designer_id: "" });
   const [editingProduct, setEditingProduct] = useState(null);
 
   // Tab-specific data fetchers
