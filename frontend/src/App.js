@@ -3013,6 +3013,134 @@ const AdminDashboard = () => {
             </button>
           </div>
         )}
+
+        {/* Designer Store Management */}
+        {tab === "store" && (
+          <div className="space-y-6">
+            {/* Store Settings */}
+            <div className="bg-[#0A1628] rounded-xl p-4 md:p-6 border border-[#D4AF37]/20">
+              <h2 className="text-lg font-bold text-[#F5F5F0] mb-4">Store Settings</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="text-[#A0A5B0] text-sm">Hero Image URL</label>
+                  <input type="text" placeholder="https://..." value={storeSettings.hero_image} onChange={e => setStoreSettings({...storeSettings, hero_image: e.target.value})} className="w-full mt-1 px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+                </div>
+                <div>
+                  <label className="text-[#A0A5B0] text-sm">Contact Email</label>
+                  <input type="email" placeholder="contact@email.com" value={storeSettings.contact_email} onChange={e => setStoreSettings({...storeSettings, contact_email: e.target.value})} className="w-full mt-1 px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+                </div>
+                <div>
+                  <label className="text-[#A0A5B0] text-sm">Contact Phone</label>
+                  <input type="tel" placeholder="+91 98765 43210" value={storeSettings.contact_phone} onChange={e => setStoreSettings({...storeSettings, contact_phone: e.target.value})} className="w-full mt-1 px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+                </div>
+                <div>
+                  <label className="text-[#A0A5B0] text-sm">Instagram Handle</label>
+                  <input type="text" placeholder="yourinsta" value={storeSettings.contact_instagram} onChange={e => setStoreSettings({...storeSettings, contact_instagram: e.target.value})} className="w-full mt-1 px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+                </div>
+              </div>
+              <button onClick={saveStoreSettings} className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold">Save Settings</button>
+            </div>
+
+            {/* Add Product */}
+            <div className="bg-[#0A1628] rounded-xl p-4 md:p-6 border border-[#D4AF37]/20">
+              <h2 className="text-lg font-bold text-[#F5F5F0] mb-4">Add New Product</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                <input type="text" placeholder="Product Name *" value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+                <input type="number" placeholder="Price *" value={newProduct.price} onChange={e => setNewProduct({...newProduct, price: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+                <select value={newProduct.designer_id} onChange={e => setNewProduct({...newProduct, designer_id: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]">
+                  <option value="">Select Designer *</option>
+                  {allTalents.filter(t => t.category === "Designers" || t.category === "Designer").map(d => (
+                    <option key={d.id} value={d.id}>{d.name}</option>
+                  ))}
+                </select>
+                <input type="text" placeholder="Size" value={newProduct.size} onChange={e => setNewProduct({...newProduct, size: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+                <input type="text" placeholder="Material" value={newProduct.material} onChange={e => setNewProduct({...newProduct, material: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+                <input type="text" placeholder="Shipping Info" value={newProduct.shipping_info} onChange={e => setNewProduct({...newProduct, shipping_info: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
+              </div>
+              <textarea placeholder="Description" value={newProduct.description} onChange={e => setNewProduct({...newProduct, description: e.target.value})} className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] mb-4" rows={2} />
+              <div className="mb-4">
+                <label className="text-[#A0A5B0] text-sm mb-2 block">Product Images (up to 5)</label>
+                <div className="flex flex-wrap gap-2">
+                  {newProduct.images.map((img, i) => (
+                    <div key={i} className="relative">
+                      <img src={img} alt="" className="w-16 h-16 object-cover rounded" />
+                      <button onClick={() => setNewProduct({...newProduct, images: newProduct.images.filter((_, idx) => idx !== i)})} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs">×</button>
+                    </div>
+                  ))}
+                  {newProduct.images.length < 5 && (
+                    <ImageUploadWithCrop onImageSelect={(img) => setNewProduct({...newProduct, images: [...newProduct.images, img]})} buttonText="Add Image" />
+                  )}
+                </div>
+              </div>
+              <button onClick={addProduct} className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold">Add Product</button>
+            </div>
+
+            {/* All Products */}
+            <div className="bg-[#0A1628] rounded-xl p-4 md:p-6 border border-[#D4AF37]/20">
+              <h2 className="text-lg font-bold text-[#F5F5F0] mb-4">All Products ({storeProducts.length})</h2>
+              {storeProducts.length === 0 ? (
+                <p className="text-[#A0A5B0]">No products added yet.</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {storeProducts.map(p => (
+                    <div key={p.id} className="bg-[#050A14] rounded-lg p-4 border border-[#D4AF37]/10">
+                      <img src={p.images?.[0] || "https://via.placeholder.com/150"} alt={p.name} className="w-full h-32 object-cover rounded mb-3" />
+                      <h3 className="text-[#F5F5F0] font-bold">{p.name}</h3>
+                      <p className="text-[#D4AF37]">₹{p.price?.toLocaleString()}</p>
+                      <p className="text-[#A0A5B0] text-sm">By {p.designer_name}</p>
+                      <button onClick={() => deleteProduct(p.id)} className="mt-3 w-full px-3 py-2 bg-red-500/20 text-red-500 rounded text-sm flex items-center justify-center gap-1">
+                        <Trash2 size={14} /> Delete
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Orders */}
+            <div className="bg-[#0A1628] rounded-xl p-4 md:p-6 border border-[#D4AF37]/20">
+              <h2 className="text-lg font-bold text-[#F5F5F0] mb-4">Orders ({storeOrders.length})</h2>
+              {storeOrders.length === 0 ? (
+                <p className="text-[#A0A5B0]">No orders yet.</p>
+              ) : (
+                <div className="space-y-4">
+                  {storeOrders.map(o => (
+                    <div key={o.id} className="bg-[#050A14] rounded-lg p-4 border border-[#D4AF37]/10">
+                      <div className="flex flex-wrap justify-between items-start gap-4">
+                        <div>
+                          <h3 className="text-[#F5F5F0] font-bold">{o.product_name}</h3>
+                          <p className="text-[#D4AF37]">₹{o.product_price?.toLocaleString()}</p>
+                          <p className="text-[#A0A5B0] text-sm">Designer: {o.designer_name}</p>
+                        </div>
+                        <div className="text-right">
+                          <span className={`px-2 py-1 rounded text-xs ${o.status === 'delivered' ? 'bg-green-500/20 text-green-500' : o.status === 'shipped' ? 'bg-blue-500/20 text-blue-500' : o.status === 'confirmed' ? 'bg-yellow-500/20 text-yellow-500' : 'bg-gray-500/20 text-gray-500'}`}>
+                            {o.status?.toUpperCase()}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="mt-3 pt-3 border-t border-[#D4AF37]/10">
+                        <p className="text-[#F5F5F0]"><strong>Customer:</strong> {o.customer_name}</p>
+                        <p className="text-[#A0A5B0] text-sm"><Phone size={12} className="inline" /> {o.customer_phone}</p>
+                        {o.customer_email && <p className="text-[#A0A5B0] text-sm"><Mail size={12} className="inline" /> {o.customer_email}</p>}
+                        <p className="text-[#A0A5B0] text-sm"><MapPin size={12} className="inline" /> {o.customer_address}</p>
+                        {o.notes && <p className="text-[#A0A5B0] text-sm mt-1"><strong>Notes:</strong> {o.notes}</p>}
+                      </div>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <select value={o.status} onChange={e => updateOrderStatus(o.id, e.target.value)} className="px-3 py-1 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-sm">
+                          <option value="pending">Pending</option>
+                          <option value="confirmed">Confirmed</option>
+                          <option value="shipped">Shipped</option>
+                          <option value="delivered">Delivered</option>
+                          <option value="cancelled">Cancelled</option>
+                        </select>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
