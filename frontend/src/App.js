@@ -3243,13 +3243,21 @@ const AdminDashboard = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {storeProducts.map(p => (
                     <div key={p.id} className="bg-[#050A14] rounded-lg p-4 border border-[#D4AF37]/10">
-                      <img src={p.images?.[0] || "https://via.placeholder.com/150"} alt={p.name} className="w-full h-32 object-cover rounded mb-3" />
+                      <div className="relative">
+                        <img src={p.images?.[0] || "https://via.placeholder.com/150"} alt={p.name} className="w-full h-32 object-cover rounded mb-3" />
+                        {p.discount_percent > 0 && (
+                          <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">{p.discount_percent}% OFF</div>
+                        )}
+                      </div>
                       <h3 className="text-[#F5F5F0] font-bold truncate">{p.name}</h3>
-                      <p className="text-[#D4AF37] font-bold">₹{p.price?.toLocaleString()}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-[#D4AF37] font-bold">₹{(p.discount_percent > 0 ? p.discounted_price : p.price)?.toLocaleString()}</p>
+                        {p.discount_percent > 0 && <p className="text-[#A0A5B0] text-sm line-through">₹{p.price?.toLocaleString()}</p>}
+                      </div>
                       <p className="text-[#A0A5B0] text-sm truncate">By {p.designer_name}</p>
                       <p className="text-[#A0A5B0] text-xs mt-1">Size: {p.size || "N/A"} | Material: {p.material || "N/A"}</p>
                       <div className="flex gap-2 mt-3">
-                        <button onClick={() => setEditingProduct({...p, price: p.price.toString()})} className="flex-1 px-2 py-1.5 bg-[#D4AF37]/20 text-[#D4AF37] rounded text-sm">Edit</button>
+                        <button onClick={() => setEditingProduct({...p, price: p.price.toString(), discount_percent: (p.discount_percent || 0).toString()})} className="flex-1 px-2 py-1.5 bg-[#D4AF37]/20 text-[#D4AF37] rounded text-sm">Edit</button>
                         <button onClick={() => deleteProduct(p.id)} className="flex-1 px-2 py-1.5 bg-red-500/20 text-red-500 rounded text-sm">Delete</button>
                       </div>
                     </div>
