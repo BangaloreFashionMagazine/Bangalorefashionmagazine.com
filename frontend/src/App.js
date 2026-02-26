@@ -1076,11 +1076,14 @@ I agree to indemnify, defend, and hold harmless Bangalore Fashion Magazine, its 
 
 I confirm that I have read, understood, and voluntarily accepted this declaration and agree that my electronic acceptance shall be legally valid and binding under Indian law. I waive any present or future claim against Bangalore Fashion Magazine to the maximum extent permitted by law.`;
 
-  const handleProfileImage = (e) => {
+  const handleProfileImage = async (e) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => setProfileImage(reader.result);
+      reader.onloadend = async () => {
+        const compressed = await autoCompressImage(reader.result, 500);
+        setProfileImage(compressed);
+      };
       reader.readAsDataURL(file);
     }
   };
@@ -1093,7 +1096,10 @@ I confirm that I have read, understood, and voluntarily accepted this declaratio
     }
     files.forEach(file => {
       const reader = new FileReader();
-      reader.onloadend = () => setPortfolio(prev => [...prev, reader.result].slice(0, 7));
+      reader.onloadend = async () => {
+        const compressed = await autoCompressImage(reader.result, 500);
+        setPortfolio(prev => [...prev, compressed].slice(0, 7));
+      };
       reader.readAsDataURL(file);
     });
   };
