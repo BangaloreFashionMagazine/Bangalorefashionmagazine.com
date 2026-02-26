@@ -220,6 +220,14 @@ def create_store_routes(db):
         
         return {"message": f"Order status updated to {status}"}
     
+    @router.delete("/store/orders/{order_id}")
+    async def delete_order(order_id: str):
+        result = await db.orders.delete_one({"id": order_id})
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Order not found")
+        
+        return {"message": "Order deleted successfully"}
+    
     # ============== Reviews ==============
     @router.post("/store/reviews", response_model=ProductReviewResponse)
     async def create_review(review: ProductReviewCreate):
