@@ -3591,7 +3591,19 @@ const ProductDetailModal = ({ product, onClose, onOrder }) => {
           <div>
             <h2 className="font-serif text-2xl font-bold text-[#F5F5F0]">{product.name}</h2>
             <p className="text-[#A0A5B0] text-sm mt-1">By {product.designer_name}</p>
-            <p className="text-[#D4AF37] text-2xl font-bold mt-3">₹{product.price?.toLocaleString()}</p>
+            
+            {/* Price with Discount */}
+            <div className="mt-3 flex items-center gap-3">
+              <p className="text-[#D4AF37] text-2xl font-bold">
+                ₹{(product.discount_percent > 0 ? product.discounted_price : product.price)?.toLocaleString()}
+              </p>
+              {product.discount_percent > 0 && (
+                <>
+                  <p className="text-[#A0A5B0] text-lg line-through">₹{product.price?.toLocaleString()}</p>
+                  <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">{product.discount_percent}% OFF</span>
+                </>
+              )}
+            </div>
             
             <div className="flex items-center gap-2 mt-3">
               <div className="flex">{[1,2,3,4,5].map(s => <Star key={s} size={16} className={s <= Math.round(avgRating) ? "text-[#D4AF37] fill-[#D4AF37]" : "text-[#A0A5B0]"} />)}</div>
