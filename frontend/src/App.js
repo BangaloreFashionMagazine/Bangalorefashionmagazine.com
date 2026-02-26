@@ -1184,12 +1184,45 @@ I confirm that I have read, understood, and voluntarily accepted this declaratio
               className="px-4 py-3 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0]" placeholder="Phone *" />
             <input type="text" value={formData.instagram_id} onChange={e => setFormData({...formData, instagram_id: e.target.value})}
               className="px-4 py-3 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0]" placeholder="Instagram ID" />
-            <select required value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}
+            <select required value={formData.category} onChange={e => setFormData({...formData, category: e.target.value, store_subcategory: ""})}
               className="px-4 py-3 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0]">
               <option value="">Select Category *</option>
               {TALENT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
+          
+          {/* Designer Store Sub-category Selection */}
+          {formData.category === "Designer Store" && (
+            <div className="bg-[#050A14] border border-[#D4AF37]/30 rounded-lg p-4">
+              <label className="text-[#D4AF37] font-bold mb-3 block">Select Your Store Category *</label>
+              <p className="text-[#A0A5B0] text-sm mb-4">All your products will be listed under this category</p>
+              <div className="grid grid-cols-2 gap-3">
+                {STORE_SUBCATEGORIES.map(cat => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setFormData({...formData, store_subcategory: cat.id})}
+                    className={`p-4 rounded-lg border-2 text-left transition-all ${
+                      formData.store_subcategory === cat.id 
+                        ? 'border-[#D4AF37] bg-[#D4AF37]/10' 
+                        : 'border-[#D4AF37]/20 hover:border-[#D4AF37]/50'
+                    }`}
+                  >
+                    <span className="text-2xl block mb-1">
+                      {cat.id === "Everyday Chic" && "👕"}
+                      {cat.id === "After Dark" && "✨"}
+                      {cat.id === "Heritage Luxe" && "🪔"}
+                      {cat.id === "Accessories Room" && "👜"}
+                    </span>
+                    <span className={`font-bold ${formData.store_subcategory === cat.id ? 'text-[#D4AF37]' : 'text-[#F5F5F0]'}`}>
+                      {cat.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          
           <textarea value={formData.bio} onChange={e => setFormData({...formData, bio: e.target.value})}
             className="w-full px-4 py-3 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0] h-20" placeholder="Bio (optional)" />
           
