@@ -175,12 +175,24 @@ def create_store_routes(db):
         if not product:
             raise HTTPException(status_code=404, detail="Product not found")
         
+        # Calculate MRP and discount
+        discount_percent = product.get("discount_percent", 0)
+        original_price = product.get("price", 0)
+        if discount_percent > 0:
+            # If there's a discount, the stored price is the discounted price
+            # So we need to calculate the MRP (original price)
+            mrp = original_price / (1 - discount_percent / 100) if discount_percent < 100 else original_price
+        else:
+            mrp = original_price
+        
         order_id = str(uuid.uuid4())
         order_doc = {
             "id": order_id,
             "product_id": order.product_id,
             "product_name": product.get("name", ""),
-            "product_price": product.get("price", 0),
+            "product_mrp": round(mrp, 2),
+            "product_discount": discount_percent,
+            "product_price": product.get("discounted_price", original_price) if discount_percent > 0 else original_price,
             "product_size": product.get("size", ""),
             "designer_id": product.get("designer_id", ""),
             "designer_name": product.get("designer_name", ""),
