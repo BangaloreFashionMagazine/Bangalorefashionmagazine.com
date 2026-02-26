@@ -1690,12 +1690,6 @@ const DesignerProductsSection = ({ designerId }) => {
             <h3 className="text-[#D4AF37] font-bold mb-4">{editingProduct ? "Edit Product" : "Add New Product"}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
               <input type="text" placeholder="Product Name *" value={editingProduct ? editingProduct.name : newProduct.name} onChange={e => editingProduct ? setEditingProduct({...editingProduct, name: e.target.value}) : setNewProduct({...newProduct, name: e.target.value})} className="px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
-              <select value={editingProduct ? editingProduct.store_category : newProduct.store_category} onChange={e => editingProduct ? setEditingProduct({...editingProduct, store_category: e.target.value}) : setNewProduct({...newProduct, store_category: e.target.value})} className="px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0]">
-                <option value="Everyday Chic">Everyday Chic (Casuals)</option>
-                <option value="After Dark">After Dark (Party)</option>
-                <option value="Heritage Luxe">Heritage Luxe (Ethnic)</option>
-                <option value="Accessories Room">Accessories Room</option>
-              </select>
               <input type="number" placeholder="Price (₹) *" value={editingProduct ? editingProduct.price : newProduct.price} onChange={e => editingProduct ? setEditingProduct({...editingProduct, price: e.target.value}) : setNewProduct({...newProduct, price: e.target.value})} className="px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
               <input type="number" placeholder="Discount % (0-100)" min="0" max="100" value={editingProduct ? editingProduct.discount_percent : newProduct.discount_percent} onChange={e => editingProduct ? setEditingProduct({...editingProduct, discount_percent: e.target.value}) : setNewProduct({...newProduct, discount_percent: e.target.value})} className="px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
               <input type="text" placeholder="Size" value={editingProduct ? editingProduct.size : newProduct.size} onChange={e => editingProduct ? setEditingProduct({...editingProduct, size: e.target.value}) : setNewProduct({...newProduct, size: e.target.value})} className="px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />
@@ -1727,6 +1721,19 @@ const DesignerProductsSection = ({ designerId }) => {
                 </div>
               ) : (
                 <input type="file" accept="video/*" onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    if (file.size > 50 * 1024 * 1024) { toast({ title: "Video must be under 50MB", variant: "destructive" }); return; }
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                      if (editingProduct) setEditingProduct({...editingProduct, video: reader.result});
+                      else setNewProduct({...newProduct, video: reader.result});
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }} className="text-[#A0A5B0]" />
+              )}
+            </div>
                   const file = e.target.files?.[0];
                   if (file) {
                     if (file.size > 50 * 1024 * 1024) { toast({ title: "Video must be under 50MB", variant: "destructive" }); return; }
