@@ -43,6 +43,14 @@ export const CATEGORY_DB = {
 export const getCategoryDisplay = (cat) => CATEGORY_DISPLAY[cat] || cat;
 export const getCategoryForDB = (cat) => CATEGORY_DB[cat] || cat;
 
+// Designer Store Categories
+export const STORE_CATEGORIES = [
+  { id: "Everyday Chic", label: "Everyday Chic", description: "Casuals" },
+  { id: "After Dark", label: "After Dark", description: "Party" },
+  { id: "Heritage Luxe", label: "Heritage Luxe", description: "Ethnic" },
+  { id: "Accessories Room", label: "Accessories Room", description: "Accessories" }
+];
+
 export const DEFAULT_SLIDES = [
   { image: "https://images.unsplash.com/photo-1700150594432-7024e06005c4?w=1200", category: "Editorial", title: "Spring Collection 2025", subtitle: "Editorial Fashion Photography" },
   { image: "https://images.unsplash.com/photo-1700150624576-c6c0641e54fe?w=1200", category: "Haute Couture", title: "Haute Couture Series", subtitle: "Luxury Fashion Campaign" },
