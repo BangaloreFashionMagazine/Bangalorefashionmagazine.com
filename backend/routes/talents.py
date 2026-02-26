@@ -61,7 +61,7 @@ def create_talent_routes(db):
             "phone": talent_data.phone,
             "instagram_id": talent_data.instagram_id or "",
             "category": db_category,
-            "store_subcategory": store_subcategory,  # For Designer Store talents
+            "store_subcategories": store_subcategories,  # List of selected categories for Designer Store
             "bio": talent_data.bio or "",
             "profile_image": talent_data.profile_image,
             "portfolio_images": portfolio,
