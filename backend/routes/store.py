@@ -34,6 +34,9 @@ def create_store_routes(db):
         images = (product.images or [])[:5]
         
         product_id = str(uuid.uuid4())
+        discount = min(max(product.discount_percent or 0, 0), 100)  # Clamp 0-100
+        discounted_price = product.price * (1 - discount / 100) if discount > 0 else product.price
+        
         product_doc = {
             "id": product_id,
             "name": product.name,
@@ -41,6 +44,8 @@ def create_store_routes(db):
             "size": product.size,
             "material": product.material,
             "price": product.price,
+            "discount_percent": discount,
+            "discounted_price": round(discounted_price, 2),
             "shipping_info": product.shipping_info,
             "images": images,
             "designer_id": product.designer_id,
