@@ -36,11 +36,12 @@ TALENT_CATEGORIES = [
     "Other"
 ]
 
-# New category names (displayed in UI)
+// New category names (displayed in UI)
 NEW_TALENT_CATEGORIES = [
     "Women | Models",
     "Men | Models",
     "Designers",
+    "Designer Store",
     "Beauty",
     "Visual Stories",
     "Experiences",
