@@ -1943,6 +1943,24 @@ const AdminDashboard = () => {
     } catch (err) { toast({ title: "Failed to delete", variant: "destructive" }); }
   };
   
+  const updateProduct = async () => {
+    if (!editingProduct) return;
+    try {
+      await axios.put(`${API}/store/products/${editingProduct.id}`, {
+        name: editingProduct.name,
+        description: editingProduct.description,
+        size: editingProduct.size,
+        material: editingProduct.material,
+        price: parseFloat(editingProduct.price),
+        shipping_info: editingProduct.shipping_info,
+        images: editingProduct.images
+      });
+      toast({ title: "Product updated!" });
+      setEditingProduct(null);
+      fetchStoreProducts();
+    } catch (err) { toast({ title: "Failed to update product", variant: "destructive" }); }
+  };
+  
   const saveStoreSettings = async () => {
     try {
       await axios.put(`${API}/store/settings`, storeSettings);
