@@ -181,6 +181,7 @@ def create_store_routes(db):
             "product_id": order.product_id,
             "product_name": product.get("name", ""),
             "product_price": product.get("price", 0),
+            "product_size": product.get("size", ""),
             "designer_id": product.get("designer_id", ""),
             "designer_name": product.get("designer_name", ""),
             "customer_name": order.customer_name,
