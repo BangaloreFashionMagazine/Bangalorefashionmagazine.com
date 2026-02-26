@@ -164,6 +164,19 @@ The database stores old category names. Frontend maps them:
   - Admin: Complete store management with hero images, products, orders
   - Talent Dashboard: "My Products" section for Designer Store category designers
   - Tested: 100% backend (15/15 tests), 100% frontend verification
+- **Discount Feature** (Dec 26, 2025):
+  - Discount badge on top-right corner (red "X% OFF")
+  - Price display: Discounted + Original with strikethrough
+  - Both Admin & Designers can set discounts (0-100%)
+- **Code Refactoring** (Dec 26, 2025):
+  - Extracted DesignerStorePage to `/app/frontend/src/pages/DesignerStorePage.jsx`
+  - Created shared config at `/app/frontend/src/lib/config.js`
+  - App.js reduced from ~4100 to ~3600 lines
+- **Image Optimization** (Dec 26, 2025):
+  - Created `/app/frontend/src/lib/imageOptimization.js` utility
+  - Auto-compress images on upload (max 500KB)
+  - Resize to max 1200x1200 pixels
+  - Updated ImageUploadWithCrop component with optimization
 
 ## Known Issues
 - **CRITICAL**: Live site deployment (520 error) - Infrastructure issue requiring Emergent Support
