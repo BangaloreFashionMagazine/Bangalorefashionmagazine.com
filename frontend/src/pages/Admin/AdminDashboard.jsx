@@ -220,6 +220,48 @@ const AdminDashboard = () => {
     } catch (err) { toast({ title: "Failed to update status", variant: "destructive" }); }
   };
   
+  const deleteOrder = async (orderId) => {
+    if (!window.confirm("Delete this order?")) return;
+    try {
+      await axios.delete(`${API}/store/orders/${orderId}`);
+      toast({ title: "Order deleted" });
+      fetchStoreOrders();
+    } catch (err) { toast({ title: "Failed to delete order", variant: "destructive" }); }
+  };
+  
+  const exportOrdersToExcel = () => {
+    if (storeOrders.length === 0) {
+      toast({ title: "No orders to export", variant: "destructive" });
+      return;
+    }
+    
+    // Create CSV content
+    const headers = ["Order Date", "Product Name", "Price", "Size", "Designer Name", "Customer Name", "Customer Phone", "Customer Email", "Customer Address", "Notes", "Status"];
+    const rows = storeOrders.map(o => [
+      o.created_at ? new Date(o.created_at).toLocaleDateString() : "N/A",
+      o.product_name || "",
+      o.product_price || "",
+      o.product_size || "",
+      o.designer_name || "",
+      o.customer_name || "",
+      o.customer_phone || "",
+      o.customer_email || "",
+      `"${(o.customer_address || "").replace(/"/g, '""')}"`,
+      `"${(o.notes || "").replace(/"/g, '""')}"`,
+      o.status || ""
+    ]);
+    
+    const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `orders_export_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast({ title: "Orders exported to Excel/CSV" });
+  };
+  
   const addProduct = async () => {
     if (!newProduct.name || !newProduct.price || !newProduct.designer_id) {
       toast({ title: "Name, price and designer are required", variant: "destructive" });
