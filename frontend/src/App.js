@@ -1553,7 +1553,7 @@ const DesignerProductsSection = ({ designerId }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [newProduct, setNewProduct] = useState({ name: "", description: "", size: "", material: "", price: "", discount_percent: "", shipping_info: "", images: [] });
+  const [newProduct, setNewProduct] = useState({ name: "", description: "", store_category: "Everyday Chic", size: "", material: "", price: "", discount_percent: "", shipping_info: "", images: [], video: "" });
   const [editingProduct, setEditingProduct] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
