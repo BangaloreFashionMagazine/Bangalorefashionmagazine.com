@@ -33,13 +33,19 @@ def create_store_routes(db):
         if not designer:
             raise HTTPException(status_code=404, detail="Designer not found")
         
+        # Verify designer is in Designer Store category
+        if designer.get("category") != "Designer Store":
+            raise HTTPException(status_code=400, detail="Only Designer Store category talents can add products")
+        
         # Check product limit (max 10 per designer)
         product_count = await db.products.count_documents({"designer_id": product.designer_id})
         if product_count >= 10:
             raise HTTPException(status_code=400, detail="Designer already has 10 products (maximum limit)")
         
-        # Validate store category
-        store_category = product.store_category if product.store_category in VALID_STORE_CATEGORIES else "Everyday Chic"
+        # Use designer's store_subcategory (not product-level category)
+        store_category = designer.get("store_subcategory", "Everyday Chic")
+        if store_category not in VALID_STORE_CATEGORIES:
+            store_category = "Everyday Chic"
         
         # Limit images to 5
         images = (product.images or [])[:5]
@@ -52,7 +58,7 @@ def create_store_routes(db):
             "id": product_id,
             "name": product.name,
             "description": product.description,
-            "store_category": store_category,
+            "store_category": store_category,  # From designer's subcategory
             "size": product.size,
             "material": product.material,
             "price": product.price,
