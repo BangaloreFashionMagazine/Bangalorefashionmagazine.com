@@ -189,10 +189,13 @@ The database stores old category names. Frontend maps them:
 ## Pending Tasks
 1. Contact Emergent Support about 520 deployment error (live site)
 2. User verification of all features once live site is restored
-3. Code refactoring (break down large files):
-   - `/app/frontend/src/App.js` (4000+ lines) → Split into separate page components
+3. Further code refactoring (optional):
    - Admin.jsx (2000+ lines) → Split into tab components
-4. Image optimization for uploaded images
+
+## New Files Created (Refactoring - Dec 2025)
+- `/app/frontend/src/lib/config.js` - Shared constants (categories, API URL, etc.)
+- `/app/frontend/src/lib/imageOptimization.js` - Image compression utilities
+- `/app/frontend/src/pages/DesignerStorePage.jsx` - Extracted Designer Store page component
 
 ## Files Modified (Designer Store Feature - Dec 2025)
 - `/app/backend/services/__init__.py` - Added "Designer Store" to TALENT_CATEGORIES
