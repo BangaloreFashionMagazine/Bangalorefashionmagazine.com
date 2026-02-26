@@ -314,7 +314,14 @@ const AdminDashboard = () => {
   // Hero Images
   const handleHeroImg = (e) => {
     const file = e.target.files[0];
-    if (file) { const r = new FileReader(); r.onloadend = () => setNewHero({...newHero, image_data: r.result}); r.readAsDataURL(file); }
+    if (file) { 
+      const r = new FileReader(); 
+      r.onloadend = async () => {
+        const compressed = await autoCompressImage(r.result, 500);
+        setNewHero({...newHero, image_data: compressed});
+      }; 
+      r.readAsDataURL(file); 
+    }
   };
   const addHero = async () => {
     if (!newHero.image_data || !newHero.title) { toast({ title: "Fill all fields", variant: "destructive" }); return; }
