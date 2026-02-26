@@ -275,6 +275,7 @@ const DesignerStorePage = () => {
   const [designers, setDesigners] = useState([]);
   const [products, setProducts] = useState([]);
   const [selectedDesigner, setSelectedDesigner] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null); // Store category filter
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -307,9 +308,18 @@ const DesignerStorePage = () => {
     }
   }, [storeSettings.hero_images]);
   
-  const filteredProducts = selectedDesigner 
-    ? products.filter(p => p.designer_id === selectedDesigner) 
-    : products;
+  // Filter products by category and designer
+  const filteredProducts = products.filter(p => {
+    if (selectedCategory && p.store_category !== selectedCategory) return false;
+    if (selectedDesigner && p.designer_id !== selectedDesigner) return false;
+    return true;
+  });
+  
+  // Get product counts per category
+  const categoryCounts = STORE_CATEGORIES.reduce((acc, cat) => {
+    acc[cat.id] = products.filter(p => p.store_category === cat.id).length;
+    return acc;
+  }, {});
   
   const selectedDesignerInfo = selectedDesigner 
     ? designers.find(d => d.id === selectedDesigner) 
@@ -346,6 +356,39 @@ const DesignerStorePage = () => {
             ))}
           </div>
         )}
+      </div>
+      
+      {/* Store Category Tabs */}
+      <div className="bg-[#0A1628] border-b border-[#D4AF37]/20">
+        <div className="container mx-auto px-4">
+          <div className="flex overflow-x-auto gap-2 py-4 scrollbar-hide">
+            <button 
+              onClick={() => setSelectedCategory(null)}
+              className={`flex-shrink-0 px-5 py-3 rounded-lg font-medium transition-all ${
+                !selectedCategory 
+                  ? 'bg-[#D4AF37] text-[#050A14]' 
+                  : 'bg-[#050A14] text-[#A0A5B0] border border-[#D4AF37]/30 hover:border-[#D4AF37]'
+              }`}
+            >
+              All ({products.length})
+            </button>
+            {STORE_CATEGORIES.map(cat => (
+              <button 
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`flex-shrink-0 px-5 py-3 rounded-lg font-medium transition-all flex items-center gap-2 ${
+                  selectedCategory === cat.id 
+                    ? 'bg-[#D4AF37] text-[#050A14]' 
+                    : 'bg-[#050A14] text-[#A0A5B0] border border-[#D4AF37]/30 hover:border-[#D4AF37]'
+                }`}
+              >
+                <span>{CATEGORY_ICONS[cat.id]}</span>
+                <span>{cat.label}</span>
+                <span className="text-xs opacity-70">({categoryCounts[cat.id] || 0})</span>
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
       
       <div className="bg-[#0A1628] py-6 border-y border-[#D4AF37]/20">
