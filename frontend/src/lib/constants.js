@@ -5,6 +5,7 @@ export const TALENT_CATEGORIES = [
   "Women | Models",
   "Men | Models",
   "Designers",
+  "Designer Store",
   "Beauty",
   "Visual Stories",
   "Experiences",
