@@ -1189,7 +1189,14 @@ const AdminDashboard = () => {
 
             {/* Orders */}
             <div className="bg-[#0A1628] rounded-xl p-4 md:p-6 border border-[#D4AF37]/20">
-              <h2 className="text-lg font-bold text-[#F5F5F0] mb-4">Orders ({storeOrders.length})</h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-bold text-[#F5F5F0]">Orders ({storeOrders.length})</h2>
+                {storeOrders.length > 0 && (
+                  <button onClick={exportOrdersToExcel} className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded text-sm font-bold flex items-center gap-2">
+                    <Download size={16} /> Export Excel
+                  </button>
+                )}
+              </div>
               {storeOrders.length === 0 ? (
                 <p className="text-[#A0A5B0]">No orders yet.</p>
               ) : (
@@ -1201,6 +1208,7 @@ const AdminDashboard = () => {
                           <h3 className="text-[#F5F5F0] font-bold">{o.product_name}</h3>
                           <p className="text-[#D4AF37]">₹{o.product_price?.toLocaleString()}</p>
                           <p className="text-[#A0A5B0] text-sm">Designer: {o.designer_name}</p>
+                          {o.product_size && <p className="text-[#A0A5B0] text-sm">Size: {o.product_size}</p>}
                         </div>
                         <div className="text-right">
                           <span className={`px-2 py-1 rounded text-xs ${o.status === 'delivered' ? 'bg-green-500/20 text-green-500' : o.status === 'shipped' ? 'bg-blue-500/20 text-blue-500' : o.status === 'confirmed' ? 'bg-yellow-500/20 text-yellow-500' : o.status === 'cancelled' ? 'bg-red-500/20 text-red-500' : 'bg-gray-500/20 text-gray-500'}`}>
@@ -1223,6 +1231,9 @@ const AdminDashboard = () => {
                           <option value="delivered">Delivered</option>
                           <option value="cancelled">Cancelled</option>
                         </select>
+                        <button onClick={() => deleteOrder(o.id)} className="px-3 py-1 bg-red-500/20 text-red-500 rounded text-sm flex items-center gap-1">
+                          <Trash2 size={14} /> Delete
+                        </button>
                       </div>
                     </div>
                   ))}
