@@ -35,6 +35,7 @@ class TalentCreate(BaseModel):
     phone: str
     instagram_id: Optional[str] = ""
     category: str
+    store_subcategory: Optional[str] = ""  # For Designer Store: Everyday Chic, After Dark, Heritage Luxe, Accessories Room
     bio: Optional[str] = ""
     profile_image: str
     portfolio_images: Optional[List[str]] = []
@@ -47,6 +48,7 @@ class TalentUpdate(BaseModel):
     phone: Optional[str] = None
     instagram_id: Optional[str] = None
     category: Optional[str] = None
+    store_subcategory: Optional[str] = None
     bio: Optional[str] = None
     profile_image: Optional[str] = None
     portfolio_images: Optional[List[str]] = None
