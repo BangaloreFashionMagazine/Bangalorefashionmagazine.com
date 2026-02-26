@@ -3,7 +3,7 @@ import axios from "axios";
 import { X, Video, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ImageUploadWithCrop from "@/components/ImageUploadWithCrop";
-import { API, TALENT_CATEGORIES, getCategoryDisplay } from "@/lib/config";
+import { API, TALENT_CATEGORIES, getCategoryDisplay, STORE_CATEGORIES } from "@/lib/config";
 import { autoCompressImage } from "@/lib/imageOptimization";
 
 // Designer Products Section Component
@@ -11,7 +11,7 @@ const DesignerProductsSection = ({ designerId, designerCategories = [] }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [newProduct, setNewProduct] = useState({ name: "", description: "", store_category: designerCategories[0] || "", size: "", material: "", price: "", discount_percent: "", shipping_info: "", images: [], video: "" });
+  const [newProduct, setNewProduct] = useState({ name: "", description: "", store_category: "Everyday Chic", size: "", material: "", price: "", discount_percent: "", shipping_info: "", images: [], video: "" });
   const [editingProduct, setEditingProduct] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
