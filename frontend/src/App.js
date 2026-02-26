@@ -1976,9 +1976,13 @@ const AdminDashboard = () => {
       return;
     }
     try {
-      await axios.post(`${API}/store/products`, { ...newProduct, price: parseFloat(newProduct.price) });
+      await axios.post(`${API}/store/products`, { 
+        ...newProduct, 
+        price: parseFloat(newProduct.price),
+        discount_percent: parseInt(newProduct.discount_percent) || 0
+      });
       toast({ title: "Product added!" });
-      setNewProduct({ name: "", description: "", size: "", material: "", price: "", shipping_info: "", images: [], designer_id: "" });
+      setNewProduct({ name: "", description: "", size: "", material: "", price: "", discount_percent: "", shipping_info: "", images: [], designer_id: "" });
       fetchStoreProducts();
     } catch (err) { toast({ title: err.response?.data?.detail || "Failed to add product", variant: "destructive" }); }
   };
@@ -2001,6 +2005,7 @@ const AdminDashboard = () => {
         size: editingProduct.size,
         material: editingProduct.material,
         price: parseFloat(editingProduct.price),
+        discount_percent: parseInt(editingProduct.discount_percent) || 0,
         shipping_info: editingProduct.shipping_info,
         images: editingProduct.images
       });
