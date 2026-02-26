@@ -15,6 +15,7 @@ import ImageUploadWithCrop from "@/components/ImageUploadWithCrop";
 import { API, BFM_LOGO, TALENT_CATEGORIES, CATEGORY_DISPLAY, CATEGORY_DB, getCategoryDisplay, getCategoryForDB, DEFAULT_SLIDES, STORE_SUBCATEGORIES } from "@/lib/config";
 import DesignerStorePageComponent from "@/pages/DesignerStorePage";
 import AdminDashboard from "@/pages/Admin/AdminDashboard";
+import TalentDashboard from "@/pages/TalentDashboard";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
