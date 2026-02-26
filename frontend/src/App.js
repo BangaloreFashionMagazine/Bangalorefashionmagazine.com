@@ -1615,18 +1615,18 @@ const TalentDashboard = ({ talent, onUpdate }) => {
       
       {/* My Products Section - Only for Designer Store category */}
       {talent?.category === "Designer Store" && (
-        <DesignerProductsSection designerId={talent.id} />
+        <DesignerProductsSection designerId={talent.id} designerCategories={talent.store_subcategories || []} />
       )}
     </div>
   );
 };
 
 // Designer Products Section Component
-const DesignerProductsSection = ({ designerId }) => {
+const DesignerProductsSection = ({ designerId, designerCategories = [] }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [newProduct, setNewProduct] = useState({ name: "", description: "", size: "", material: "", price: "", discount_percent: "", shipping_info: "", images: [], video: "" });
+  const [newProduct, setNewProduct] = useState({ name: "", description: "", store_category: designerCategories[0] || "", size: "", material: "", price: "", discount_percent: "", shipping_info: "", images: [], video: "" });
   const [editingProduct, setEditingProduct] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
@@ -1644,6 +1644,10 @@ const DesignerProductsSection = ({ designerId }) => {
   const addProduct = async () => {
     if (!newProduct.name || !newProduct.price) {
       toast({ title: "Name and price are required", variant: "destructive" });
+      return;
+    }
+    if (!newProduct.store_category) {
+      toast({ title: "Please select a category for this product", variant: "destructive" });
       return;
     }
     setSubmitting(true);
