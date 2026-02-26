@@ -186,11 +186,14 @@ def create_store_routes(db):
     @router.get("/store/settings")
     async def get_store_settings():
         settings = await db.store_settings.find_one({}, {"_id": 0})
-        return settings or {"hero_image": "", "contact_email": "", "contact_phone": "", "contact_instagram": ""}
+        return settings or {"hero_images": [], "contact_email": "", "contact_phone": "", "contact_instagram": ""}
     
     @router.put("/store/settings")
     async def update_store_settings(settings: DesignerStoreSettingsCreate):
-        await db.store_settings.update_one({}, {"$set": settings.dict()}, upsert=True)
+        # Limit hero images to 5
+        settings_dict = settings.dict()
+        settings_dict["hero_images"] = (settings_dict.get("hero_images") or [])[:5]
+        await db.store_settings.update_one({}, {"$set": settings_dict}, upsert=True)
         return {"message": "Store settings updated"}
     
     # ============== Designers for Store ==============
