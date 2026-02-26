@@ -261,6 +261,8 @@ class OrderResponse(BaseModel):
     id: str
     product_id: str
     product_name: str = ""
+    product_mrp: float = 0
+    product_discount: float = 0
     product_price: float = 0
     product_size: str = ""
     designer_id: str = ""
