@@ -192,3 +192,82 @@ class PartyEventUpdate(BaseModel):
 # ============== Admin Password Reset ==============
 class AdminPasswordReset(BaseModel):
     password: str
+
+
+# ============== Designer Store Models ==============
+class ProductCreate(BaseModel):
+    name: str
+    description: str = ""
+    size: str = ""
+    material: str = ""
+    price: float
+    shipping_info: str = ""
+    images: List[str] = []  # Max 5 images
+    designer_id: str  # Talent ID of the designer
+
+class ProductUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    size: Optional[str] = None
+    material: Optional[str] = None
+    price: Optional[float] = None
+    shipping_info: Optional[str] = None
+    images: Optional[List[str]] = None
+    is_active: Optional[bool] = None
+
+class ProductResponse(BaseModel):
+    id: str
+    name: str
+    description: str = ""
+    size: str = ""
+    material: str = ""
+    price: float
+    shipping_info: str = ""
+    images: List[str] = []
+    designer_id: str
+    designer_name: str = ""
+    is_active: bool = True
+    created_at: str = ""
+
+class OrderCreate(BaseModel):
+    product_id: str
+    customer_name: str
+    customer_email: str
+    customer_phone: str
+    customer_address: str
+    notes: Optional[str] = ""
+
+class OrderResponse(BaseModel):
+    id: str
+    product_id: str
+    product_name: str = ""
+    product_price: float = 0
+    designer_id: str = ""
+    designer_name: str = ""
+    customer_name: str
+    customer_email: str
+    customer_phone: str
+    customer_address: str
+    notes: str = ""
+    status: str = "pending"  # pending, confirmed, shipped, delivered
+    created_at: str = ""
+
+class ProductReviewCreate(BaseModel):
+    product_id: str
+    reviewer_name: str
+    rating: int  # 1-5
+    comment: str = ""
+
+class ProductReviewResponse(BaseModel):
+    id: str
+    product_id: str
+    reviewer_name: str
+    rating: int
+    comment: str = ""
+    created_at: str = ""
+
+class DesignerStoreSettingsCreate(BaseModel):
+    hero_image: str = ""
+    contact_email: str = ""
+    contact_phone: str = ""
+    contact_instagram: str = ""
