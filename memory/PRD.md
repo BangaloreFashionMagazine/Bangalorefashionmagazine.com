@@ -28,6 +28,7 @@ A full-stack web application for a fashion magazine featuring talent profiles, c
      - Women | Models (formerly Model - Female)
      - Men | Models (formerly Model - Male)
      - Designers
+     - Designer Store (NEW - Dec 2025)
      - Beauty (formerly Makeup & Hair)
      - Visual Stories (formerly Photography)
      - Experiences (formerly Event Management)
@@ -41,6 +42,18 @@ A full-stack web application for a fashion magazine featuring talent profiles, c
    - Portfolio images (up to 7)
    - Portfolio video (max 45 seconds)
    - Required category selection with new category names
+
+4. **Designer Store** (NEW - Dec 2025)
+   - Browse fashion products from designers
+   - Filter by designer
+   - Product detail modal with:
+     - Multiple images (up to 5)
+     - Size, material, shipping info
+     - Customer reviews with star ratings
+   - Buy Now flow (offline payment):
+     - Customer name, email, phone, address
+     - Order submission with confirmation
+   - Write product reviews (anyone can review)
 
 ### Admin Features
 1. **Talent Management**
