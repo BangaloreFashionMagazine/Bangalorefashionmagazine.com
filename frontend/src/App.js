@@ -1659,7 +1659,7 @@ const DesignerProductsSection = ({ designerId, designerCategories = [] }) => {
         designer_id: designerId 
       });
       toast({ title: "Product added!" });
-      setNewProduct({ name: "", description: "", size: "", material: "", price: "", discount_percent: "", shipping_info: "", images: [], video: "" });
+      setNewProduct({ name: "", description: "", store_category: designerCategories[0] || "", size: "", material: "", price: "", discount_percent: "", shipping_info: "", images: [], video: "" });
       setShowAddForm(false);
       fetchProducts();
     } catch (err) { toast({ title: err.response?.data?.detail || "Failed to add product", variant: "destructive" }); }
@@ -1676,6 +1676,7 @@ const DesignerProductsSection = ({ designerId, designerCategories = [] }) => {
       await axios.put(`${API}/store/products/${editingProduct.id}`, { 
         name: editingProduct.name,
         description: editingProduct.description,
+        store_category: editingProduct.store_category,
         size: editingProduct.size,
         material: editingProduct.material,
         price: parseFloat(editingProduct.price),
