@@ -92,7 +92,7 @@ const Navbar = ({ user, talent, onLogout }) => {
               </button>
               {showTalentMenu && (
                 <div className="absolute top-full left-0 mt-2 w-48 bg-[#0A1628] border border-[#D4AF37]/20 rounded-lg shadow-xl z-50">
-                  {TALENT_CATEGORIES.map(cat => (
+                  {TALENT_CATEGORIES.filter(cat => cat !== "Designer Store").map(cat => (
                     <Link key={cat} to={`/talents/${encodeURIComponent(cat)}`} onClick={() => setShowTalentMenu(false)}
                       className="block px-4 py-2 text-sm text-[#A0A5B0] hover:text-[#D4AF37] hover:bg-[#050A14]">
                       {cat}
@@ -130,7 +130,7 @@ const Navbar = ({ user, talent, onLogout }) => {
             <Link to="/" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-2 text-[#F5F5F0]">Home</Link>
             <div className="px-4 py-2">
               <p className="text-[#D4AF37] text-sm mb-2">Talents</p>
-              {TALENT_CATEGORIES.map(cat => (
+              {TALENT_CATEGORIES.filter(cat => cat !== "Designer Store").map(cat => (
                 <Link key={cat} to={`/talents/${encodeURIComponent(cat)}`} onClick={() => setMobileMenuOpen(false)}
                   className="block py-1 pl-4 text-sm text-[#A0A5B0]">{cat}</Link>
               ))}
