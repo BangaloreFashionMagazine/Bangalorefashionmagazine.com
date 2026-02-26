@@ -1734,19 +1734,6 @@ const DesignerProductsSection = ({ designerId }) => {
                 }} className="text-[#A0A5B0]" />
               )}
             </div>
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    if (file.size > 50 * 1024 * 1024) { toast({ title: "Video must be under 50MB", variant: "destructive" }); return; }
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                      if (editingProduct) setEditingProduct({...editingProduct, video: reader.result});
-                      else setNewProduct({...newProduct, video: reader.result});
-                    };
-                    reader.readAsDataURL(file);
-                  }
-                }} className="text-[#A0A5B0]" />
-              )}
-            </div>
             <div className="flex gap-3">
               {editingProduct ? (
                 <>
