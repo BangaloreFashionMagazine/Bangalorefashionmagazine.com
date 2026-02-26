@@ -195,32 +195,45 @@ class AdminPasswordReset(BaseModel):
 
 
 # ============== Designer Store Models ==============
+# Designer Store Categories
+STORE_CATEGORIES = [
+    "Everyday Chic",    # Casuals
+    "After Dark",       # Party
+    "Heritage Luxe",    # Ethnic
+    "Accessories Room"  # Accessories
+]
+
 class ProductCreate(BaseModel):
     name: str
     description: str = ""
+    store_category: str = "Everyday Chic"  # One of STORE_CATEGORIES
     size: str = ""
     material: str = ""
     price: float
     discount_percent: Optional[int] = 0  # Discount percentage (0-100)
     shipping_info: str = ""
     images: List[str] = []  # Max 5 images
+    video: str = ""  # Video URL (max 45 seconds)
     designer_id: str  # Talent ID of the designer
 
 class ProductUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
+    store_category: Optional[str] = None
     size: Optional[str] = None
     material: Optional[str] = None
     price: Optional[float] = None
     discount_percent: Optional[int] = None  # Discount percentage (0-100)
     shipping_info: Optional[str] = None
     images: Optional[List[str]] = None
+    video: Optional[str] = None
     is_active: Optional[bool] = None
 
 class ProductResponse(BaseModel):
     id: str
     name: str
     description: str = ""
+    store_category: str = "Everyday Chic"
     size: str = ""
     material: str = ""
     price: float
@@ -228,6 +241,7 @@ class ProductResponse(BaseModel):
     discounted_price: float = 0  # Calculated discounted price
     shipping_info: str = ""
     images: List[str] = []
+    video: str = ""
     designer_id: str
     designer_name: str = ""
     is_active: bool = True
