@@ -82,6 +82,17 @@ A full-stack web application for a fashion magazine featuring talent profiles, c
    - Analytics reports
    - Talent lists with Instagram IDs
 
+5. **Designer Store Management** (NEW - Dec 2025)
+   - Store hero images (up to 5)
+   - Contact info (email, phone, Instagram)
+   - Add/edit/delete products
+   - View all orders with customer details
+   - Update order status (pending → confirmed → shipped → delivered → cancelled)
+
+### Talent Dashboard Features (Designer Store category only)
+- My Products section (up to 10 products per designer)
+- Add/delete products with multiple images (up to 5)
+
 ## UI/UX Design (Dec 2025 Update)
 
 ### Color Theme
