@@ -4030,7 +4030,7 @@ function App() {
         <Route path="/forgot-password" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><ForgotPasswordPage /></>} />
         <Route path="/join" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><JoinPage /></>} />
         <Route path="/about" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><AboutPage /></>} />
-        <Route path="/designer-store" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><DesignerStorePage /></>} />
+        <Route path="/designer-store" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><DesignerStorePageComponent /></>} />
         <Route path="/talents/:category" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><TalentsPage ads={ads} /></>} />
         <Route path="/talent-dashboard" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><TalentDashboard talent={talent} onUpdate={setTalent} /></>} />
         <Route path="/admin" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><AdminDashboard /></>} />
