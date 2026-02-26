@@ -170,9 +170,19 @@ The database stores old category names. Frontend maps them:
 - Password: Admin@123BFM
 
 ## Pending Tasks
-1. Contact Emergent Support about 520 deployment error
+1. Contact Emergent Support about 520 deployment error (live site)
 2. User verification of all features once live site is restored
-3. Admin panel refactoring (break down 2000+ line Admin.jsx)
+3. Code refactoring (break down large files):
+   - `/app/frontend/src/App.js` (4000+ lines) → Split into separate page components
+   - Admin.jsx (2000+ lines) → Split into tab components
+4. Image optimization for uploaded images
+
+## Files Modified (Designer Store Feature - Dec 2025)
+- `/app/backend/services/__init__.py` - Added "Designer Store" to TALENT_CATEGORIES
+- `/app/backend/routes/store.py` - All store API routes
+- `/app/backend/models/__init__.py` - Product, Order, Review, StoreSettings Pydantic models
+- `/app/backend/server.py` - Added store router
+- `/app/frontend/src/App.js` - Designer Store page, Product components, Admin tab, Talent dashboard section
 
 ## Files Modified (UI Redesign)
 - `/app/frontend/src/index.css` - Google Fonts import (Playfair Display, Lato)
