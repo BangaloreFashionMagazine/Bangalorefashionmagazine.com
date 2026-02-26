@@ -1569,8 +1569,8 @@ const DesignerProductsSection = ({ designerId }) => {
   useEffect(() => { fetchProducts(); }, [designerId]);
   
   const addProduct = async () => {
-    if (!newProduct.name || !newProduct.price) {
-      toast({ title: "Name and price are required", variant: "destructive" });
+    if (!newProduct.name || !newProduct.price || !newProduct.store_category) {
+      toast({ title: "Name, price and category are required", variant: "destructive" });
       return;
     }
     setSubmitting(true);
@@ -1582,7 +1582,7 @@ const DesignerProductsSection = ({ designerId }) => {
         designer_id: designerId 
       });
       toast({ title: "Product added!" });
-      setNewProduct({ name: "", description: "", size: "", material: "", price: "", discount_percent: "", shipping_info: "", images: [] });
+      setNewProduct({ name: "", description: "", store_category: "Everyday Chic", size: "", material: "", price: "", discount_percent: "", shipping_info: "", images: [], video: "" });
       setShowAddForm(false);
       fetchProducts();
     } catch (err) { toast({ title: err.response?.data?.detail || "Failed to add product", variant: "destructive" }); }
