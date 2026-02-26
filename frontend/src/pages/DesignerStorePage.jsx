@@ -361,21 +361,11 @@ const DesignerStorePage = () => {
       {/* Store Category Tabs */}
       <div className="bg-[#0A1628] border-b border-[#D4AF37]/20">
         <div className="container mx-auto px-4">
-          <div className="flex overflow-x-auto gap-2 py-4 scrollbar-hide">
-            <button 
-              onClick={() => setSelectedCategory(null)}
-              className={`flex-shrink-0 px-5 py-3 rounded-lg font-medium transition-all ${
-                !selectedCategory 
-                  ? 'bg-[#D4AF37] text-[#050A14]' 
-                  : 'bg-[#050A14] text-[#A0A5B0] border border-[#D4AF37]/30 hover:border-[#D4AF37]'
-              }`}
-            >
-              All ({products.length})
-            </button>
+          <div className="flex overflow-x-auto gap-2 py-4 scrollbar-hide justify-center">
             {STORE_CATEGORIES.map(cat => (
               <button 
                 key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
+                onClick={() => setSelectedCategory(selectedCategory === cat.id ? null : cat.id)}
                 className={`flex-shrink-0 px-5 py-3 rounded-lg font-medium transition-all flex items-center gap-2 ${
                   selectedCategory === cat.id 
                     ? 'bg-[#D4AF37] text-[#050A14]' 
