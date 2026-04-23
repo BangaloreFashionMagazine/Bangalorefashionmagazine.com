@@ -1560,27 +1560,19 @@ function App() {
       setShowSplash(true);
     }
     
-    // Fetch public data
-    Promise.all([
-      axios.get(`${API}/hero-images`),
-      axios.get(`${API}/awards?active_only=true`),
-      axios.get(`${API}/advertisements`),
-      axios.get(`${API}/magazine`),
-      axios.get(`${API}/music`),
-      axios.get(`${API}/video`),
-      axios.get(`${API}/party-events`)
-    ]).then(([h, a, ad, mag, mus, vid, party]) => {
-      setHeroImages(h.data);
-      setAwards(a.data);
-      setAds(ad.data);
-      setMagazine(mag.data?.id ? mag.data : null);
-      if (mus.data?.id && mus.data?.file_data) {
-        setMusic(mus.data);
+    // Fetch public data - single API call for faster loading
+    axios.get(`${API}/homepage-data`).then(res => {
+      setHeroImages(res.data.hero_images || []);
+      setAwards(res.data.awards || []);
+      setAds(res.data.ads || []);
+      setMagazine(res.data.magazine);
+      if (res.data.music?.id && res.data.music?.file_data) {
+        setMusic(res.data.music);
       }
-      if (vid.data?.id) {
-        setVideo(vid.data);
+      if (res.data.video?.id) {
+        setVideo(res.data.video);
       }
-      setPartyEvents(party.data || []);
+      setPartyEvents(res.data.party_events || []);
     }).catch(console.error);
   }, []);
 

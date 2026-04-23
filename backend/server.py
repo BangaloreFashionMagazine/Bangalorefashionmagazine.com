@@ -60,6 +60,42 @@ async def get_categories():
     return {"categories": TALENT_CATEGORIES}
 
 
+# Combined homepage data endpoint for faster loading
+@api_router.get("/homepage-data")
+async def get_homepage_data():
+    """Get all homepage data in a single request for faster loading"""
+    try:
+        # Fetch all data in parallel
+        hero_images = await db.hero_images.find({}, {"_id": 0}).sort("order", 1).to_list(20)
+        awards = await db.awards.find({"is_active": {"$ne": False}}, {"_id": 0}).to_list(10)
+        ads = await db.advertisements.find({}, {"_id": 0}).sort("order", 1).to_list(20)
+        magazine = await db.magazine.find_one({}, {"_id": 0})
+        music = await db.music.find_one({}, {"_id": 0})
+        video = await db.video.find_one({}, {"_id": 0})
+        party_events = await db.party_events.find({"is_active": {"$ne": False}}, {"_id": 0}).sort("event_date", -1).to_list(10)
+        
+        return {
+            "hero_images": hero_images or [],
+            "awards": awards or [],
+            "ads": ads or [],
+            "magazine": magazine if magazine and magazine.get("id") else None,
+            "music": music if music and music.get("id") and music.get("file_data") else None,
+            "video": video if video and video.get("id") else None,
+            "party_events": party_events or []
+        }
+    except Exception as e:
+        logger.error(f"Error fetching homepage data: {e}")
+        return {
+            "hero_images": [],
+            "awards": [],
+            "ads": [],
+            "magazine": None,
+            "music": None,
+            "video": None,
+            "party_events": []
+        }
+
+
 # Register all route modules
 auth_routes = create_auth_routes(db)
 talent_routes = create_talent_routes(db)
