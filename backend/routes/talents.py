@@ -220,11 +220,9 @@ def create_talent_routes(db):
         if category:
             query["category"] = category
         
-        # For lightweight mode (admin list), exclude large image fields from DB query
-        projection = {"_id": 0}
-        if lightweight:
-            projection["portfolio_images"] = 0
-            projection["portfolio_video"] = 0
+        # Always exclude large portfolio fields from list view for faster loading
+        # Individual talent details can be fetched separately
+        projection = {"_id": 0, "portfolio_images": 0, "portfolio_video": 0}
         
         talents = await db.talents.find(query, projection).sort([("rank", 1), ("votes", -1)]).to_list(1000)
         
@@ -233,10 +231,12 @@ def create_talent_routes(db):
                 id=t["id"], name=t["name"], email=t["email"], phone=t["phone"],
                 instagram_id=t.get("instagram_id", ""), category=t["category"],
                 bio=t.get("bio", ""), profile_image=t.get("profile_image", ""),
-                portfolio_images=t.get("portfolio_images", []), portfolio_video=t.get("portfolio_video", ""),
+                portfolio_images=[],  # Empty for list view - load on detail view
+                portfolio_video="",   # Empty for list view
                 is_approved=t.get("is_approved", False),
                 rank=t.get("rank", 999), votes=t.get("votes", 0), created_at=t.get("created_at", ""),
-                agreed_to_terms=t.get("agreed_to_terms", False), agreed_at=t.get("agreed_at", "")
+                agreed_to_terms=t.get("agreed_to_terms", False), agreed_at=t.get("agreed_at", ""),
+                store_subcategories=t.get("store_subcategories", [])
             ) for t in talents
         ]
     

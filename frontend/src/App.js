@@ -408,6 +408,24 @@ const TalentDetailModal = ({ talent, onClose, onVote }) => {
   const [voting, setVoting] = useState(false);
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
+  const [fullTalent, setFullTalent] = useState(talent);
+  const [loading, setLoading] = useState(true);
+  
+  // Fetch full talent data including portfolio images
+  useEffect(() => {
+    if (talent?.id) {
+      setLoading(true);
+      axios.get(`${API}/talent/${talent.id}`)
+        .then(res => {
+          setFullTalent(res.data);
+          setLoading(false);
+        })
+        .catch(() => {
+          setFullTalent(talent);
+          setLoading(false);
+        });
+    }
+  }, [talent?.id]);
   
   if (!talent) return null;
 
@@ -418,7 +436,7 @@ const TalentDetailModal = ({ talent, onClose, onVote }) => {
   };
 
   // Combine profile image with portfolio for gallery display
-  const allImages = [talent.profile_image, ...(talent.portfolio_images || [])].filter(Boolean);
+  const allImages = [fullTalent.profile_image, ...(fullTalent.portfolio_images || [])].filter(Boolean);
 
   const openGallery = (index) => {
     setGalleryIndex(index);
@@ -452,41 +470,48 @@ const TalentDetailModal = ({ talent, onClose, onVote }) => {
           </div>
           
           {/* About Section - Only show if bio exists */}
-          {talent.bio && (
+          {fullTalent.bio && (
             <div className="mb-6 text-center">
               <h3 className="text-[#D4AF37] text-sm uppercase tracking-wider mb-2">About</h3>
-              <p className="text-[#A0A5B0] max-w-2xl mx-auto">{talent.bio}</p>
+              <p className="text-[#A0A5B0] max-w-2xl mx-auto">{fullTalent.bio}</p>
             </div>
           )}
           
           {/* 4. Photo Gallery - Profile + Portfolio Images */}
           <div className="mb-6">
             <h3 className="text-[#D4AF37] text-sm uppercase tracking-wider mb-4 text-center">Photo Gallery</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {allImages.map((img, i) => (
-                <div key={i} className="relative">
-                  <img 
-                    src={img} 
-                    alt={`${talent.name} - Photo ${i + 1}`} 
-                    className="w-full aspect-[3/4] object-cover rounded-lg cursor-pointer hover:opacity-80 hover:scale-[1.02] transition-all"
-                    onClick={() => openGallery(i)}
-                  />
-                  <LogoWatermark size="small" position="bottom-right" />
-                </div>
-              ))}
-            </div>
-            {allImages.length === 0 && (
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#D4AF37] border-t-transparent"></div>
+                <span className="ml-3 text-[#A0A5B0]">Loading photos...</span>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {allImages.map((img, i) => (
+                  <div key={i} className="relative">
+                    <img 
+                      src={img} 
+                      alt={`${talent.name} - Photo ${i + 1}`} 
+                      className="w-full aspect-[3/4] object-cover rounded-lg cursor-pointer hover:opacity-80 hover:scale-[1.02] transition-all"
+                      onClick={() => openGallery(i)}
+                    />
+                    <LogoWatermark size="small" position="bottom-right" />
+                  </div>
+                ))}
+              </div>
+            )}
+            {!loading && allImages.length === 0 && (
               <p className="text-[#A0A5B0] text-center py-8">No photos available</p>
             )}
           </div>
 
           {/* Portfolio Video */}
-          {talent.portfolio_video && (
+          {fullTalent.portfolio_video && (
             <div className="mb-6">
               <h3 className="text-[#D4AF37] text-sm uppercase tracking-wider mb-4 text-center">Portfolio Video</h3>
               <div className="relative">
                 <video 
-                  src={talent.portfolio_video} 
+                  src={fullTalent.portfolio_video} 
                   controls 
                   className="w-full max-h-64 rounded-lg bg-black mx-auto"
                   style={{ maxWidth: '500px', margin: '0 auto', display: 'block' }}
