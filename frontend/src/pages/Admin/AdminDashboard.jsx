@@ -58,6 +58,7 @@ const AdminDashboard = () => {
   const [instagramDesigns, setInstagramDesigns] = useState(null);
   const [selectedImage1, setSelectedImage1] = useState(0);
   const [selectedImage2, setSelectedImage2] = useState(1);
+  const [talentSearch, setTalentSearch] = useState("");
 
   // Tab-specific data fetchers
   const fetchPending = async () => {
@@ -681,11 +682,18 @@ const AdminDashboard = () => {
         {tab === "instagram" && (
           <div className="bg-[#0A1628] rounded-xl p-4 md:p-6 border border-[#D4AF37]/20">
             <h2 className="text-lg font-bold text-[#F5F5F0] mb-4">Instagram Promotion</h2>
-            <p className="text-[#A0A5B0] text-sm mb-6">Select an approved talent to generate professional Instagram posts.</p>
+            <p className="text-[#A0A5B0] text-sm mb-6">Search and select an approved talent to generate professional Instagram posts.</p>
             
-            {/* Talent Selection */}
+            {/* Talent Search and Selection */}
             <div className="mb-6">
-              <label className="text-[#A0A5B0] text-sm mb-2 block">Select Approved Talent</label>
+              <label className="text-[#A0A5B0] text-sm mb-2 block">Search Talent by Name</label>
+              <input 
+                type="text"
+                placeholder="Type talent name to search..."
+                value={talentSearch}
+                onChange={(e) => setTalentSearch(e.target.value)}
+                className="w-full md:w-96 px-4 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] mb-3"
+              />
               <select 
                 value={instagramTalent?.id || ""} 
                 onChange={async (e) => {
@@ -709,10 +717,17 @@ const AdminDashboard = () => {
                 className="w-full md:w-96 px-4 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]"
               >
                 <option value="">-- Select a talent --</option>
-                {allTalents.filter(t => t.is_approved).map(t => (
-                  <option key={t.id} value={t.id}>{t.name} - {t.category}</option>
-                ))}
+                {allTalents
+                  .filter(t => t.is_approved && t.name.toLowerCase().includes(talentSearch.toLowerCase()))
+                  .map(t => (
+                    <option key={t.id} value={t.id}>{t.name} - {t.category}</option>
+                  ))}
               </select>
+              {talentSearch && (
+                <p className="text-[#A0A5B0] text-xs mt-1">
+                  Showing {allTalents.filter(t => t.is_approved && t.name.toLowerCase().includes(talentSearch.toLowerCase())).length} results
+                </p>
+              )}
             </div>
             
             {instagramTalent && (

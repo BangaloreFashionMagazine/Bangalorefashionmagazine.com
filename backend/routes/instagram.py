@@ -191,7 +191,8 @@ Follow @{instagram} for more stunning looks!
         design_id = str(uuid.uuid4())[:8]
         now = datetime.now(timezone.utc).isoformat()
         
-        designs = [
+        # Create design data (don't mutate these after insert)
+        design_data = [
             {
                 "id": f"{design_id}-feed1",
                 "talent_id": request.talent_id,
@@ -236,11 +237,19 @@ Follow @{instagram} for more stunning looks!
         
         # Delete old designs for this talent and save new ones
         await db.instagram_designs.delete_many({"talent_id": request.talent_id})
-        await db.instagram_designs.insert_many(designs)
+        await db.instagram_designs.insert_many(design_data)
+        
+        # Return clean data (without MongoDB _id)
+        return_designs = [
+            {"id": d["id"], "talent_id": d["talent_id"], "talent_name": d["talent_name"], 
+             "design_type": d["design_type"], "image_index": d["image_index"], 
+             "created_at": d["created_at"], "caption": d["caption"], "hashtags": d["hashtags"]}
+            for d in design_data
+        ]
         
         return {
             "success": True,
-            "designs": designs,
+            "designs": return_designs,
             "caption": caption,
             "hashtags": hashtags
         }
