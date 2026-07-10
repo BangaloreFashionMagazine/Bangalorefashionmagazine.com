@@ -104,6 +104,9 @@ content_routes = create_content_routes(db)
 analytics_routes = create_analytics_routes(db)
 store_routes = create_store_routes(db)
 
+from routes.instagram import create_instagram_routes
+instagram_routes = create_instagram_routes(db)
+
 # Include all routes in the API router
 api_router.include_router(auth_routes)
 api_router.include_router(talent_routes)
@@ -111,6 +114,7 @@ api_router.include_router(admin_routes)
 api_router.include_router(content_routes)
 api_router.include_router(analytics_routes)
 api_router.include_router(store_routes)
+api_router.include_router(instagram_routes)
 
 # Include the API router in the main app
 app.include_router(api_router)

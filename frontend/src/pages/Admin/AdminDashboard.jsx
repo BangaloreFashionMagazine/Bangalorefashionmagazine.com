@@ -49,6 +49,15 @@ const AdminDashboard = () => {
   const [storeSettings, setStoreSettings] = useState({ hero_images: [], contact_email: "", contact_phone: "", contact_instagram: "" });
   const [newProduct, setNewProduct] = useState({ name: "", description: "", store_category: "Everyday Chic", size: "", material: "", price: "", discount_percent: "", shipping_info: "", images: [], video: "", designer_id: "" });
   const [editingProduct, setEditingProduct] = useState(null);
+  
+  // Instagram Promo state
+  const [instagramTalent, setInstagramTalent] = useState(null);
+  const [imageAnalyses, setImageAnalyses] = useState([]);
+  const [analyzingImages, setAnalyzingImages] = useState(false);
+  const [generatingDesigns, setGeneratingDesigns] = useState(false);
+  const [instagramDesigns, setInstagramDesigns] = useState(null);
+  const [selectedImage1, setSelectedImage1] = useState(0);
+  const [selectedImage2, setSelectedImage2] = useState(1);
 
   // Tab-specific data fetchers
   const fetchPending = async () => {
@@ -170,6 +179,7 @@ const AdminDashboard = () => {
       case 'party': await fetchPartyEvents(); break;
       case 'store': await fetchStoreOrders(); await fetchStoreProducts(); await fetchStoreSettings(); break;
       case 'export': await fetchStoreOrders(); break;
+      case 'instagram': await fetchAllTalents(); break;
       default: break;
     }
     setLoadedTabs(prev => ({...prev, [tabName]: true}));
@@ -530,6 +540,7 @@ const AdminDashboard = () => {
   const tabs = [
     { id: "pending", label: "Pending", icon: Users },
     { id: "talents", label: "All Talents", icon: Star },
+    { id: "instagram", label: "Instagram Promo", icon: Image },
     { id: "analytics", label: "Analytics", icon: BarChart3 },
     { id: "hero", label: "Hero Images", icon: Image },
     { id: "party", label: "Party Updates", icon: Calendar },
@@ -661,6 +672,343 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Instagram Promo Tab */}
+        {tab === "instagram" && (
+          <div className="bg-[#0A1628] rounded-xl p-4 md:p-6 border border-[#D4AF37]/20">
+            <h2 className="text-lg font-bold text-[#F5F5F0] mb-4">Instagram Promotion</h2>
+            <p className="text-[#A0A5B0] text-sm mb-6">Select an approved talent to generate professional Instagram posts.</p>
+            
+            {/* Talent Selection */}
+            <div className="mb-6">
+              <label className="text-[#A0A5B0] text-sm mb-2 block">Select Approved Talent</label>
+              <select 
+                value={instagramTalent?.id || ""} 
+                onChange={async (e) => {
+                  const talent = allTalents.find(t => t.id === e.target.value);
+                  setInstagramTalent(talent);
+                  setImageAnalyses([]);
+                  setInstagramDesigns(null);
+                  if (talent) {
+                    // Fetch full talent data with portfolio
+                    try {
+                      const res = await axios.get(`${API}/talent/${talent.id}`);
+                      setInstagramTalent(res.data);
+                      // Check for existing designs
+                      const designRes = await axios.get(`${API}/instagram/designs/${talent.id}`);
+                      if (designRes.data.designs?.length > 0) {
+                        setInstagramDesigns(designRes.data);
+                      }
+                    } catch (err) { console.error(err); }
+                  }
+                }}
+                className="w-full md:w-96 px-4 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]"
+              >
+                <option value="">-- Select a talent --</option>
+                {allTalents.filter(t => t.is_approved).map(t => (
+                  <option key={t.id} value={t.id}>{t.name} - {t.category}</option>
+                ))}
+              </select>
+            </div>
+            
+            {instagramTalent && (
+              <div className="space-y-6">
+                {/* Talent Info */}
+                <div className="bg-[#050A14] rounded-lg p-4 flex items-center gap-4">
+                  <img src={instagramTalent.profile_image} alt={instagramTalent.name} className="w-20 h-20 rounded-full object-cover border-2 border-[#D4AF37]" />
+                  <div>
+                    <h3 className="text-[#F5F5F0] font-bold text-lg">{instagramTalent.name}</h3>
+                    <p className="text-[#D4AF37]">{instagramTalent.category}</p>
+                    <p className="text-[#A0A5B0] text-sm">@{instagramTalent.instagram_id || "instagram"} • Bangalore, India</p>
+                  </div>
+                </div>
+                
+                {/* Portfolio Images with Analysis */}
+                {instagramTalent.portfolio_images?.length > 0 ? (
+                  <div>
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-[#D4AF37] font-bold">Portfolio Images ({instagramTalent.portfolio_images.length})</h3>
+                      <button 
+                        onClick={async () => {
+                          setAnalyzingImages(true);
+                          try {
+                            const res = await axios.post(`${API}/instagram/analyze-images`, {
+                              talent_id: instagramTalent.id,
+                              images: instagramTalent.portfolio_images
+                            });
+                            setImageAnalyses(res.data.analyses);
+                            setSelectedImage1(res.data.best_image_index);
+                            setSelectedImage2(res.data.second_best_index);
+                            toast({ title: "Images analyzed!", description: "Best photos have been selected." });
+                          } catch (err) {
+                            toast({ title: "Analysis failed", variant: "destructive" });
+                          }
+                          setAnalyzingImages(false);
+                        }}
+                        disabled={analyzingImages}
+                        className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold text-sm disabled:opacity-50"
+                      >
+                        {analyzingImages ? "Analyzing..." : "🤖 AI Analyze Photos"}
+                      </button>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {instagramTalent.portfolio_images.map((img, i) => {
+                        const analysis = imageAnalyses.find(a => a.image_index === i);
+                        const isSelected = selectedImage1 === i || selectedImage2 === i;
+                        return (
+                          <div key={i} className={`relative rounded-lg overflow-hidden border-2 ${isSelected ? 'border-[#D4AF37]' : 'border-transparent'}`}>
+                            <img src={img} alt={`Photo ${i+1}`} className="w-full aspect-[3/4] object-cover" />
+                            {analysis && (
+                              <div className="absolute top-2 right-2 bg-black/70 px-2 py-1 rounded text-xs">
+                                <span className={`font-bold ${analysis.quality_score >= 80 ? 'text-green-400' : analysis.quality_score >= 60 ? 'text-yellow-400' : 'text-red-400'}`}>
+                                  {analysis.quality_score}/100
+                                </span>
+                              </div>
+                            )}
+                            {analysis?.is_recommended && (
+                              <div className="absolute top-2 left-2 bg-[#D4AF37] text-[#050A14] px-2 py-1 rounded text-xs font-bold">
+                                BEST
+                              </div>
+                            )}
+                            <div className="absolute bottom-0 left-0 right-0 bg-black/70 p-2">
+                              <div className="flex gap-2">
+                                <button 
+                                  onClick={() => setSelectedImage1(i)}
+                                  className={`flex-1 px-2 py-1 rounded text-xs ${selectedImage1 === i ? 'bg-[#D4AF37] text-[#050A14]' : 'bg-[#0A1628] text-[#A0A5B0]'}`}
+                                >
+                                  Design 1
+                                </button>
+                                <button 
+                                  onClick={() => setSelectedImage2(i)}
+                                  className={`flex-1 px-2 py-1 rounded text-xs ${selectedImage2 === i ? 'bg-[#D4AF37] text-[#050A14]' : 'bg-[#0A1628] text-[#A0A5B0]'}`}
+                                >
+                                  Design 2
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    
+                    {/* Generate Designs Button */}
+                    <div className="mt-6 text-center">
+                      <button 
+                        onClick={async () => {
+                          setGeneratingDesigns(true);
+                          try {
+                            const res = await axios.post(`${API}/instagram/generate-designs`, {
+                              talent_id: instagramTalent.id,
+                              image1_index: selectedImage1,
+                              image2_index: selectedImage2
+                            });
+                            setInstagramDesigns(res.data);
+                            toast({ title: "Designs generated!", description: "You can now download and use them." });
+                          } catch (err) {
+                            toast({ title: "Generation failed", description: err.response?.data?.detail || "Error", variant: "destructive" });
+                          }
+                          setGeneratingDesigns(false);
+                        }}
+                        disabled={generatingDesigns}
+                        className="px-8 py-3 bg-gradient-to-r from-[#D4AF37] to-[#F5D76E] text-[#050A14] rounded-lg font-bold text-lg disabled:opacity-50"
+                      >
+                        {generatingDesigns ? "Generating..." : "✨ Generate Instagram Designs"}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-[#A0A5B0] text-center py-8">This talent has no portfolio images. Portfolio images are required for Instagram promotion.</p>
+                )}
+                
+                {/* Generated Designs Preview */}
+                {instagramDesigns && (
+                  <div className="mt-8 border-t border-[#D4AF37]/20 pt-6">
+                    <h3 className="text-[#D4AF37] font-bold text-lg mb-4">Generated Designs</h3>
+                    
+                    {/* Feed Posts */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                      {[0, 1].map(idx => (
+                        <div key={idx} className="bg-[#050A14] rounded-lg p-4">
+                          <h4 className="text-[#F5F5F0] font-bold mb-3">Feed Design {idx + 1}</h4>
+                          {/* Instagram Feed Preview */}
+                          <div 
+                            id={`feed-design-${idx}`}
+                            className="relative bg-black rounded-lg overflow-hidden"
+                            style={{ aspectRatio: '4/5', maxWidth: '400px' }}
+                          >
+                            <img 
+                              src={instagramTalent.portfolio_images[idx === 0 ? selectedImage1 : selectedImage2]} 
+                              alt="Design" 
+                              className="w-full h-full object-cover"
+                            />
+                            {/* Overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40">
+                              {/* Top branding */}
+                              <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
+                                <div className="bg-[#D4AF37] text-[#050A14] px-2 py-1 text-xs font-bold rounded">
+                                  VERIFIED TALENT
+                                </div>
+                                <div className="text-white text-right text-xs">
+                                  <div className="font-bold">BANGALORE</div>
+                                  <div>FASHION MAGAZINE</div>
+                                </div>
+                              </div>
+                              {/* Bottom info */}
+                              <div className="absolute bottom-4 left-4 right-4">
+                                <div className="text-[#D4AF37] text-xs uppercase tracking-widest mb-1">{instagramTalent.category}</div>
+                                <div className="text-white text-2xl font-bold mb-1">{instagramTalent.name}</div>
+                                <div className="text-white/80 text-sm">@{instagramTalent.instagram_id || "instagram"}</div>
+                                <div className="text-white/60 text-xs mt-2">www.bangalorefashionmagazine.com</div>
+                              </div>
+                            </div>
+                          </div>
+                          <button 
+                            onClick={() => {
+                              const el = document.getElementById(`feed-design-${idx}`);
+                              import('html2canvas').then(({ default: html2canvas }) => {
+                                html2canvas(el, { scale: 2, useCORS: true }).then(canvas => {
+                                  const link = document.createElement('a');
+                                  link.download = `${instagramTalent.name.replace(/\s+/g, '_')}_feed_${idx + 1}.png`;
+                                  link.href = canvas.toDataURL('image/png');
+                                  link.click();
+                                });
+                              });
+                            }}
+                            className="mt-3 w-full px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold text-sm"
+                          >
+                            Download Feed Image {idx + 1}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {/* Story Posts */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                      {[0, 1].map(idx => (
+                        <div key={idx} className="bg-[#050A14] rounded-lg p-4">
+                          <h4 className="text-[#F5F5F0] font-bold mb-3">Story Design {idx + 1}</h4>
+                          {/* Instagram Story Preview */}
+                          <div 
+                            id={`story-design-${idx}`}
+                            className="relative bg-black rounded-lg overflow-hidden mx-auto"
+                            style={{ aspectRatio: '9/16', maxWidth: '250px' }}
+                          >
+                            <img 
+                              src={instagramTalent.portfolio_images[idx === 0 ? selectedImage1 : selectedImage2]} 
+                              alt="Story Design" 
+                              className="w-full h-full object-cover"
+                            />
+                            {/* Story Overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/60">
+                              {/* Top branding */}
+                              <div className="absolute top-6 left-0 right-0 text-center">
+                                <div className="text-[#D4AF37] text-xs font-bold tracking-widest">BANGALORE FASHION MAGAZINE</div>
+                                <div className="text-white/60 text-[10px] mt-1">www.bangalorefashionmagazine.com</div>
+                              </div>
+                              {/* Verified badge */}
+                              <div className="absolute top-16 left-1/2 transform -translate-x-1/2">
+                                <div className="bg-[#D4AF37] text-[#050A14] px-3 py-1 text-xs font-bold rounded">
+                                  ✓ VERIFIED TALENT
+                                </div>
+                              </div>
+                              {/* Bottom info */}
+                              <div className="absolute bottom-8 left-4 right-4 text-center">
+                                <div className="text-[#D4AF37] text-xs uppercase tracking-widest mb-2">{instagramTalent.category}</div>
+                                <div className="text-white text-xl font-bold mb-1">{instagramTalent.name}</div>
+                                <div className="text-white/80 text-sm">@{instagramTalent.instagram_id || "instagram"}</div>
+                                <div className="text-white/60 text-xs mt-2">📍 Bangalore, India</div>
+                              </div>
+                            </div>
+                          </div>
+                          <button 
+                            onClick={() => {
+                              const el = document.getElementById(`story-design-${idx}`);
+                              import('html2canvas').then(({ default: html2canvas }) => {
+                                html2canvas(el, { scale: 2, useCORS: true }).then(canvas => {
+                                  const link = document.createElement('a');
+                                  link.download = `${instagramTalent.name.replace(/\s+/g, '_')}_story_${idx + 1}.png`;
+                                  link.href = canvas.toDataURL('image/png');
+                                  link.click();
+                                });
+                              });
+                            }}
+                            className="mt-3 w-full px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold text-sm"
+                          >
+                            Download Story {idx + 1}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {/* Caption and Hashtags */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="bg-[#050A14] rounded-lg p-4">
+                        <h4 className="text-[#F5F5F0] font-bold mb-3">Caption</h4>
+                        <textarea 
+                          readOnly 
+                          value={instagramDesigns.caption} 
+                          className="w-full h-40 px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-sm"
+                        />
+                        <button 
+                          onClick={() => {
+                            navigator.clipboard.writeText(instagramDesigns.caption);
+                            toast({ title: "Caption copied!" });
+                          }}
+                          className="mt-3 w-full px-4 py-2 bg-[#0A1628] border border-[#D4AF37] text-[#D4AF37] rounded font-bold text-sm"
+                        >
+                          Copy Caption
+                        </button>
+                      </div>
+                      <div className="bg-[#050A14] rounded-lg p-4">
+                        <h4 className="text-[#F5F5F0] font-bold mb-3">Hashtags</h4>
+                        <textarea 
+                          readOnly 
+                          value={instagramDesigns.hashtags} 
+                          className="w-full h-40 px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-sm"
+                        />
+                        <button 
+                          onClick={() => {
+                            navigator.clipboard.writeText(instagramDesigns.hashtags);
+                            toast({ title: "Hashtags copied!" });
+                          }}
+                          className="mt-3 w-full px-4 py-2 bg-[#0A1628] border border-[#D4AF37] text-[#D4AF37] rounded font-bold text-sm"
+                        >
+                          Copy Hashtags
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {/* Regenerate Button */}
+                    <div className="mt-6 text-center">
+                      <button 
+                        onClick={async () => {
+                          setGeneratingDesigns(true);
+                          try {
+                            const res = await axios.post(`${API}/instagram/generate-designs`, {
+                              talent_id: instagramTalent.id,
+                              image1_index: selectedImage1,
+                              image2_index: selectedImage2
+                            });
+                            setInstagramDesigns(res.data);
+                            toast({ title: "Designs regenerated!" });
+                          } catch (err) {
+                            toast({ title: "Regeneration failed", variant: "destructive" });
+                          }
+                          setGeneratingDesigns(false);
+                        }}
+                        disabled={generatingDesigns}
+                        className="px-6 py-2 bg-[#0A1628] border border-[#D4AF37] text-[#D4AF37] rounded font-bold"
+                      >
+                        🔄 Regenerate Designs
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
