@@ -195,6 +195,14 @@ The database stores old category names. Frontend maps them:
 ## Pending Tasks
 1. Contact Emergent Support about 520 deployment error (live site)
 2. User verification of all features once live site is restored
+3. Componentize `AdminDashboard.jsx` (~1900 lines) into smaller sub-components for maintainability
+
+## Completed Tasks (July 10, 2026)
+- **Instagram Promotion Tool Updates**:
+  - Added BFM Logo to bottom-left of all generated Feed and Story designs
+  - Talent dropdown now shows ALL approved talents (not just recent ones)
+  - BFM Logo sourced from `/app/frontend/src/lib/config.js` export `BFM_LOGO`
+  - Logo styled with gold border (#D4AF37) matching brand aesthetics
 
 ## Completed Tasks (Feb 26, 2026)
 - **Designer Store Hidden from Talents Tab**: Filtered "Designer Store" category from the Talents dropdown menu in both desktop and mobile navigation. Designer Store now has its own separate navigation link and is not mixed with regular talent categories.

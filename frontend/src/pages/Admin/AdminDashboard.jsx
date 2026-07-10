@@ -3,7 +3,7 @@ import axios from "axios";
 import { Users, Star, Award, Image, Download, Check, X, Phone, Mail, Trash2, ExternalLink, Music, Video, Upload, BarChart3, TrendingUp, Eye, MousePointer, ShoppingBag, Package, MapPin, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ImageUploadWithCrop from "@/components/ImageUploadWithCrop";
-import { API, TALENT_CATEGORIES, STORE_CATEGORIES } from "@/lib/config";
+import { API, BFM_LOGO, TALENT_CATEGORIES, STORE_CATEGORIES } from "@/lib/config";
 import { autoCompressImage } from "@/lib/imageOptimization";
 
 const AdminDashboard = () => {
@@ -874,11 +874,15 @@ const AdminDashboard = () => {
                                 </div>
                               </div>
                               {/* Bottom info */}
-                              <div className="absolute bottom-4 left-4 right-4">
-                                <div className="text-[#D4AF37] text-xs uppercase tracking-widest mb-1">{instagramTalent.category}</div>
-                                <div className="text-white text-2xl font-bold mb-1">{instagramTalent.name}</div>
-                                <div className="text-white/80 text-sm">@{instagramTalent.instagram_id || "instagram"}</div>
-                                <div className="text-white/60 text-xs mt-2">www.bangalorefashionmagazine.com</div>
+                              <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
+                                {/* BFM Logo - Bottom Left */}
+                                <img src={BFM_LOGO} alt="BFM" className="w-14 h-14 rounded-full object-cover border-2 border-[#D4AF37]" />
+                                <div className="text-right">
+                                  <div className="text-[#D4AF37] text-xs uppercase tracking-widest mb-1">{instagramTalent.category}</div>
+                                  <div className="text-white text-2xl font-bold mb-1">{instagramTalent.name}</div>
+                                  <div className="text-white/80 text-sm">@{instagramTalent.instagram_id || "instagram"}</div>
+                                  <div className="text-white/60 text-xs mt-2">www.bangalorefashionmagazine.com</div>
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -938,6 +942,8 @@ const AdminDashboard = () => {
                                 <div className="text-white/80 text-sm">@{instagramTalent.instagram_id || "instagram"}</div>
                                 <div className="text-white/60 text-xs mt-2">📍 Bangalore, India</div>
                               </div>
+                              {/* BFM Logo - Bottom Left */}
+                              <img src={BFM_LOGO} alt="BFM" className="absolute bottom-3 left-3 w-10 h-10 rounded-full object-cover border-2 border-[#D4AF37]" />
                             </div>
                           </div>
                           <button 
