@@ -59,6 +59,8 @@ const AdminDashboard = () => {
   const [selectedImage1, setSelectedImage1] = useState(0);
   const [selectedImage2, setSelectedImage2] = useState(1);
   const [talentSearch, setTalentSearch] = useState("");
+  const [customImages, setCustomImages] = useState([]);  // Custom uploaded images for Instagram
+  const [useCustomImages, setUseCustomImages] = useState(false);  // Toggle to use custom images
 
   // Tab-specific data fetchers
   const fetchPending = async () => {
@@ -165,7 +167,8 @@ const AdminDashboard = () => {
 
   // Load data for current tab
   const loadTabData = async (tabName, force = false) => {
-    if (loadedTabs[tabName] && !force) return;
+    // Always force reload for instagram tab to ensure fresh talent list
+    if (loadedTabs[tabName] && !force && tabName !== 'instagram') return;
     
     switch(tabName) {
       case 'pending': await fetchPending(); break;
@@ -180,7 +183,7 @@ const AdminDashboard = () => {
       case 'party': await fetchPartyEvents(); break;
       case 'store': await fetchStoreOrders(); await fetchStoreProducts(); await fetchStoreSettings(); break;
       case 'export': await fetchStoreOrders(); break;
-      case 'instagram': await fetchAllTalents(); break;
+      case 'instagram': await fetchAllTalents(); break;  // Always fetch fresh talent data
       default: break;
     }
     setLoadedTabs(prev => ({...prev, [tabName]: true}));
@@ -743,37 +746,93 @@ const AdminDashboard = () => {
                 </div>
                 
                 {/* Portfolio Images with Analysis */}
-                {instagramTalent.portfolio_images?.length > 0 ? (
+                {instagramTalent.portfolio_images?.length > 0 || customImages.length > 0 ? (
                   <div>
+                    {/* Toggle between Portfolio and Custom Images */}
+                    <div className="flex items-center gap-4 mb-4">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          checked={useCustomImages} 
+                          onChange={(e) => {
+                            setUseCustomImages(e.target.checked);
+                            setSelectedImage1(0);
+                            setSelectedImage2(1);
+                          }}
+                          className="w-4 h-4 accent-[#D4AF37]"
+                        />
+                        <span className="text-[#F5F5F0] text-sm">Use Custom Images</span>
+                      </label>
+                    </div>
+
+                    {/* Custom Image Upload Section */}
+                    {useCustomImages && (
+                      <div className="mb-6 p-4 bg-[#050A14] rounded-lg border border-[#D4AF37]/30">
+                        <h4 className="text-[#D4AF37] font-bold mb-3">Upload Custom Images</h4>
+                        <div className="flex flex-wrap gap-3 mb-3">
+                          {customImages.map((img, i) => (
+                            <div key={i} className="relative">
+                              <img src={img} alt={`Custom ${i+1}`} className="w-20 h-24 object-cover rounded" />
+                              <button 
+                                onClick={() => setCustomImages(prev => prev.filter((_, idx) => idx !== i))}
+                                className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-xs"
+                              >×</button>
+                            </div>
+                          ))}
+                          {customImages.length < 5 && (
+                            <label className="w-20 h-24 border-2 border-dashed border-[#D4AF37]/30 rounded flex items-center justify-center cursor-pointer hover:border-[#D4AF37]">
+                              <input 
+                                type="file" 
+                                accept="image/*" 
+                                className="hidden"
+                                onChange={async (e) => {
+                                  const file = e.target.files[0];
+                                  if (!file) return;
+                                  const compressed = await autoCompressImage(file);
+                                  setCustomImages(prev => [...prev, compressed].slice(0, 5));
+                                }}
+                              />
+                              <span className="text-[#D4AF37] text-2xl">+</span>
+                            </label>
+                          )}
+                        </div>
+                        <p className="text-[#A0A5B0] text-xs">Upload up to 5 custom images for this design</p>
+                      </div>
+                    )}
+
                     <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-[#D4AF37] font-bold">Portfolio Images ({instagramTalent.portfolio_images.length})</h3>
-                      <button 
-                        onClick={async () => {
-                          setAnalyzingImages(true);
-                          try {
-                            const res = await axios.post(`${API}/instagram/analyze-images`, {
-                              talent_id: instagramTalent.id,
-                              images: instagramTalent.portfolio_images
-                            });
-                            setImageAnalyses(res.data.analyses);
-                            setSelectedImage1(res.data.best_image_index);
-                            setSelectedImage2(res.data.second_best_index);
-                            toast({ title: "Images analyzed!", description: "Best photos have been selected." });
-                          } catch (err) {
-                            toast({ title: "Analysis failed", variant: "destructive" });
-                          }
-                          setAnalyzingImages(false);
-                        }}
-                        disabled={analyzingImages}
-                        className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold text-sm disabled:opacity-50"
-                      >
-                        {analyzingImages ? "Analyzing..." : "🤖 AI Analyze Photos"}
-                      </button>
+                      <h3 className="text-[#D4AF37] font-bold">
+                        {useCustomImages ? `Custom Images (${customImages.length})` : `Portfolio Images (${instagramTalent.portfolio_images?.length || 0})`}
+                      </h3>
+                      {!useCustomImages && (
+                        <button 
+                          onClick={async () => {
+                            setAnalyzingImages(true);
+                            try {
+                              const res = await axios.post(`${API}/instagram/analyze-images`, {
+                                talent_id: instagramTalent.id,
+                                images: instagramTalent.portfolio_images
+                              });
+                              setImageAnalyses(res.data.analyses);
+                              setSelectedImage1(res.data.best_image_index);
+                              setSelectedImage2(res.data.second_best_index);
+                              toast({ title: "Images analyzed!", description: "Best photos have been selected." });
+                            } catch (err) {
+                              toast({ title: "Analysis failed", variant: "destructive" });
+                            }
+                            setAnalyzingImages(false);
+                          }}
+                          disabled={analyzingImages}
+                          className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold text-sm disabled:opacity-50"
+                        >
+                          {analyzingImages ? "Analyzing..." : "🤖 AI Analyze Photos"}
+                        </button>
+                      )}
                     </div>
                     
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {instagramTalent.portfolio_images.map((img, i) => {
-                        const analysis = imageAnalyses.find(a => a.image_index === i);
+                      {(useCustomImages ? customImages : (instagramTalent.portfolio_images || [])).map((img, i) => {
+                        const analysis = !useCustomImages ? imageAnalyses.find(a => a.image_index === i) : null;
                         const isSelected = selectedImage1 === i || selectedImage2 === i;
                         return (
                           <div key={i} className={`relative rounded-lg overflow-hidden border-2 ${isSelected ? 'border-[#D4AF37]' : 'border-transparent'}`}>
@@ -837,7 +896,49 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                 ) : (
-                  <p className="text-[#A0A5B0] text-center py-8">This talent has no portfolio images. Portfolio images are required for Instagram promotion.</p>
+                  <div className="text-center py-8">
+                    <p className="text-[#A0A5B0] mb-4">This talent has no portfolio images.</p>
+                    <label className="flex items-center justify-center gap-2 cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        checked={useCustomImages} 
+                        onChange={(e) => setUseCustomImages(e.target.checked)}
+                        className="w-4 h-4 accent-[#D4AF37]"
+                      />
+                      <span className="text-[#D4AF37] text-sm">Upload Custom Images Instead</span>
+                    </label>
+                    {useCustomImages && (
+                      <div className="mt-4 p-4 bg-[#050A14] rounded-lg border border-[#D4AF37]/30 inline-block">
+                        <div className="flex flex-wrap gap-3 justify-center mb-3">
+                          {customImages.map((img, i) => (
+                            <div key={i} className="relative">
+                              <img src={img} alt={`Custom ${i+1}`} className="w-20 h-24 object-cover rounded" />
+                              <button 
+                                onClick={() => setCustomImages(prev => prev.filter((_, idx) => idx !== i))}
+                                className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-xs"
+                              >×</button>
+                            </div>
+                          ))}
+                          {customImages.length < 5 && (
+                            <label className="w-20 h-24 border-2 border-dashed border-[#D4AF37]/30 rounded flex items-center justify-center cursor-pointer hover:border-[#D4AF37]">
+                              <input 
+                                type="file" 
+                                accept="image/*" 
+                                className="hidden"
+                                onChange={async (e) => {
+                                  const file = e.target.files[0];
+                                  if (!file) return;
+                                  const compressed = await autoCompressImage(file);
+                                  setCustomImages(prev => [...prev, compressed].slice(0, 5));
+                                }}
+                              />
+                              <span className="text-[#D4AF37] text-2xl">+</span>
+                            </label>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 )}
                 
                 {/* Generated Designs Preview */}
@@ -847,7 +948,11 @@ const AdminDashboard = () => {
                     
                     {/* Feed Posts */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                      {[0, 1].map(idx => (
+                      {[0, 1].map(idx => {
+                        const imageSource = useCustomImages 
+                          ? customImages[idx === 0 ? selectedImage1 : selectedImage2]
+                          : instagramTalent.portfolio_images?.[idx === 0 ? selectedImage1 : selectedImage2];
+                        return (
                         <div key={idx} className="bg-[#050A14] rounded-lg p-4">
                           <h4 className="text-[#F5F5F0] font-bold mb-3">Feed Design {idx + 1}</h4>
                           {/* Instagram Feed Preview */}
@@ -857,17 +962,14 @@ const AdminDashboard = () => {
                             style={{ aspectRatio: '4/5', maxWidth: '400px' }}
                           >
                             <img 
-                              src={instagramTalent.portfolio_images[idx === 0 ? selectedImage1 : selectedImage2]} 
+                              src={imageSource} 
                               alt="Design" 
                               className="w-full h-full object-cover"
                             />
                             {/* Overlay */}
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40">
                               {/* Top branding */}
-                              <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
-                                <div className="bg-[#D4AF37] text-[#050A14] px-2 py-1 text-xs font-bold rounded">
-                                  VERIFIED TALENT
-                                </div>
+                              <div className="absolute top-4 left-4 right-4 flex justify-end items-start">
                                 <div className="text-white text-right text-xs">
                                   <div className="font-bold">BANGALORE</div>
                                   <div>FASHION MAGAZINE</div>
@@ -903,12 +1005,16 @@ const AdminDashboard = () => {
                             Download Feed Image {idx + 1}
                           </button>
                         </div>
-                      ))}
+                      )})}
                     </div>
                     
                     {/* Story Posts */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                      {[0, 1].map(idx => (
+                      {[0, 1].map(idx => {
+                        const imageSource = useCustomImages 
+                          ? customImages[idx === 0 ? selectedImage1 : selectedImage2]
+                          : instagramTalent.portfolio_images?.[idx === 0 ? selectedImage1 : selectedImage2];
+                        return (
                         <div key={idx} className="bg-[#050A14] rounded-lg p-4">
                           <h4 className="text-[#F5F5F0] font-bold mb-3">Story Design {idx + 1}</h4>
                           {/* Instagram Story Preview */}
@@ -918,7 +1024,7 @@ const AdminDashboard = () => {
                             style={{ aspectRatio: '9/16', maxWidth: '250px' }}
                           >
                             <img 
-                              src={instagramTalent.portfolio_images[idx === 0 ? selectedImage1 : selectedImage2]} 
+                              src={imageSource} 
                               alt="Story Design" 
                               className="w-full h-full object-cover"
                             />
@@ -928,12 +1034,6 @@ const AdminDashboard = () => {
                               <div className="absolute top-6 left-0 right-0 text-center">
                                 <div className="text-[#D4AF37] text-xs font-bold tracking-widest">BANGALORE FASHION MAGAZINE</div>
                                 <div className="text-white/60 text-[10px] mt-1">www.bangalorefashionmagazine.com</div>
-                              </div>
-                              {/* Verified badge */}
-                              <div className="absolute top-16 left-1/2 transform -translate-x-1/2">
-                                <div className="bg-[#D4AF37] text-[#050A14] px-3 py-1 text-xs font-bold rounded">
-                                  ✓ VERIFIED TALENT
-                                </div>
                               </div>
                               {/* Bottom info */}
                               <div className="absolute bottom-8 left-4 right-4 text-center">
@@ -963,7 +1063,7 @@ const AdminDashboard = () => {
                             Download Story {idx + 1}
                           </button>
                         </div>
-                      ))}
+                      )})}
                     </div>
                     
                     {/* Caption and Hashtags */}
