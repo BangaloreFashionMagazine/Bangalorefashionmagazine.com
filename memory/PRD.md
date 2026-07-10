@@ -203,6 +203,11 @@ The database stores old category names. Frontend maps them:
   - Talent dropdown now shows ALL approved talents (not just recent ones)
   - BFM Logo sourced from `/app/frontend/src/lib/config.js` export `BFM_LOGO`
   - Logo styled with gold border (#D4AF37) matching brand aesthetics
+  - **Removed "VERIFIED TALENT" badge** from both Feed and Story designs
+  - **Added custom image upload option**: Toggle checkbox to use custom images instead of portfolio
+  - Upload up to 5 custom images for design generation
+  - Generate button disabled until 2+ images uploaded when using custom mode
+  - Fixed Instagram tab to always reload talent list on entry (no stale data)
 
 ## Completed Tasks (Feb 26, 2026)
 - **Designer Store Hidden from Talents Tab**: Filtered "Designer Store" category from the Talents dropdown menu in both desktop and mobile navigation. Designer Store now has its own separate navigation link and is not mixed with regular talent categories.

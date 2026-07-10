@@ -872,6 +872,9 @@ const AdminDashboard = () => {
                     
                     {/* Generate Designs Button */}
                     <div className="mt-6 text-center">
+                      {useCustomImages && customImages.length < 2 && (
+                        <p className="text-[#A0A5B0] text-sm mb-2">Upload at least 2 custom images to generate designs</p>
+                      )}
                       <button 
                         onClick={async () => {
                           setGeneratingDesigns(true);
@@ -888,7 +891,7 @@ const AdminDashboard = () => {
                           }
                           setGeneratingDesigns(false);
                         }}
-                        disabled={generatingDesigns}
+                        disabled={generatingDesigns || (useCustomImages && customImages.length < 2)}
                         className="px-8 py-3 bg-gradient-to-r from-[#D4AF37] to-[#F5D76E] text-[#050A14] rounded-lg font-bold text-lg disabled:opacity-50"
                       >
                         {generatingDesigns ? "Generating..." : "✨ Generate Instagram Designs"}
