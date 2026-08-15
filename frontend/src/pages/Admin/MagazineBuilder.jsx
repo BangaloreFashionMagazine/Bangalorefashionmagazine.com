@@ -640,7 +640,7 @@ const MagazineBuilder = () => {
                       value={qa.question}
                       onChange={(e) => updateQA(i, "question", e.target.value)}
                       placeholder="Question"
-                      className="bg-[#050A14] border-[#D4AF37]/20 mb-2"
+                      className="bg-[#050A14] border-[#D4AF37]/20 mb-2 text-[#F5F5F0] placeholder:text-[#A0A5B0]/50"
                     />
                     <Textarea 
                       value={qa.answer}
