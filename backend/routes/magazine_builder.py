@@ -60,6 +60,9 @@ def create_magazine_builder_router(db):
         images: MagazineImages
         pages: List[Dict[str, Any]]
         template: str
+        media_library: Optional[List[Dict[str, Any]]] = []
+        master_elements: Optional[Dict[str, List[Dict[str, Any]]]] = {"header": [], "footer": []}
+        master_settings: Optional[Dict[str, Any]] = {"applyTo": "all", "excludedPages": []}
     
     @router.get("/templates")
     async def get_templates():
@@ -641,6 +644,53 @@ def create_magazine_builder_router(db):
         
         # Create magazine document
         magazine_id = str(uuid.uuid4())
+        
+        # Add BFM Logo to all pages (except cover which already has it)
+        logo_element = {
+            "type": "logo",
+            "content": "/bfm-logo.jpeg",
+            "style": {"borderRadius": "50%", "border": f"2px solid {colors['accent']}", "opacity": 0.9},
+            "position": {"x": 3, "y": 3, "width": 8, "height": 7},
+            "locked": False,
+            "visible": True,
+            "name": "BFM Logo"
+        }
+        
+        # Add logo to pages 2-6 (skip cover page 0 which has logo, and back cover which has big logo)
+        for i, page in enumerate(pages):
+            if i > 0 and i < len(pages) - 1:  # Skip first (cover) and last (back cover)
+                # Check if page already has a logo
+                has_logo = any(el.get("type") == "logo" or el.get("name") == "BFM Logo" for el in page.get("elements", []))
+                if not has_logo:
+                    logo_copy = logo_element.copy()
+                    logo_copy["id"] = str(uuid.uuid4())
+                    logo_copy["layer"] = max([el.get("layer", 0) for el in page["elements"]] + [0]) + 1
+                    page["elements"].append(logo_copy)
+        
+        # Default master elements (header with page number, footer with branding)
+        default_master_elements = {
+            "header": [],
+            "footer": [
+                {
+                    "id": str(uuid.uuid4()),
+                    "type": "text",
+                    "content": "BANGALORE FASHION MAGAZINE  •  {{page}}",
+                    "style": {
+                        "fontSize": "8px",
+                        "fontWeight": "400",
+                        "color": colors["accent"],
+                        "textAlign": "center",
+                        "letterSpacing": "2px"
+                    },
+                    "position": {"x": 10, "y": 96, "width": 80, "height": 3},
+                    "layer": 100,
+                    "locked": False,
+                    "visible": True,
+                    "name": "Page Footer"
+                }
+            ]
+        }
+        
         magazine = {
             "id": magazine_id,
             "title": f"{talent.name} - BFM Feature",
@@ -648,6 +698,9 @@ def create_magazine_builder_router(db):
             "images": images.dict(),
             "pages": pages,
             "template": template,
+            "media_library": [],
+            "master_elements": default_master_elements,
+            "master_settings": {"applyTo": "except_cover", "excludedPages": []},
             "created_at": datetime.now(timezone.utc).isoformat(),
             "updated_at": datetime.now(timezone.utc).isoformat(),
             "status": "draft"
@@ -681,6 +734,9 @@ def create_magazine_builder_router(db):
             "images": request.images.dict(),
             "pages": request.pages,
             "template": request.template,
+            "media_library": request.media_library or [],
+            "master_elements": request.master_elements or {"header": [], "footer": []},
+            "master_settings": request.master_settings or {"applyTo": "all", "excludedPages": []},
             "updated_at": datetime.now(timezone.utc).isoformat()
         }
         

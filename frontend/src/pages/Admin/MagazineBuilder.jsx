@@ -1756,7 +1756,13 @@ const MagazineBuilder = () => {
                               contentEditable={selectedElement === el.id && !el.locked && !previewMode}
                               suppressContentEditableWarning
                               onBlur={(e) => updateElement(el.id, { content: e.target.innerText })}
-                              className="w-full h-full overflow-hidden whitespace-pre-wrap outline-none"
+                              onDoubleClick={(e) => {
+                                if (!el.locked && !previewMode) {
+                                  setSelectedElement(el.id);
+                                  e.target.focus();
+                                }
+                              }}
+                              className="w-full h-full overflow-hidden whitespace-pre-wrap outline-none cursor-text"
                               style={{
                                 fontSize: el.style.fontSize,
                                 fontWeight: el.style.fontWeight,
