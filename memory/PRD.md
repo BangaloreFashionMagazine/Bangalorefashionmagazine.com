@@ -62,6 +62,10 @@ Build a comprehensive fashion talent platform for Bangalore Fashion Magazine (BF
 - E2E tested and verified working
 - **Enhanced Back Cover page** with larger logo (50% width), bigger text (38px), tagline, and clearer contact details
 - **New "Featured Partner" page** (Page 6) for cafe/sponsor advertisements with customizable image, name, description, and contact sections
+- **Duplicate Magazine feature** - One-click copy of any magazine with "(Copy)" suffix
+- **Insert Ad Page button** - @ icon in Pages sidebar to add ad pages at any position
+- **Page Reordering** - Up/down arrows on page thumbnails for easy reorganization
+- **AD badge** on page thumbnails to identify advertisement pages
 
 ## API Endpoints
 - `POST /api/magazine-builder/save` - Save magazine state

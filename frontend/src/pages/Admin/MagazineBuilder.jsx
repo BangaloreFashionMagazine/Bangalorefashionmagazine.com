@@ -986,6 +986,134 @@ const MagazineBuilder = () => {
     }
   };
   
+  // Duplicate Magazine function
+  const duplicateMagazine = async (magazineId, e) => {
+    e.stopPropagation(); // Prevent card click
+    setLoading(true);
+    try {
+      // Use the dedicated duplicate endpoint
+      await axios.post(`${API}/magazine-builder/${magazineId}/duplicate`);
+      toast({ title: "Magazine duplicated successfully!" });
+      loadMagazines();
+    } catch (err) {
+      console.error("Duplicate error:", err);
+      toast({ title: "Failed to duplicate magazine", variant: "destructive" });
+    }
+    setLoading(false);
+  };
+  
+  // Insert Ad Page function
+  const insertAdPage = (afterIndex = currentPageIndex) => {
+    const colors = TEMPLATES.find(t => t.id === selectedTemplate)?.colors || { bg: "#000000", accent: "#D4AF37" };
+    
+    const adPage = {
+      id: `page_ad_${Date.now()}`,
+      name: "Advertisement",
+      page_type: "advertisement",
+      background: { type: "solid", color: colors.bg },
+      elements: [
+        {
+          id: `el_${Date.now()}_1`,
+          type: "text",
+          content: "FEATURED PARTNER",
+          style: {
+            fontSize: "14px",
+            fontWeight: "600",
+            color: colors.accent,
+            textAlign: "center",
+            letterSpacing: "4px"
+          },
+          position: { x: 10, y: 5, width: 80, height: 5 },
+          layer: 2,
+          locked: false,
+          visible: true,
+          name: "Section Header"
+        },
+        {
+          id: `el_${Date.now()}_2`,
+          type: "image",
+          content: "",
+          style: { objectFit: "cover", backgroundColor: colors.bg, border: `2px solid ${colors.accent}` },
+          position: { x: 10, y: 12, width: 80, height: 50 },
+          layer: 1,
+          locked: false,
+          visible: true,
+          name: "Ad Image (Upload Your Ad)"
+        },
+        {
+          id: `el_${Date.now()}_3`,
+          type: "text",
+          content: "PARTNER NAME",
+          style: {
+            fontSize: "28px",
+            fontWeight: "700",
+            color: colors.accent,
+            textAlign: "center",
+            letterSpacing: "3px"
+          },
+          position: { x: 10, y: 65, width: 80, height: 8 },
+          layer: 2,
+          locked: false,
+          visible: true,
+          name: "Partner Name"
+        },
+        {
+          id: `el_${Date.now()}_4`,
+          type: "text",
+          content: "Add partner description here. Click to edit.",
+          style: {
+            fontSize: "12px",
+            fontWeight: "400",
+            color: "#FFFFFF",
+            textAlign: "center",
+            lineHeight: "1.6"
+          },
+          position: { x: 10, y: 75, width: 80, height: 10 },
+          layer: 2,
+          locked: false,
+          visible: true,
+          name: "Partner Description"
+        },
+        {
+          id: `el_${Date.now()}_5`,
+          type: "text",
+          content: "www.partner.com | @partner",
+          style: {
+            fontSize: "11px",
+            fontWeight: "500",
+            color: colors.accent,
+            textAlign: "center"
+          },
+          position: { x: 15, y: 87, width: 70, height: 4 },
+          layer: 2,
+          locked: false,
+          visible: true,
+          name: "Partner Contact"
+        }
+      ]
+    };
+    
+    const newPages = [...pages];
+    newPages.splice(afterIndex + 1, 0, adPage);
+    setPages(newPages);
+    setCurrentPageIndex(afterIndex + 1);
+    saveToHistory(newPages);
+    setHasUnsavedChanges(true);
+    toast({ title: "Ad page inserted!" });
+  };
+  
+  // Move page by drag (for reordering)
+  const movePageToIndex = (fromIndex, toIndex) => {
+    if (fromIndex === toIndex) return;
+    const newPages = [...pages];
+    const [movedPage] = newPages.splice(fromIndex, 1);
+    newPages.splice(toIndex, 0, movedPage);
+    setPages(newPages);
+    setCurrentPageIndex(toIndex);
+    saveToHistory(newPages);
+    setHasUnsavedChanges(true);
+  };
+  
   // Drag and drop handlers
   const handleMouseDown = (e, elementId, handle = null) => {
     e.stopPropagation();
@@ -1213,14 +1341,25 @@ const MagazineBuilder = () => {
                     onClick={() => loadMagazine(mag.id)}
                     data-testid={`magazine-card-${mag.id}`}
                   >
-                    <button
-                      onClick={(e) => deleteMagazine(mag.id, e)}
-                      className="absolute top-2 right-2 p-1.5 bg-red-500/20 hover:bg-red-500 rounded text-red-400 hover:text-white opacity-0 group-hover:opacity-100 transition-all"
-                      title="Delete Magazine"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                    <h3 className="text-[#F5F5F0] font-bold pr-8">{mag.title}</h3>
+                    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                      <button
+                        onClick={(e) => duplicateMagazine(mag.id, e)}
+                        className="p-1.5 bg-[#D4AF37]/20 hover:bg-[#D4AF37] rounded text-[#D4AF37] hover:text-[#050A14]"
+                        title="Duplicate Magazine"
+                        data-testid={`duplicate-magazine-${mag.id}`}
+                      >
+                        <Copy size={14} />
+                      </button>
+                      <button
+                        onClick={(e) => deleteMagazine(mag.id, e)}
+                        className="p-1.5 bg-red-500/20 hover:bg-red-500 rounded text-red-400 hover:text-white"
+                        title="Delete Magazine"
+                        data-testid={`delete-magazine-${mag.id}`}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                    <h3 className="text-[#F5F5F0] font-bold pr-16">{mag.title}</h3>
                     <p className="text-[#A0A5B0] text-sm">{mag.talent?.category}</p>
                     <p className="text-[#A0A5B0] text-xs mt-2">{mag.pages?.length || 0} pages</p>
                     <p className="text-[#D4AF37] text-xs">Template: {mag.template}</p>
@@ -1563,24 +1702,58 @@ const MagazineBuilder = () => {
             <div className="w-44 bg-[#0A1628] rounded-lg p-2 overflow-y-auto flex-shrink-0">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-[#A0A5B0] text-xs uppercase tracking-wider">Pages</span>
-                <button onClick={addPage} className="text-[#D4AF37] hover:text-[#F5D76E]" title="Add Page">
-                  <Plus size={16} />
-                </button>
+                <div className="flex gap-1">
+                  <button 
+                    onClick={() => insertAdPage()} 
+                    className="text-[#D4AF37] hover:text-[#F5D76E] p-0.5" 
+                    title="Insert Ad Page"
+                    data-testid="insert-ad-page-btn"
+                  >
+                    <AtSign size={14} />
+                  </button>
+                  <button onClick={addPage} className="text-[#D4AF37] hover:text-[#F5D76E] p-0.5" title="Add Page">
+                    <Plus size={16} />
+                  </button>
+                </div>
               </div>
-              <div className="space-y-2">
+              <div className="flex-1 overflow-y-auto space-y-3" data-testid="pages-panel">
                 {pages.map((page, i) => (
                   <div 
                     key={page.id}
-                    onClick={() => setCurrentPageIndex(i)}
-                    className={`cursor-pointer rounded border-2 transition-all ${
+                    className={`cursor-pointer rounded-lg border-2 transition-all relative group ${
                       i === currentPageIndex ? 'border-[#D4AF37]' : 'border-transparent hover:border-[#D4AF37]/30'
                     }`}
                   >
+                    {/* Page Reorder Buttons */}
+                    <div className="absolute -left-1 top-1/2 -translate-y-1/2 flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-all z-10">
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); movePage(-1); setCurrentPageIndex(i); }}
+                        disabled={i === 0}
+                        className="p-0.5 bg-[#0A1628] border border-[#D4AF37]/30 rounded text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#050A14] disabled:opacity-30"
+                        title="Move Up"
+                      >
+                        <ChevronUp size={10} />
+                      </button>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); movePage(1); setCurrentPageIndex(i); }}
+                        disabled={i === pages.length - 1}
+                        className="p-0.5 bg-[#0A1628] border border-[#D4AF37]/30 rounded text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#050A14] disabled:opacity-30"
+                        title="Move Down"
+                      >
+                        <ChevronDown size={10} />
+                      </button>
+                    </div>
+                    
                     <div 
+                      onClick={() => setCurrentPageIndex(i)}
                       className="aspect-[3/4] rounded flex items-center justify-center text-xs relative"
                       style={{ backgroundColor: page.background?.color || '#000' }}
                     >
                       <span className="text-white/60 text-lg font-bold">{i + 1}</span>
+                      {/* Page type indicator */}
+                      {page.page_type === 'advertisement' && (
+                        <span className="absolute top-1 right-1 text-[8px] bg-[#D4AF37] text-[#050A14] px-1 rounded">AD</span>
+                      )}
                     </div>
                     <p className="text-[#A0A5B0] text-[9px] text-center py-1 truncate px-1">{page.name}</p>
                   </div>
