@@ -180,7 +180,14 @@ const MagazineBuilder = () => {
   // Media Library functions
   const addToMediaLibrary = async (file) => {
     try {
-      const compressed = await autoCompressImage(file);
+      // Convert file to base64 first
+      const base64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const compressed = await autoCompressImage(base64);
       const newMedia = {
         id: `media_${Date.now()}`,
         url: compressed,
@@ -189,8 +196,10 @@ const MagazineBuilder = () => {
       };
       setMediaLibrary(prev => [...prev, newMedia]);
       setHasUnsavedChanges(true);
+      toast({ title: "Image added to library!" });
       return newMedia;
     } catch (err) {
+      console.error("Media library error:", err);
       toast({ title: "Failed to add image", variant: "destructive" });
       return null;
     }
@@ -286,7 +295,15 @@ const MagazineBuilder = () => {
     try {
       const processedImages = await Promise.all(
         files.map(async (file) => {
-          return await autoCompressImage(file);
+          // Convert file to base64 first
+          const base64 = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+          // Then compress
+          return await autoCompressImage(base64);
         })
       );
       
@@ -298,8 +315,10 @@ const MagazineBuilder = () => {
       } else {
         setImages(prev => ({ ...prev, [field]: processedImages[0] }));
       }
+      toast({ title: "Image uploaded successfully!" });
     } catch (err) {
-      toast({ title: "Upload failed", variant: "destructive" });
+      console.error("Upload error:", err);
+      toast({ title: "Upload failed", description: err.message, variant: "destructive" });
     }
   };
   
@@ -1929,8 +1948,15 @@ const MagazineBuilder = () => {
                             onChange={async (e) => {
                               const file = e.target.files[0];
                               if (file) {
-                                const compressed = await autoCompressImage(file);
+                                const base64 = await new Promise((resolve, reject) => {
+                                  const reader = new FileReader();
+                                  reader.onload = () => resolve(reader.result);
+                                  reader.onerror = reject;
+                                  reader.readAsDataURL(file);
+                                });
+                                const compressed = await autoCompressImage(base64);
                                 updatePageBackground({ image: compressed, type: 'image' });
+                                toast({ title: "Background image added!" });
                               }
                             }}
                           />
@@ -2070,8 +2096,15 @@ const MagazineBuilder = () => {
                                   onChange={async (e) => {
                                     const file = e.target.files[0];
                                     if (file) {
-                                      const compressed = await autoCompressImage(file);
+                                      const base64 = await new Promise((resolve, reject) => {
+                                        const reader = new FileReader();
+                                        reader.onload = () => resolve(reader.result);
+                                        reader.onerror = reject;
+                                        reader.readAsDataURL(file);
+                                      });
+                                      const compressed = await autoCompressImage(base64);
                                       updateElement(selectedEl.id, { content: compressed });
+                                      toast({ title: "Image replaced!" });
                                     }
                                   }}
                                 />
