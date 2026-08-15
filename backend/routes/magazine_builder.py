@@ -152,13 +152,13 @@ def create_magazine_builder_router(db):
                     "type": "text",
                     "content": "BANGALORE FASHION MAGAZINE",
                     "style": {
-                        "fontSize": "14px",
+                        "fontSize": "12px",
                         "fontWeight": "400",
                         "color": colors["accent"],
-                        "letterSpacing": "4px",
+                        "letterSpacing": "3px",
                         "textAlign": "center"
                     },
-                    "position": {"x": 20, "y": 5, "width": 60, "height": 5},
+                    "position": {"x": 18, "y": 6, "width": 75, "height": 6},
                     "layer": 4,
                     "locked": False,
                     "visible": True,

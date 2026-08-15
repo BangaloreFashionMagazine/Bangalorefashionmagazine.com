@@ -1,7 +1,7 @@
 # Bangalore Fashion Magazine - Product Requirements Document
 
 ## Overview
-A full-stack web application for a fashion magazine featuring talent profiles, contest winners, party updates, and comprehensive admin management.
+A full-stack web application for a fashion magazine featuring talent profiles, contest winners, party updates, comprehensive admin management, and a professional magazine publishing system.
 
 ## Tech Stack
 - **Frontend:** React with Tailwind CSS
@@ -51,19 +51,10 @@ A full-stack web application for a fashion magazine featuring talent profiles, c
      - Accessories Room (Accessories)
    - Browse fashion products filtered by category
    - Filter by designer
-   - **Discount Feature:**
-     - Discount badge on top-right corner of product images (e.g., "20% OFF")
-     - Discounted price shown with original price strikethrough
-     - Both Admin and Designers can set discounts (0-100%)
-   - Product detail modal with:
-     - Multiple images (up to 5)
-     - Product video (max 45 seconds)
-     - Size, material, shipping info
-     - Customer reviews with star ratings
-   - Buy Now flow (offline payment):
-     - Customer name, email, phone, address
-     - Order submission with confirmation
-   - Write product reviews (anyone can review)
+   - Discount Feature with badges
+   - Product detail modal with multiple images and video
+   - Buy Now flow (offline payment)
+   - Customer reviews with star ratings
 
 ### Admin Features
 1. **Talent Management**
@@ -83,25 +74,111 @@ A full-stack web application for a fashion magazine featuring talent profiles, c
    - Background music
    - Featured video
 
-3. **Analytics Tab** (New)
+3. **Analytics Tab**
    - Site traffic tracking
    - Popular profiles
    - Event views
 
-4. **CSV Export** (New)
+4. **CSV Export**
    - Analytics reports
    - Talent lists with Instagram IDs
 
-5. **Designer Store Management** (NEW - Dec 2025)
+5. **Designer Store Management**
    - Store hero images (up to 5)
    - Contact info (email, phone, Instagram)
    - Add/edit/delete products
    - View all orders with customer details
-   - Update order status (pending → confirmed → shipped → delivered → cancelled)
+   - Update order status
 
-### Talent Dashboard Features (Designer Store category only)
-- My Products section (up to 10 products per designer)
-- Add/delete products with multiple images (up to 5)
+6. **Instagram Promo Tool**
+   - BFM Logo on all generated images
+   - Fetch all approved talents
+   - Custom image upload support
+   - Feed and Story format generation
+
+7. **BFM Magazine Builder** (COMPLETED - Aug 2026 - Full Canva-like Editor)
+   - **3-Step Creation Wizard:**
+     - Step 1: Talent Details (name, category, headline, intro, bio, career journey, achievements, specialization, location, Instagram, website, interview Q&A)
+     - Step 2: Image Upload (cover, profile, portfolio up to 10)
+     - Step 3: Template Selection (3 templates: Black & Gold, Editorial, Dark Luxury)
+   
+   - **Visual Editor Features:**
+     - Drag-and-drop elements on canvas
+     - Resize handles (8-point: corners + edges)
+     - Element selection with golden ring highlight
+     - Undo/Redo with 50-state history
+     - Keyboard shortcuts (Ctrl+Z, Ctrl+Shift+Z, Ctrl+C, Ctrl+V, Ctrl+D, Delete, Escape)
+   
+   - **Element Tools:**
+     - Add Text (with 10 font families: Playfair Display, Lato, Montserrat, Cormorant, Oswald, Roboto, Open Sans, Poppins, Dancing Script, Great Vibes)
+     - Add Image
+     - Add Rectangle
+     - Add Circle
+     - Add Line/Divider
+     - Copy/Paste/Duplicate elements
+     - Bring to Front / Send to Back
+     - Lock/Unlock elements
+     - Show/Hide elements
+     - Delete elements
+   
+   - **Properties Panel (Text):**
+     - Font family dropdown
+     - Font size
+     - Color picker
+     - Bold, Italic, Underline toggles
+     - Text alignment (Left, Center, Right)
+     - Line height
+     - Letter spacing
+     - Opacity slider
+     - Position controls (X, Y, Width, Height)
+   
+   - **Properties Panel (Shape):**
+     - Background color picker
+     - Border radius
+     - Opacity slider
+     - Position controls
+   
+   - **Properties Panel (Image):**
+     - Replace image upload
+     - Object fit (Cover, Contain, Fill)
+     - Border radius
+     - Opacity slider
+     - Position controls
+   
+   - **Page Management:**
+     - 10 Page Templates:
+       1. Blank Page
+       2. Cover Page
+       3. Profile Page
+       4. Photo Grid (6 images)
+       5. Two Column
+       6. Interview
+       7. Full Bleed Image
+       8. Quote Page
+       9. Full Page Ad
+       10. Half Page Ad
+     - Add/Delete/Duplicate pages
+     - Reorder pages (Move Up/Down)
+     - Page background color and image
+   
+   - **View Controls:**
+     - Grid toggle with snap-to-grid (5% grid)
+     - Layers panel with visibility/lock controls
+     - Preview mode
+     - Zoom controls (50% to 200%)
+   
+   - **Export Options:**
+     - Save to database
+     - Export to PDF (high quality A4)
+     - Instagram Export (Portrait 1080x1350, Square 1080x1080, Story 1080x1920)
+   
+   - **Backend API:**
+     - `POST /api/magazine-builder/generate` - Generate magazine pages
+     - `GET /api/magazine-builder/list` - List all magazines
+     - `GET /api/magazine-builder/{id}` - Get specific magazine
+     - `PUT /api/magazine-builder/{id}` - Update magazine
+     - `DELETE /api/magazine-builder/{id}` - Delete magazine
+     - `POST /api/magazine-builder/{id}/duplicate` - Duplicate magazine
 
 ## UI/UX Design (Dec 2025 Update)
 
@@ -115,12 +192,6 @@ A full-stack web application for a fashion magazine featuring talent profiles, c
 - Headings: Playfair Display (serif)
 - Body text: Lato (sans-serif)
 
-### Talent Cards
-- Reduced overlay darkness (70% opacity gradient)
-- Increased name font weight with tracking
-- Gold divider line under name
-- Smaller, more subtle votes and Vote button
-
 ## Key API Endpoints
 - `POST /api/talent/login` - Talent authentication
 - `POST /api/auth/login` - Admin authentication
@@ -128,25 +199,22 @@ A full-stack web application for a fashion magazine featuring talent profiles, c
 - `GET /api/admin/party-events` - List party events
 - `DELETE /api/admin/party-events/{id}` - Delete party event
 - `GET /api/awards` - Get contest winners
-- `POST /api/admin/awards` - Create contest winner (with talent_id for linking)
+- `POST /api/admin/awards` - Create contest winner
 - `POST /api/track` - Log user interaction event
 - `GET /api/analytics/stats` - Get aggregated analytics
 - `GET /api/analytics/export` - Export analytics CSV
 - `GET /api/admin/talents/export` - Export talents CSV
 
-### Designer Store API Endpoints (NEW - Dec 2025)
+### Designer Store API Endpoints
 - `GET /api/store/settings` - Get store settings
-- `PUT /api/store/settings` - Update store settings (hero images, contact info)
+- `PUT /api/store/settings` - Update store settings
 - `GET /api/store/products` - List products
-- `POST /api/store/products` - Create product (requires designer_id)
+- `POST /api/store/products` - Create product
 - `PUT /api/store/products/{id}` - Update product
 - `DELETE /api/store/products/{id}` - Delete product
 - `GET /api/store/orders` - List orders
-- `POST /api/store/orders` - Create order (customer details)
+- `POST /api/store/orders` - Create order
 - `PUT /api/store/orders/{id}/status` - Update order status
-- `GET /api/store/designers` - List designers with products
-- `POST /api/store/reviews` - Create product review
-- `GET /api/store/reviews/{product_id}` - Get product reviews
 
 ## Category Mapping (Backend Compatibility)
 The database stores old category names. Frontend maps them:
@@ -157,32 +225,45 @@ The database stores old category names. Frontend maps them:
 - "Event Management" → "Experiences"
 - "Other" → "Creative Collective"
 
-## Recent Updates (Dec 2025)
-- Complete UI/UX redesign with new color theme
-- New typography (Playfair Display + Lato)
-- Redesigned talent cards with gold dividers
-- Renamed all talent categories across the app
-- Added category mapping for backward compatibility
-- **Designer Store Feature** (COMPLETED - Dec 26, 2025):
-  - Full e-commerce functionality with offline payment
-  - Backend: Products, Orders, Reviews, Settings APIs
-  - Frontend: Designer Store page, Product detail modal, Order form, Reviews
-  - Admin: Complete store management with hero images, products, orders
-  - Talent Dashboard: "My Products" section for Designer Store category designers
-  - Tested: 100% backend (15/15 tests), 100% frontend verification
-- **Discount Feature** (Dec 26, 2025):
-  - Discount badge on top-right corner (red "X% OFF")
-  - Price display: Discounted + Original with strikethrough
-  - Both Admin & Designers can set discounts (0-100%)
-- **Code Refactoring** (Dec 26, 2025):
-  - Extracted DesignerStorePage to `/app/frontend/src/pages/DesignerStorePage.jsx`
-  - Created shared config at `/app/frontend/src/lib/config.js`
-  - App.js reduced from ~4100 to ~3600 lines
-- **Image Optimization** (Dec 26, 2025):
-  - Created `/app/frontend/src/lib/imageOptimization.js` utility
-  - Auto-compress images on upload (max 500KB)
-  - Resize to max 1200x1200 pixels
-  - Updated ImageUploadWithCrop component with optimization
+## Recent Updates
+
+### August 2026 - BFM Magazine Builder Complete
+- **Full Canva-like Visual Editor:**
+  - Drag-and-drop element positioning
+  - 8-point resize handles for all elements
+  - 10 font families for text styling
+  - Complete properties panel (font, size, color, alignment, opacity, position)
+  - 10 pre-designed page templates
+  - Grid toggle with snap-to-grid
+  - Layers panel with visibility/lock
+  - Preview mode
+  - Zoom controls (50-200%)
+  - Copy/Paste/Duplicate elements
+  - Bring to Front/Send to Back layer ordering
+  - Keyboard shortcuts support
+  - PDF export (A4 high quality)
+  - Instagram export (3 formats)
+  - Save/Load magazines from database
+  - Added data-testid attributes for testing
+
+### July 2026 - Instagram Promo & Image Fixes
+- Added BFM Logo to Instagram designs
+- Talent dropdown shows all approved talents
+- Custom image upload for Instagram promo
+- Fixed sponsored image clicks (modal instead of refresh)
+- Party/Ad images upload without cropping
+
+### February 2026 - Code Refactoring
+- Extracted AdminDashboard (~1650 lines)
+- Extracted TalentDashboard (~470 lines)
+- Added image optimization integration
+- Fixed video duration validation
+
+### December 2025 - Designer Store & UI Redesign
+- Complete e-commerce functionality
+- Full UI/UX redesign
+- New typography and color theme
+- Discount feature for products
 
 ## Known Issues
 - **CRITICAL**: Live site deployment (520 error) - Infrastructure issue requiring Emergent Support
@@ -190,84 +271,24 @@ The database stores old category names. Frontend maps them:
 
 ## Admin Credentials (Preview Environment)
 - Email: admin@bangalorefashionmag.com
-- Password: Admin@123BFM
+- Password: Rilrocky@9295BFM
+
+## Files Structure
+
+### New Files (Magazine Builder)
+- `/app/frontend/src/pages/Admin/MagazineBuilder.jsx` - Complete visual editor (~1870 lines)
+- `/app/backend/routes/magazine_builder.py` - Backend CRUD and generation routes
+
+### Modified Files
+- `/app/frontend/src/pages/Admin/AdminDashboard.jsx` - Added Magazine Builder tab
+- `/app/backend/server.py` - Added magazine_builder router
 
 ## Pending Tasks
 1. Contact Emergent Support about 520 deployment error (live site)
-2. User verification of all features once live site is restored
-3. Componentize `AdminDashboard.jsx` (~1900 lines) into smaller sub-components for maintainability
+2. Consider refactoring MagazineBuilder.jsx into smaller components (Toolbar, LayersPanel, PropertiesPanel, Canvas)
+3. User verification of Magazine Builder features on live site
 
-## Completed Tasks (July 10, 2026)
-- **Instagram Promotion Tool Updates**:
-  - Added BFM Logo to bottom-left of all generated Feed and Story designs
-  - Talent dropdown now shows ALL approved talents (not just recent ones)
-  - BFM Logo sourced from `/app/frontend/src/lib/config.js` export `BFM_LOGO`
-  - Logo styled with gold border (#D4AF37) matching brand aesthetics
-  - **Removed "VERIFIED TALENT" badge** from both Feed and Story designs
-  - **Added custom image upload option**: Toggle checkbox to use custom images instead of portfolio
-  - Upload up to 5 custom images for design generation
-  - Generate button disabled until 2+ images uploaded when using custom mode
-  - Fixed Instagram tab to always reload talent list on entry (no stale data)
-
-- **Party & Sponsored Image Fixes**:
-  - Party images now upload without cropping (skipCrop enabled)
-  - Sponsored/Advertisement images upload without cropping
-  - Clicking sponsored images without links opens enlarged modal instead of page refresh
-
-- **BFM Magazine Builder** (NEW - Phase 1 MVP):
-  - New "Magazine Builder" tab in Admin Dashboard
-  - 3-step wizard: Talent Details → Image Upload → Template Selection
-  - **Talent Details Form**: Name, category, headline, introduction, biography, career journey, achievements, specialization, location, Instagram, website, Interview Q&A (add/remove)
-  - **Image Upload**: Cover image, profile image, portfolio images (up to 10)
-  - **3 Templates**: BFM Black & Gold, BFM Editorial, BFM Dark Luxury
-  - **Auto-generates 7 pages**: Cover, Meet The Talent, The Journey, Portfolio, 10 Questions, BFM Spotlight, Back Cover
-  - **Visual Editor** with:
-    - Page thumbnails sidebar (left)
-    - Layers panel (right) with show/hide, lock/unlock per element
-    - Toolbar: Undo/Redo, Add Text/Image/Shape, Duplicate/Delete/Reorder pages
-    - Element editing: Text (font size, color, bold, italic, alignment), Image (replace, object fit), Position controls
-  - **Export Options**: PDF (high quality), Instagram (Portrait 1080x1350, Square 1080x1080, Story 1080x1920)
-  - Save magazines to database, load and edit existing magazines
-  - Backend: `/app/backend/routes/magazine_builder.py` with full CRUD
-
-## Completed Tasks (Feb 26, 2026)
-- **Designer Store Hidden from Talents Tab**: Filtered "Designer Store" category from the Talents dropdown menu in both desktop and mobile navigation. Designer Store now has its own separate navigation link and is not mixed with regular talent categories.
-- **Major Code Refactoring (App.js)**: Reduced App.js from ~3800 lines to ~1680 lines (56% reduction!)
-  - Extracted AdminDashboard (~1650 lines) to `/app/frontend/src/pages/Admin/AdminDashboard.jsx`
-  - Extracted TalentDashboard + DesignerProductsSection (~470 lines) to `/app/frontend/src/pages/TalentDashboard.jsx`
-  - Added STORE_SUBCATEGORIES to shared config at `/app/frontend/src/lib/config.js`
-- **Image Optimization Integration**: Added `autoCompressImage` to all image upload points:
-  - JoinPage (profile image, portfolio images)
-  - AdminDashboard (hero images, advertisement images)
-  - TalentDashboard (profile image, portfolio images)
-  - ImageUploadWithCrop component (already had it)
-- **Video Duration Validation**: Fixed missing 45-second duration validation for product video uploads in:
-  - TalentDashboard.jsx (DesignerProductsSection)
-  - AdminDashboard.jsx (product management)
-- **Product Category Dropdown**: Added dropdown selector for 4 store categories in Add/Edit Product form:
-  - 👕 Everyday Chic - Casuals
-  - ✨ After Dark - Party
-  - 🪔 Heritage Luxe - Ethnic
-  - 👜 Accessories Room - Accessories
-
-## New Files Created (Refactoring - Feb 2026)
-- `/app/frontend/src/pages/Admin/AdminDashboard.jsx` - Complete admin dashboard with all tabs
-- `/app/frontend/src/pages/TalentDashboard.jsx` - Talent profile dashboard + Designer products section
-
-## New Files Created (Refactoring - Dec 2025)
-- `/app/frontend/src/lib/config.js` - Shared constants (categories, API URL, etc.)
-- `/app/frontend/src/lib/imageOptimization.js` - Image compression utilities
-- `/app/frontend/src/pages/DesignerStorePage.jsx` - Extracted Designer Store page component
-
-## Files Modified (Designer Store Feature - Dec 2025)
-- `/app/backend/services/__init__.py` - Added "Designer Store" to TALENT_CATEGORIES
-- `/app/backend/routes/store.py` - All store API routes
-- `/app/backend/models/__init__.py` - Product, Order, Review, StoreSettings Pydantic models
-- `/app/backend/server.py` - Added store router
-- `/app/frontend/src/App.js` - Designer Store page, Product components, Admin tab, Talent dashboard section
-
-## Files Modified (UI Redesign)
-- `/app/frontend/src/index.css` - Google Fonts import (Playfair Display, Lato)
-- `/app/frontend/src/lib/constants.js` - New category names, mapping functions
-- `/app/frontend/src/components/TalentCard.jsx` - Redesigned card styling
-- `/app/frontend/src/App.js` - Category mapping, TalentCard, TalentDetailModal updates
+## Future Tasks
+1. Add real online payment gateways (Stripe/Razorpay) for Store
+2. Implement Media Library for Magazine Builder
+3. Implement "Master Pages" and automatic page numbering

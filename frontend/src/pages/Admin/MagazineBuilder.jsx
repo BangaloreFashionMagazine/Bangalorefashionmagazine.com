@@ -8,7 +8,9 @@ import {
   Plus, Trash2, Copy, ChevronUp, ChevronDown, Download, Eye, 
   Type, Image, Square, Circle, Layers, Move, RotateCcw, RotateCw,
   Bold, Italic, AlignLeft, AlignCenter, AlignRight, Palette,
-  Lock, Unlock, EyeOff, ChevronLeft, ChevronRight, Save, FileDown
+  Lock, Unlock, EyeOff, ChevronLeft, ChevronRight, Save, FileDown,
+  Minus, Grid, ZoomIn, ZoomOut, Maximize, Minimize, Underline,
+  GripVertical, LayoutGrid, ImagePlus, Clipboard, ClipboardCopy
 } from "lucide-react";
 import { API } from "@/lib/config";
 import { autoCompressImage } from "@/lib/imageOptimization";
@@ -25,9 +27,35 @@ const TEMPLATES = [
   { id: "dark_luxury", name: "BFM Dark Luxury", description: "Dramatic dark backgrounds", colors: { bg: "#0A0A0A", accent: "#D4AF37" } }
 ];
 
+const FONT_FAMILIES = [
+  { name: "Playfair Display", value: "'Playfair Display', serif" },
+  { name: "Lato", value: "'Lato', sans-serif" },
+  { name: "Montserrat", value: "'Montserrat', sans-serif" },
+  { name: "Cormorant", value: "'Cormorant Garamond', serif" },
+  { name: "Oswald", value: "'Oswald', sans-serif" },
+  { name: "Roboto", value: "'Roboto', sans-serif" },
+  { name: "Open Sans", value: "'Open Sans', sans-serif" },
+  { name: "Poppins", value: "'Poppins', sans-serif" },
+  { name: "Dancing Script", value: "'Dancing Script', cursive" },
+  { name: "Great Vibes", value: "'Great Vibes', cursive" }
+];
+
+const PAGE_TEMPLATES = [
+  { id: "blank", name: "Blank Page", icon: "□" },
+  { id: "cover", name: "Cover Page", icon: "📰" },
+  { id: "profile", name: "Profile Page", icon: "👤" },
+  { id: "portfolio_grid", name: "Photo Grid (6)", icon: "🖼" },
+  { id: "portfolio_2col", name: "Two Column", icon: "▯▯" },
+  { id: "interview", name: "Interview", icon: "💬" },
+  { id: "full_bleed", name: "Full Bleed Image", icon: "🌄" },
+  { id: "quote", name: "Quote Page", icon: "❝" },
+  { id: "ad_full", name: "Full Page Ad", icon: "📢" },
+  { id: "ad_half", name: "Half Page Ad", icon: "📋" }
+];
+
 const MagazineBuilder = () => {
   const { toast } = useToast();
-  const [step, setStep] = useState(1); // 1: Create, 2: Details, 3: Images, 4: Template, 5: Editor
+  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [magazines, setMagazines] = useState([]);
   const [currentMagazine, setCurrentMagazine] = useState(null);
@@ -66,11 +94,23 @@ const MagazineBuilder = () => {
   const [pages, setPages] = useState([]);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [selectedElement, setSelectedElement] = useState(null);
+  const [selectedElements, setSelectedElements] = useState([]);
   const [history, setHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [showLayers, setShowLayers] = useState(true);
   const [previewMode, setPreviewMode] = useState(false);
   const [zoom, setZoom] = useState(100);
+  const [showGrid, setShowGrid] = useState(false);
+  const [snapToGrid, setSnapToGrid] = useState(true);
+  const [gridSize, setGridSize] = useState(5);
+  const [clipboard, setClipboard] = useState(null);
+  const [showPageTemplates, setShowPageTemplates] = useState(false);
+  
+  // Drag state
+  const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [resizeHandle, setResizeHandle] = useState(null);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0, elX: 0, elY: 0, elW: 0, elH: 0 });
   
   const editorRef = useRef(null);
   const pageRef = useRef(null);
@@ -78,6 +118,15 @@ const MagazineBuilder = () => {
   // Load magazines on mount
   useEffect(() => {
     loadMagazines();
+  }, []);
+  
+  // Load Google Fonts for Magazine
+  useEffect(() => {
+    const link = document.createElement('link');
+    link.href = 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Dancing+Script:wght@400;700&family=Great+Vibes&family=Montserrat:wght@300;400;600;700&family=Oswald:wght@300;400;600;700&family=Poppins:wght@300;400;600;700&display=swap';
+    link.rel = 'stylesheet';
+    document.head.appendChild(link);
+    return () => document.head.removeChild(link);
   }, []);
   
   const loadMagazines = async () => {
@@ -165,7 +214,7 @@ const MagazineBuilder = () => {
   const saveToHistory = (newPages) => {
     const newHistory = history.slice(0, historyIndex + 1);
     newHistory.push(JSON.stringify(newPages));
-    setHistory(newHistory.slice(-50)); // Keep last 50 states
+    setHistory(newHistory.slice(-50));
     setHistoryIndex(newHistory.length - 1);
   };
   
@@ -211,7 +260,7 @@ const MagazineBuilder = () => {
     saveToHistory(newPages);
   };
   
-  const updateElementPosition = (elementId, positionUpdates) => {
+  const updateElementPosition = (elementId, positionUpdates, saveHistory = true) => {
     const newPages = pages.map((page, pIdx) => {
       if (pIdx !== currentPageIndex) return page;
       return {
@@ -222,6 +271,7 @@ const MagazineBuilder = () => {
       };
     });
     setPages(newPages);
+    if (saveHistory) saveToHistory(newPages);
   };
   
   const deleteElement = (elementId) => {
@@ -237,21 +287,52 @@ const MagazineBuilder = () => {
     saveToHistory(newPages);
   };
   
-  const addElement = (type) => {
+  const copyElement = () => {
+    if (!selectedElement) return;
+    const el = currentElements.find(e => e.id === selectedElement);
+    if (el) {
+      setClipboard(JSON.parse(JSON.stringify(el)));
+      toast({ title: "Element copied" });
+    }
+  };
+  
+  const pasteElement = () => {
+    if (!clipboard) return;
     const newElement = {
+      ...clipboard,
       id: `el_${Date.now()}`,
-      type,
-      content: type === "text" ? "New Text" : type === "image" ? "" : "rectangle",
-      style: type === "text" 
-        ? { fontSize: "16px", fontWeight: "400", color: "#FFFFFF", textAlign: "left" }
-        : type === "shape" 
-        ? { backgroundColor: "#D4AF37" }
-        : {},
-      position: { x: 10, y: 10, width: 30, height: type === "text" ? 10 : 20 },
-      layer: pages[currentPageIndex].elements.length,
-      locked: false,
-      visible: true,
-      name: `New ${type}`
+      position: {
+        ...clipboard.position,
+        x: clipboard.position.x + 2,
+        y: clipboard.position.y + 2
+      },
+      name: `${clipboard.name} (Copy)`
+    };
+    
+    const newPages = pages.map((page, pIdx) => {
+      if (pIdx !== currentPageIndex) return page;
+      return { ...page, elements: [...page.elements, newElement] };
+    });
+    setPages(newPages);
+    setSelectedElement(newElement.id);
+    saveToHistory(newPages);
+    toast({ title: "Element pasted" });
+  };
+  
+  const duplicateElement = () => {
+    if (!selectedElement) return;
+    const el = currentElements.find(e => e.id === selectedElement);
+    if (!el) return;
+    
+    const newElement = {
+      ...JSON.parse(JSON.stringify(el)),
+      id: `el_${Date.now()}`,
+      position: {
+        ...el.position,
+        x: el.position.x + 2,
+        y: el.position.y + 2
+      },
+      name: `${el.name} (Copy)`
     };
     
     const newPages = pages.map((page, pIdx) => {
@@ -263,18 +344,146 @@ const MagazineBuilder = () => {
     saveToHistory(newPages);
   };
   
-  const addPage = () => {
-    const newPage = {
+  const bringToFront = () => {
+    if (!selectedElement) return;
+    const maxLayer = Math.max(...currentElements.map(e => e.layer));
+    updateElement(selectedElement, { layer: maxLayer + 1 });
+  };
+  
+  const sendToBack = () => {
+    if (!selectedElement) return;
+    const minLayer = Math.min(...currentElements.map(e => e.layer));
+    updateElement(selectedElement, { layer: minLayer - 1 });
+  };
+  
+  const addElement = (type, shape = "rectangle") => {
+    const newElement = {
+      id: `el_${Date.now()}`,
+      type,
+      content: type === "text" ? "New Text" : type === "image" ? "" : shape,
+      style: type === "text" 
+        ? { fontSize: "18px", fontWeight: "400", color: "#FFFFFF", textAlign: "left", fontFamily: "'Lato', sans-serif", lineHeight: "1.5", letterSpacing: "0px", opacity: 1 }
+        : type === "shape" 
+        ? { backgroundColor: "#D4AF37", opacity: 1, borderRadius: shape === "circle" ? "50%" : "0px" }
+        : { opacity: 1, objectFit: "cover" },
+      position: { x: 10, y: 10, width: type === "line" ? 50 : 30, height: type === "text" ? 10 : type === "line" ? 1 : 20 },
+      layer: pages[currentPageIndex].elements.length,
+      locked: false,
+      visible: true,
+      name: type === "shape" ? `${shape.charAt(0).toUpperCase() + shape.slice(1)}` : `New ${type}`
+    };
+    
+    const newPages = pages.map((page, pIdx) => {
+      if (pIdx !== currentPageIndex) return page;
+      return { ...page, elements: [...page.elements, newElement] };
+    });
+    setPages(newPages);
+    setSelectedElement(newElement.id);
+    saveToHistory(newPages);
+  };
+  
+  const addPageFromTemplate = (templateId) => {
+    const colors = TEMPLATES.find(t => t.id === selectedTemplate)?.colors || { bg: "#000000", accent: "#D4AF37" };
+    let newPage = {
       id: `page_${Date.now()}`,
-      name: `Page ${pages.length + 1}`,
-      page_type: "custom",
-      background: { type: "solid", color: "#000000" },
+      name: PAGE_TEMPLATES.find(t => t.id === templateId)?.name || "New Page",
+      page_type: templateId,
+      background: { type: "solid", color: colors.bg },
       elements: []
     };
+    
+    // Add elements based on template
+    switch (templateId) {
+      case "cover":
+        newPage.elements = [
+          { id: `el_${Date.now()}_1`, type: "text", content: "COVER TITLE", style: { fontSize: "48px", fontWeight: "700", color: "#FFFFFF", textAlign: "center", fontFamily: "'Playfair Display', serif" }, position: { x: 5, y: 40, width: 90, height: 15 }, layer: 2, locked: false, visible: true, name: "Title" },
+          { id: `el_${Date.now()}_2`, type: "text", content: "Subtitle text here", style: { fontSize: "18px", fontWeight: "400", color: colors.accent, textAlign: "center", letterSpacing: "3px" }, position: { x: 10, y: 55, width: 80, height: 8 }, layer: 2, locked: false, visible: true, name: "Subtitle" }
+        ];
+        break;
+      case "profile":
+        newPage.elements = [
+          { id: `el_${Date.now()}_1`, type: "text", content: "PROFILE", style: { fontSize: "28px", fontWeight: "700", color: colors.accent, textAlign: "center", letterSpacing: "5px" }, position: { x: 5, y: 5, width: 90, height: 8 }, layer: 3, locked: false, visible: true, name: "Section Title" },
+          { id: `el_${Date.now()}_2`, type: "shape", content: "rectangle", style: { backgroundColor: colors.accent, opacity: 0.3 }, position: { x: 5, y: 15, width: 40, height: 60 }, layer: 1, locked: false, visible: true, name: "Image Placeholder" },
+          { id: `el_${Date.now()}_3`, type: "text", content: "Name Here", style: { fontSize: "32px", fontWeight: "700", color: "#FFFFFF" }, position: { x: 50, y: 15, width: 45, height: 10 }, layer: 2, locked: false, visible: true, name: "Name" },
+          { id: `el_${Date.now()}_4`, type: "text", content: "Add your biography text here. Tell your story, share your journey, and let readers know who you are.", style: { fontSize: "14px", color: "#CCCCCC", lineHeight: "1.8", textAlign: "justify" }, position: { x: 50, y: 28, width: 45, height: 47 }, layer: 2, locked: false, visible: true, name: "Bio" }
+        ];
+        break;
+      case "portfolio_grid":
+        newPage.elements = [
+          { id: `el_${Date.now()}_1`, type: "text", content: "PORTFOLIO", style: { fontSize: "28px", fontWeight: "700", color: colors.accent, textAlign: "center", letterSpacing: "5px" }, position: { x: 5, y: 3, width: 90, height: 7 }, layer: 3, locked: false, visible: true, name: "Section Title" }
+        ];
+        // Add 6 image placeholders in a grid
+        for (let i = 0; i < 6; i++) {
+          const row = Math.floor(i / 3);
+          const col = i % 3;
+          newPage.elements.push({
+            id: `el_${Date.now()}_img${i}`,
+            type: "shape",
+            content: "rectangle",
+            style: { backgroundColor: "#1A1A2E", border: "1px dashed " + colors.accent },
+            position: { x: 5 + col * 31, y: 12 + row * 44, width: 29, height: 42 },
+            layer: 1,
+            locked: false,
+            visible: true,
+            name: `Image ${i + 1}`
+          });
+        }
+        break;
+      case "portfolio_2col":
+        newPage.elements = [
+          { id: `el_${Date.now()}_1`, type: "shape", content: "rectangle", style: { backgroundColor: "#1A1A2E", border: "1px dashed " + colors.accent }, position: { x: 3, y: 3, width: 46, height: 94 }, layer: 1, locked: false, visible: true, name: "Left Image" },
+          { id: `el_${Date.now()}_2`, type: "shape", content: "rectangle", style: { backgroundColor: "#1A1A2E", border: "1px dashed " + colors.accent }, position: { x: 51, y: 3, width: 46, height: 94 }, layer: 1, locked: false, visible: true, name: "Right Image" }
+        ];
+        break;
+      case "interview":
+        newPage.elements = [
+          { id: `el_${Date.now()}_1`, type: "text", content: "INTERVIEW", style: { fontSize: "28px", fontWeight: "700", color: colors.accent, textAlign: "center", letterSpacing: "5px" }, position: { x: 5, y: 3, width: 90, height: 7 }, layer: 3, locked: false, visible: true, name: "Section Title" },
+          { id: `el_${Date.now()}_2`, type: "text", content: "Q: Your question here?", style: { fontSize: "16px", fontWeight: "700", color: colors.accent }, position: { x: 5, y: 15, width: 90, height: 6 }, layer: 2, locked: false, visible: true, name: "Question 1" },
+          { id: `el_${Date.now()}_3`, type: "text", content: "Answer text goes here...", style: { fontSize: "14px", color: "#CCCCCC", lineHeight: "1.8" }, position: { x: 5, y: 22, width: 90, height: 15 }, layer: 2, locked: false, visible: true, name: "Answer 1" },
+          { id: `el_${Date.now()}_4`, type: "text", content: "Q: Another question?", style: { fontSize: "16px", fontWeight: "700", color: colors.accent }, position: { x: 5, y: 40, width: 90, height: 6 }, layer: 2, locked: false, visible: true, name: "Question 2" },
+          { id: `el_${Date.now()}_5`, type: "text", content: "Answer text goes here...", style: { fontSize: "14px", color: "#CCCCCC", lineHeight: "1.8" }, position: { x: 5, y: 47, width: 90, height: 15 }, layer: 2, locked: false, visible: true, name: "Answer 2" }
+        ];
+        break;
+      case "full_bleed":
+        newPage.elements = [
+          { id: `el_${Date.now()}_1`, type: "shape", content: "rectangle", style: { backgroundColor: "#1A1A2E", border: "2px dashed " + colors.accent }, position: { x: 0, y: 0, width: 100, height: 100 }, layer: 0, locked: false, visible: true, name: "Full Bleed Image" },
+          { id: `el_${Date.now()}_2`, type: "shape", content: "rectangle", style: { backgroundColor: "rgba(0,0,0,0.5)" }, position: { x: 0, y: 70, width: 100, height: 30 }, layer: 1, locked: false, visible: true, name: "Text Overlay" },
+          { id: `el_${Date.now()}_3`, type: "text", content: "CAPTION TEXT", style: { fontSize: "24px", fontWeight: "700", color: "#FFFFFF", textAlign: "center" }, position: { x: 5, y: 80, width: 90, height: 10 }, layer: 2, locked: false, visible: true, name: "Caption" }
+        ];
+        break;
+      case "quote":
+        newPage.elements = [
+          { id: `el_${Date.now()}_1`, type: "text", content: "❝", style: { fontSize: "72px", color: colors.accent, opacity: 0.5 }, position: { x: 5, y: 20, width: 15, height: 20 }, layer: 1, locked: false, visible: true, name: "Quote Mark" },
+          { id: `el_${Date.now()}_2`, type: "text", content: "Your inspiring quote goes here. Make it memorable and impactful.", style: { fontSize: "28px", fontWeight: "400", color: "#FFFFFF", textAlign: "center", fontStyle: "italic", fontFamily: "'Cormorant Garamond', serif", lineHeight: "1.6" }, position: { x: 10, y: 35, width: 80, height: 30 }, layer: 2, locked: false, visible: true, name: "Quote Text" },
+          { id: `el_${Date.now()}_3`, type: "text", content: "— Attribution", style: { fontSize: "14px", color: colors.accent, textAlign: "center", letterSpacing: "2px" }, position: { x: 10, y: 70, width: 80, height: 5 }, layer: 2, locked: false, visible: true, name: "Attribution" }
+        ];
+        break;
+      case "ad_full":
+        newPage.elements = [
+          { id: `el_${Date.now()}_1`, type: "shape", content: "rectangle", style: { backgroundColor: "#0A1628", border: "2px dashed " + colors.accent }, position: { x: 0, y: 0, width: 100, height: 100 }, layer: 0, locked: false, visible: true, name: "Ad Container" },
+          { id: `el_${Date.now()}_2`, type: "text", content: "ADVERTISEMENT", style: { fontSize: "24px", fontWeight: "700", color: colors.accent, textAlign: "center", letterSpacing: "5px" }, position: { x: 10, y: 45, width: 80, height: 10 }, layer: 1, locked: false, visible: true, name: "Ad Label" }
+        ];
+        break;
+      case "ad_half":
+        newPage.elements = [
+          { id: `el_${Date.now()}_1`, type: "shape", content: "rectangle", style: { backgroundColor: "#0A1628", border: "2px dashed " + colors.accent }, position: { x: 0, y: 50, width: 100, height: 50 }, layer: 0, locked: false, visible: true, name: "Ad Container" },
+          { id: `el_${Date.now()}_2`, type: "text", content: "ADVERTISEMENT", style: { fontSize: "18px", fontWeight: "700", color: colors.accent, textAlign: "center", letterSpacing: "3px" }, position: { x: 10, y: 70, width: 80, height: 8 }, layer: 1, locked: false, visible: true, name: "Ad Label" },
+          { id: `el_${Date.now()}_3`, type: "text", content: "Content Area", style: { fontSize: "24px", fontWeight: "600", color: "#FFFFFF", textAlign: "center" }, position: { x: 10, y: 20, width: 80, height: 10 }, layer: 1, locked: false, visible: true, name: "Content Title" }
+        ];
+        break;
+      default:
+        break;
+    }
+    
     const newPages = [...pages, newPage];
     setPages(newPages);
     setCurrentPageIndex(newPages.length - 1);
     saveToHistory(newPages);
+    setShowPageTemplates(false);
+  };
+  
+  const addPage = () => {
+    setShowPageTemplates(true);
   };
   
   const duplicatePage = () => {
@@ -284,7 +493,6 @@ const MagazineBuilder = () => {
       id: `page_${Date.now()}`,
       name: `${currentPage.name} (Copy)`
     };
-    // Generate new IDs for elements
     duplicated.elements = duplicated.elements.map(el => ({
       ...el,
       id: `el_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
@@ -318,6 +526,15 @@ const MagazineBuilder = () => {
     saveToHistory(newPages);
   };
   
+  const updatePageBackground = (updates) => {
+    const newPages = pages.map((page, pIdx) => {
+      if (pIdx !== currentPageIndex) return page;
+      return { ...page, background: { ...page.background, ...updates } };
+    });
+    setPages(newPages);
+    saveToHistory(newPages);
+  };
+  
   const saveMagazine = async () => {
     if (!currentMagazine?.id) return;
     
@@ -348,12 +565,14 @@ const MagazineBuilder = () => {
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'px',
-        format: [595, 842] // A4 size
+        format: [595, 842]
       });
+      
+      const originalPage = currentPageIndex;
       
       for (let i = 0; i < pages.length; i++) {
         setCurrentPageIndex(i);
-        await new Promise(resolve => setTimeout(resolve, 500)); // Wait for render
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         const pageEl = document.getElementById(`magazine-page-${i}`);
         if (!pageEl) continue;
@@ -371,6 +590,7 @@ const MagazineBuilder = () => {
         pdf.addImage(imgData, 'JPEG', 0, 0, 595, 842);
       }
       
+      setCurrentPageIndex(originalPage);
       pdf.save(`${talentDetails.name || 'Magazine'}_BFM.pdf`);
       toast({ title: "PDF exported successfully!" });
     } catch (err) {
@@ -402,13 +622,11 @@ const MagazineBuilder = () => {
         allowTaint: true
       });
       
-      // Create a new canvas with Instagram dimensions
       const igCanvas = document.createElement('canvas');
       igCanvas.width = width;
       igCanvas.height = height;
       const ctx = igCanvas.getContext('2d');
       
-      // Draw the page scaled to fit
       const scale = Math.min(width / canvas.width, height / canvas.height);
       const x = (width - canvas.width * scale) / 2;
       const y = (height - canvas.height * scale) / 2;
@@ -446,14 +664,215 @@ const MagazineBuilder = () => {
     setLoading(false);
   };
   
+  // Drag and drop handlers
+  const handleMouseDown = (e, elementId, handle = null) => {
+    e.stopPropagation();
+    const el = currentElements.find(e => e.id === elementId);
+    if (!el || el.locked) return;
+    
+    setSelectedElement(elementId);
+    
+    const rect = pageRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    
+    const startX = ((e.clientX - rect.left) / rect.width) * 100;
+    const startY = ((e.clientY - rect.top) / rect.height) * 100;
+    
+    setDragStart({
+      x: startX,
+      y: startY,
+      elX: el.position.x,
+      elY: el.position.y,
+      elW: el.position.width,
+      elH: el.position.height
+    });
+    
+    if (handle) {
+      setIsResizing(true);
+      setResizeHandle(handle);
+    } else {
+      setIsDragging(true);
+    }
+  };
+  
+  const handleMouseMove = useCallback((e) => {
+    if (!isDragging && !isResizing) return;
+    if (!selectedElement) return;
+    
+    const rect = pageRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    
+    let currentX = ((e.clientX - rect.left) / rect.width) * 100;
+    let currentY = ((e.clientY - rect.top) / rect.height) * 100;
+    
+    // Clamp to page bounds
+    currentX = Math.max(0, Math.min(100, currentX));
+    currentY = Math.max(0, Math.min(100, currentY));
+    
+    const deltaX = currentX - dragStart.x;
+    const deltaY = currentY - dragStart.y;
+    
+    if (isDragging) {
+      let newX = dragStart.elX + deltaX;
+      let newY = dragStart.elY + deltaY;
+      
+      // Snap to grid
+      if (snapToGrid) {
+        newX = Math.round(newX / gridSize) * gridSize;
+        newY = Math.round(newY / gridSize) * gridSize;
+      }
+      
+      // Clamp position
+      newX = Math.max(0, Math.min(100 - dragStart.elW, newX));
+      newY = Math.max(0, Math.min(100 - dragStart.elH, newY));
+      
+      updateElementPosition(selectedElement, { x: newX, y: newY }, false);
+    } else if (isResizing) {
+      let newW = dragStart.elW;
+      let newH = dragStart.elH;
+      let newX = dragStart.elX;
+      let newY = dragStart.elY;
+      
+      switch (resizeHandle) {
+        case 'se':
+          newW = Math.max(5, dragStart.elW + deltaX);
+          newH = Math.max(5, dragStart.elH + deltaY);
+          break;
+        case 'sw':
+          newW = Math.max(5, dragStart.elW - deltaX);
+          newH = Math.max(5, dragStart.elH + deltaY);
+          newX = dragStart.elX + deltaX;
+          break;
+        case 'ne':
+          newW = Math.max(5, dragStart.elW + deltaX);
+          newH = Math.max(5, dragStart.elH - deltaY);
+          newY = dragStart.elY + deltaY;
+          break;
+        case 'nw':
+          newW = Math.max(5, dragStart.elW - deltaX);
+          newH = Math.max(5, dragStart.elH - deltaY);
+          newX = dragStart.elX + deltaX;
+          newY = dragStart.elY + deltaY;
+          break;
+        case 'e':
+          newW = Math.max(5, dragStart.elW + deltaX);
+          break;
+        case 'w':
+          newW = Math.max(5, dragStart.elW - deltaX);
+          newX = dragStart.elX + deltaX;
+          break;
+        case 'n':
+          newH = Math.max(5, dragStart.elH - deltaY);
+          newY = dragStart.elY + deltaY;
+          break;
+        case 's':
+          newH = Math.max(5, dragStart.elH + deltaY);
+          break;
+      }
+      
+      if (snapToGrid) {
+        newW = Math.round(newW / gridSize) * gridSize;
+        newH = Math.round(newH / gridSize) * gridSize;
+        newX = Math.round(newX / gridSize) * gridSize;
+        newY = Math.round(newY / gridSize) * gridSize;
+      }
+      
+      updateElementPosition(selectedElement, { x: newX, y: newY, width: newW, height: newH }, false);
+    }
+  }, [isDragging, isResizing, selectedElement, dragStart, snapToGrid, gridSize]);
+  
+  const handleMouseUp = useCallback(() => {
+    if (isDragging || isResizing) {
+      saveToHistory(pages);
+    }
+    setIsDragging(false);
+    setIsResizing(false);
+    setResizeHandle(null);
+  }, [isDragging, isResizing, pages]);
+  
+  useEffect(() => {
+    if (isDragging || isResizing) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, isResizing, handleMouseMove, handleMouseUp]);
+  
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (step !== 5) return;
+      
+      // Check if we're typing in an input
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.contentEditable === 'true') {
+        return;
+      }
+      
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (selectedElement) {
+          e.preventDefault();
+          deleteElement(selectedElement);
+        }
+      } else if (e.key === 'Escape') {
+        setSelectedElement(null);
+      } else if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+        e.preventDefault();
+        copyElement();
+      } else if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+        e.preventDefault();
+        pasteElement();
+      } else if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+        e.preventDefault();
+        duplicateElement();
+      } else if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          redo();
+        } else {
+          undo();
+        }
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [step, selectedElement, clipboard]);
+  
   const currentPage = pages[currentPageIndex];
   const currentElements = currentPage?.elements || [];
   const selectedEl = currentElements.find(el => el.id === selectedElement);
   
+  // Render resize handles
+  const renderResizeHandles = (elementId) => {
+    const handles = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
+    const positions = {
+      nw: { top: -4, left: -4, cursor: 'nw-resize' },
+      n: { top: -4, left: '50%', transform: 'translateX(-50%)', cursor: 'n-resize' },
+      ne: { top: -4, right: -4, cursor: 'ne-resize' },
+      e: { top: '50%', right: -4, transform: 'translateY(-50%)', cursor: 'e-resize' },
+      se: { bottom: -4, right: -4, cursor: 'se-resize' },
+      s: { bottom: -4, left: '50%', transform: 'translateX(-50%)', cursor: 's-resize' },
+      sw: { bottom: -4, left: -4, cursor: 'sw-resize' },
+      w: { top: '50%', left: -4, transform: 'translateY(-50%)', cursor: 'w-resize' }
+    };
+    
+    return handles.map(handle => (
+      <div
+        key={handle}
+        className="absolute w-2 h-2 bg-[#D4AF37] border border-white rounded-sm z-50"
+        style={{ ...positions[handle], cursor: positions[handle].cursor }}
+        onMouseDown={(e) => handleMouseDown(e, elementId, handle)}
+      />
+    ));
+  };
+  
   // Render step content
   const renderStep = () => {
     switch (step) {
-      case 1: // Magazine list / Create
+      case 1:
         return (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
@@ -487,12 +906,12 @@ const MagazineBuilder = () => {
           </div>
         );
         
-      case 2: // Talent Details
+      case 2:
         return (
           <div className="space-y-6 max-w-3xl mx-auto">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold text-[#D4AF37]">Step 1: Talent Details</h2>
-              <Button variant="outline" onClick={() => setStep(1)} className="border-[#D4AF37]/30">
+              <Button variant="outline" onClick={() => setStep(1)} className="border-[#D4AF37]/30 text-[#F5F5F0]">
                 <ChevronLeft size={16} /> Back
               </Button>
             </div>
@@ -662,12 +1081,12 @@ const MagazineBuilder = () => {
           </div>
         );
         
-      case 3: // Images
+      case 3:
         return (
           <div className="space-y-6 max-w-3xl mx-auto">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold text-[#D4AF37]">Step 2: Upload Images</h2>
-              <Button variant="outline" onClick={() => setStep(2)} className="border-[#D4AF37]/30">
+              <Button variant="outline" onClick={() => setStep(2)} className="border-[#D4AF37]/30 text-[#F5F5F0]">
                 <ChevronLeft size={16} /> Back
               </Button>
             </div>
@@ -743,7 +1162,7 @@ const MagazineBuilder = () => {
             </div>
             
             <div className="flex justify-end gap-3">
-              <Button variant="outline" onClick={() => setStep(4)} className="border-[#D4AF37]/30">
+              <Button variant="outline" onClick={() => setStep(4)} className="border-[#D4AF37]/30 text-[#F5F5F0]">
                 Skip Images
               </Button>
               <Button onClick={() => setStep(4)} className="bg-[#D4AF37] text-[#050A14]">
@@ -753,12 +1172,12 @@ const MagazineBuilder = () => {
           </div>
         );
         
-      case 4: // Template Selection
+      case 4:
         return (
           <div className="space-y-6 max-w-4xl mx-auto">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold text-[#D4AF37]">Step 3: Select Template</h2>
-              <Button variant="outline" onClick={() => setStep(3)} className="border-[#D4AF37]/30">
+              <Button variant="outline" onClick={() => setStep(3)} className="border-[#D4AF37]/30 text-[#F5F5F0]">
                 <ChevronLeft size={16} /> Back
               </Button>
             </div>
@@ -808,14 +1227,14 @@ const MagazineBuilder = () => {
           </div>
         );
         
-      case 5: // Editor
+      case 5:
         return (
-          <div className="flex h-[calc(100vh-200px)] gap-4">
+          <div className="flex h-[calc(100vh-200px)] gap-3">
             {/* Left Sidebar - Page Thumbnails */}
-            <div className="w-48 bg-[#0A1628] rounded-lg p-3 overflow-y-auto flex-shrink-0">
-              <div className="flex justify-between items-center mb-3">
+            <div className="w-44 bg-[#0A1628] rounded-lg p-2 overflow-y-auto flex-shrink-0">
+              <div className="flex justify-between items-center mb-2">
                 <span className="text-[#A0A5B0] text-xs uppercase tracking-wider">Pages</span>
-                <button onClick={addPage} className="text-[#D4AF37] hover:text-[#F5D76E]">
+                <button onClick={addPage} className="text-[#D4AF37] hover:text-[#F5D76E]" title="Add Page">
                   <Plus size={16} />
                 </button>
               </div>
@@ -829,151 +1248,236 @@ const MagazineBuilder = () => {
                     }`}
                   >
                     <div 
-                      className="aspect-[3/4] rounded flex items-center justify-center text-xs"
+                      className="aspect-[3/4] rounded flex items-center justify-center text-xs relative"
                       style={{ backgroundColor: page.background?.color || '#000' }}
                     >
-                      <span className="text-white/60">{i + 1}</span>
+                      <span className="text-white/60 text-lg font-bold">{i + 1}</span>
                     </div>
-                    <p className="text-[#A0A5B0] text-[10px] text-center py-1 truncate">{page.name}</p>
+                    <p className="text-[#A0A5B0] text-[9px] text-center py-1 truncate px-1">{page.name}</p>
                   </div>
                 ))}
               </div>
             </div>
             
             {/* Main Editor Area */}
-            <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col min-w-0">
               {/* Toolbar */}
-              <div className="bg-[#0A1628] rounded-lg p-2 mb-3 flex items-center gap-2 flex-wrap">
-                <div className="flex items-center gap-1 border-r border-[#D4AF37]/20 pr-2">
-                  <button onClick={undo} disabled={historyIndex <= 0} className="p-1.5 hover:bg-[#D4AF37]/20 rounded disabled:opacity-30">
-                    <RotateCcw size={16} className="text-[#A0A5B0]" />
+              <div className="bg-[#0A1628] rounded-lg p-2 mb-2 flex items-center gap-1 flex-wrap">
+                {/* Undo/Redo */}
+                <div className="flex items-center gap-0.5 border-r border-[#D4AF37]/20 pr-2 mr-1">
+                  <button onClick={undo} disabled={historyIndex <= 0} className="p-1.5 hover:bg-[#D4AF37]/20 rounded disabled:opacity-30" title="Undo (Ctrl+Z)" data-testid="undo-btn">
+                    <RotateCcw size={14} className="text-[#A0A5B0]" />
                   </button>
-                  <button onClick={redo} disabled={historyIndex >= history.length - 1} className="p-1.5 hover:bg-[#D4AF37]/20 rounded disabled:opacity-30">
-                    <RotateCw size={16} className="text-[#A0A5B0]" />
-                  </button>
-                </div>
-                
-                <div className="flex items-center gap-1 border-r border-[#D4AF37]/20 pr-2">
-                  <button onClick={() => addElement('text')} className="p-1.5 hover:bg-[#D4AF37]/20 rounded" title="Add Text">
-                    <Type size={16} className="text-[#A0A5B0]" />
-                  </button>
-                  <button onClick={() => addElement('image')} className="p-1.5 hover:bg-[#D4AF37]/20 rounded" title="Add Image">
-                    <Image size={16} className="text-[#A0A5B0]" />
-                  </button>
-                  <button onClick={() => addElement('shape')} className="p-1.5 hover:bg-[#D4AF37]/20 rounded" title="Add Shape">
-                    <Square size={16} className="text-[#A0A5B0]" />
+                  <button onClick={redo} disabled={historyIndex >= history.length - 1} className="p-1.5 hover:bg-[#D4AF37]/20 rounded disabled:opacity-30" title="Redo (Ctrl+Shift+Z)" data-testid="redo-btn">
+                    <RotateCw size={14} className="text-[#A0A5B0]" />
                   </button>
                 </div>
                 
-                <div className="flex items-center gap-1 border-r border-[#D4AF37]/20 pr-2">
+                {/* Add Elements */}
+                <div className="flex items-center gap-0.5 border-r border-[#D4AF37]/20 pr-2 mr-1">
+                  <button onClick={() => addElement('text')} className="p-1.5 hover:bg-[#D4AF37]/20 rounded" title="Add Text (T)" data-testid="add-text-btn">
+                    <Type size={14} className="text-[#A0A5B0]" />
+                  </button>
+                  <button onClick={() => addElement('image')} className="p-1.5 hover:bg-[#D4AF37]/20 rounded" title="Add Image" data-testid="add-image-btn">
+                    <ImagePlus size={14} className="text-[#A0A5B0]" />
+                  </button>
+                  <button onClick={() => addElement('shape', 'rectangle')} className="p-1.5 hover:bg-[#D4AF37]/20 rounded" title="Add Rectangle" data-testid="add-rectangle-btn">
+                    <Square size={14} className="text-[#A0A5B0]" />
+                  </button>
+                  <button onClick={() => addElement('shape', 'circle')} className="p-1.5 hover:bg-[#D4AF37]/20 rounded" title="Add Circle" data-testid="add-circle-btn">
+                    <Circle size={14} className="text-[#A0A5B0]" />
+                  </button>
+                  <button onClick={() => addElement('shape', 'line')} className="p-1.5 hover:bg-[#D4AF37]/20 rounded" title="Add Line/Divider" data-testid="add-line-btn">
+                    <Minus size={14} className="text-[#A0A5B0]" />
+                  </button>
+                </div>
+                
+                {/* Page Actions */}
+                <div className="flex items-center gap-0.5 border-r border-[#D4AF37]/20 pr-2 mr-1">
                   <button onClick={duplicatePage} className="p-1.5 hover:bg-[#D4AF37]/20 rounded" title="Duplicate Page">
-                    <Copy size={16} className="text-[#A0A5B0]" />
+                    <Copy size={14} className="text-[#A0A5B0]" />
                   </button>
                   <button onClick={deletePage} className="p-1.5 hover:bg-[#D4AF37]/20 rounded" title="Delete Page">
-                    <Trash2 size={16} className="text-[#A0A5B0]" />
+                    <Trash2 size={14} className="text-[#A0A5B0]" />
                   </button>
-                  <button onClick={() => movePage(-1)} disabled={currentPageIndex === 0} className="p-1.5 hover:bg-[#D4AF37]/20 rounded disabled:opacity-30">
-                    <ChevronUp size={16} className="text-[#A0A5B0]" />
+                  <button onClick={() => movePage(-1)} disabled={currentPageIndex === 0} className="p-1.5 hover:bg-[#D4AF37]/20 rounded disabled:opacity-30" title="Move Page Up">
+                    <ChevronUp size={14} className="text-[#A0A5B0]" />
                   </button>
-                  <button onClick={() => movePage(1)} disabled={currentPageIndex === pages.length - 1} className="p-1.5 hover:bg-[#D4AF37]/20 rounded disabled:opacity-30">
-                    <ChevronDown size={16} className="text-[#A0A5B0]" />
+                  <button onClick={() => movePage(1)} disabled={currentPageIndex === pages.length - 1} className="p-1.5 hover:bg-[#D4AF37]/20 rounded disabled:opacity-30" title="Move Page Down">
+                    <ChevronDown size={14} className="text-[#A0A5B0]" />
                   </button>
                 </div>
                 
-                <div className="flex items-center gap-1 border-r border-[#D4AF37]/20 pr-2">
-                  <button onClick={() => setShowLayers(!showLayers)} className={`p-1.5 rounded ${showLayers ? 'bg-[#D4AF37]/20' : 'hover:bg-[#D4AF37]/20'}`}>
-                    <Layers size={16} className="text-[#A0A5B0]" />
+                {/* Element Actions */}
+                {selectedElement && (
+                  <div className="flex items-center gap-0.5 border-r border-[#D4AF37]/20 pr-2 mr-1">
+                    <button onClick={copyElement} className="p-1.5 hover:bg-[#D4AF37]/20 rounded" title="Copy (Ctrl+C)">
+                      <ClipboardCopy size={14} className="text-[#A0A5B0]" />
+                    </button>
+                    <button onClick={pasteElement} disabled={!clipboard} className="p-1.5 hover:bg-[#D4AF37]/20 rounded disabled:opacity-30" title="Paste (Ctrl+V)">
+                      <Clipboard size={14} className="text-[#A0A5B0]" />
+                    </button>
+                    <button onClick={duplicateElement} className="p-1.5 hover:bg-[#D4AF37]/20 rounded" title="Duplicate (Ctrl+D)">
+                      <Copy size={14} className="text-[#A0A5B0]" />
+                    </button>
+                    <button onClick={bringToFront} className="p-1.5 hover:bg-[#D4AF37]/20 rounded" title="Bring to Front">
+                      <Maximize size={14} className="text-[#A0A5B0]" />
+                    </button>
+                    <button onClick={sendToBack} className="p-1.5 hover:bg-[#D4AF37]/20 rounded" title="Send to Back">
+                      <Minimize size={14} className="text-[#A0A5B0]" />
+                    </button>
+                    <button onClick={() => deleteElement(selectedElement)} className="p-1.5 hover:bg-red-500/20 rounded" title="Delete (Del)">
+                      <Trash2 size={14} className="text-red-400" />
+                    </button>
+                  </div>
+                )}
+                
+                {/* View Controls */}
+                <div className="flex items-center gap-0.5 border-r border-[#D4AF37]/20 pr-2 mr-1">
+                  <button onClick={() => setShowGrid(!showGrid)} className={`p-1.5 rounded ${showGrid ? 'bg-[#D4AF37]/20' : 'hover:bg-[#D4AF37]/20'}`} title="Toggle Grid" data-testid="toggle-grid-btn">
+                    <Grid size={14} className="text-[#A0A5B0]" />
                   </button>
-                  <button onClick={() => setPreviewMode(!previewMode)} className={`p-1.5 rounded ${previewMode ? 'bg-[#D4AF37]/20' : 'hover:bg-[#D4AF37]/20'}`}>
-                    <Eye size={16} className="text-[#A0A5B0]" />
+                  <button onClick={() => setShowLayers(!showLayers)} className={`p-1.5 rounded ${showLayers ? 'bg-[#D4AF37]/20' : 'hover:bg-[#D4AF37]/20'}`} title="Toggle Layers Panel" data-testid="toggle-layers-btn">
+                    <Layers size={14} className="text-[#A0A5B0]" />
+                  </button>
+                  <button onClick={() => setPreviewMode(!previewMode)} className={`p-1.5 rounded ${previewMode ? 'bg-[#D4AF37]/20' : 'hover:bg-[#D4AF37]/20'}`} title="Preview Mode" data-testid="preview-mode-btn">
+                    <Eye size={14} className="text-[#A0A5B0]" />
+                  </button>
+                </div>
+                
+                {/* Zoom Controls */}
+                <div className="flex items-center gap-1 border-r border-[#D4AF37]/20 pr-2 mr-1">
+                  <button onClick={() => setZoom(Math.max(50, zoom - 10))} className="p-1 hover:bg-[#D4AF37]/20 rounded" data-testid="zoom-out-btn">
+                    <ZoomOut size={14} className="text-[#A0A5B0]" />
+                  </button>
+                  <span className="text-[#A0A5B0] text-xs w-10 text-center" data-testid="zoom-level">{zoom}%</span>
+                  <button onClick={() => setZoom(Math.min(200, zoom + 10))} className="p-1 hover:bg-[#D4AF37]/20 rounded" data-testid="zoom-in-btn">
+                    <ZoomIn size={14} className="text-[#A0A5B0]" />
                   </button>
                 </div>
                 
                 <div className="flex-1" />
                 
-                <Button onClick={saveMagazine} disabled={loading} size="sm" className="bg-[#0A1628] border border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#050A14]" data-testid="save-magazine-btn">
-                  <Save size={14} className="mr-1" /> Save
+                {/* Export Buttons */}
+                <Button onClick={saveMagazine} disabled={loading} size="sm" className="bg-[#0A1628] border border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#050A14] h-8 px-3" data-testid="save-magazine-btn">
+                  <Save size={12} className="mr-1" /> Save
                 </Button>
-                <Button onClick={exportToPDF} size="sm" className="bg-[#D4AF37] text-[#050A14]" data-testid="export-pdf-btn">
-                  <FileDown size={14} className="mr-1" /> Export PDF
+                <Button onClick={exportToPDF} size="sm" className="bg-[#D4AF37] text-[#050A14] h-8 px-3" data-testid="export-pdf-btn">
+                  <FileDown size={12} className="mr-1" /> PDF
                 </Button>
                 <div className="relative">
                   <Button 
                     size="sm" 
-                    className="bg-[#0A1628] border border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#050A14]"
+                    className="bg-[#0A1628] border border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#050A14] h-8 px-3"
                     onClick={(e) => {
                       const dropdown = e.currentTarget.nextElementSibling;
                       dropdown.classList.toggle('hidden');
                     }}
                     data-testid="export-instagram-btn"
                   >
-                    <Download size={14} className="mr-1" /> Instagram
+                    <Download size={12} className="mr-1" /> IG
                   </Button>
-                  <div className="absolute right-0 top-full mt-1 bg-[#0A1628] border border-[#D4AF37]/30 rounded shadow-lg hidden z-10">
-                    <button onClick={() => exportForInstagram('portrait')} className="block w-full px-3 py-2 text-sm text-left hover:bg-[#D4AF37]/20 text-[#F5F5F0]" data-testid="export-ig-portrait">Portrait (1080×1350)</button>
-                    <button onClick={() => exportForInstagram('square')} className="block w-full px-3 py-2 text-sm text-left hover:bg-[#D4AF37]/20 text-[#F5F5F0]" data-testid="export-ig-square">Square (1080×1080)</button>
-                    <button onClick={() => exportForInstagram('story')} className="block w-full px-3 py-2 text-sm text-left hover:bg-[#D4AF37]/20 text-[#F5F5F0]" data-testid="export-ig-story">Story (1080×1920)</button>
+                  <div className="absolute right-0 top-full mt-1 bg-[#0A1628] border border-[#D4AF37]/30 rounded shadow-lg hidden z-50 min-w-[140px]">
+                    <button onClick={() => exportForInstagram('portrait')} className="block w-full px-3 py-2 text-xs text-left hover:bg-[#D4AF37]/20 text-[#F5F5F0]" data-testid="export-ig-portrait">Portrait (1080×1350)</button>
+                    <button onClick={() => exportForInstagram('square')} className="block w-full px-3 py-2 text-xs text-left hover:bg-[#D4AF37]/20 text-[#F5F5F0]" data-testid="export-ig-square">Square (1080×1080)</button>
+                    <button onClick={() => exportForInstagram('story')} className="block w-full px-3 py-2 text-xs text-left hover:bg-[#D4AF37]/20 text-[#F5F5F0]" data-testid="export-ig-story">Story (1080×1920)</button>
                   </div>
                 </div>
               </div>
               
               {/* Editor Canvas */}
-              <div className="flex-1 flex gap-3 overflow-hidden">
-                <div ref={editorRef} className="flex-1 overflow-auto bg-[#1A1A2E] rounded-lg p-8 flex items-center justify-center">
+              <div className="flex-1 flex gap-2 overflow-hidden">
+                <div ref={editorRef} className="flex-1 overflow-auto bg-[#1A1A2E] rounded-lg p-4 flex items-center justify-center">
                   <div 
                     id={`magazine-page-${currentPageIndex}`}
                     ref={pageRef}
-                    className="relative bg-black shadow-2xl"
+                    className="relative shadow-2xl"
                     style={{ 
                       width: `${400 * (zoom / 100)}px`, 
                       height: `${566 * (zoom / 100)}px`,
-                      backgroundColor: currentPage?.background?.color || '#000'
+                      backgroundColor: currentPage?.background?.color || '#000',
+                      backgroundImage: currentPage?.background?.image ? `url(${currentPage.background.image})` : 'none',
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center'
                     }}
                     onClick={(e) => {
                       if (e.target === e.currentTarget) setSelectedElement(null);
                     }}
                   >
+                    {/* Grid Overlay */}
+                    {showGrid && (
+                      <div 
+                        className="absolute inset-0 pointer-events-none z-40"
+                        style={{
+                          backgroundImage: `
+                            linear-gradient(to right, rgba(212,175,55,0.1) 1px, transparent 1px),
+                            linear-gradient(to bottom, rgba(212,175,55,0.1) 1px, transparent 1px)
+                          `,
+                          backgroundSize: `${gridSize}% ${gridSize}%`
+                        }}
+                      />
+                    )}
+                    
                     {currentElements
                       .sort((a, b) => a.layer - b.layer)
                       .filter(el => el.visible)
                       .map(el => (
                         <div
                           key={el.id}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (!el.locked) setSelectedElement(el.id);
-                          }}
-                          className={`absolute cursor-move ${
-                            selectedElement === el.id ? 'ring-2 ring-[#D4AF37]' : ''
+                          onMouseDown={(e) => !previewMode && handleMouseDown(e, el.id)}
+                          className={`absolute ${previewMode ? '' : 'cursor-move'} ${
+                            selectedElement === el.id && !previewMode ? 'ring-2 ring-[#D4AF37]' : ''
                           } ${el.locked ? 'cursor-not-allowed' : ''}`}
                           style={{
                             left: `${el.position.x}%`,
                             top: `${el.position.y}%`,
                             width: `${el.position.width}%`,
                             height: `${el.position.height}%`,
-                            ...el.style
+                            opacity: el.style?.opacity ?? 1,
+                            pointerEvents: previewMode ? 'none' : 'auto'
                           }}
                         >
                           {el.type === 'text' && (
                             <div 
-                              contentEditable={selectedElement === el.id && !el.locked}
+                              contentEditable={selectedElement === el.id && !el.locked && !previewMode}
                               suppressContentEditableWarning
                               onBlur={(e) => updateElement(el.id, { content: e.target.innerText })}
-                              className="w-full h-full overflow-hidden whitespace-pre-wrap"
-                              style={el.style}
+                              className="w-full h-full overflow-hidden whitespace-pre-wrap outline-none"
+                              style={{
+                                fontSize: el.style.fontSize,
+                                fontWeight: el.style.fontWeight,
+                                color: el.style.color,
+                                textAlign: el.style.textAlign,
+                                fontFamily: el.style.fontFamily || "'Lato', sans-serif",
+                                fontStyle: el.style.fontStyle || 'normal',
+                                textDecoration: el.style.textDecoration || 'none',
+                                lineHeight: el.style.lineHeight || '1.5',
+                                letterSpacing: el.style.letterSpacing || '0px',
+                                textShadow: el.style.textShadow || 'none'
+                              }}
                             >
                               {el.content}
                             </div>
                           )}
                           {el.type === 'image' && el.content && (
-                            <img src={el.content} alt="" className="w-full h-full" style={el.style} />
+                            <img src={el.content} alt="" className="w-full h-full" style={{ objectFit: el.style?.objectFit || 'cover', borderRadius: el.style?.borderRadius || '0' }} />
                           )}
                           {el.type === 'logo' && (
-                            <img src={el.content} alt="Logo" className="w-full h-full" style={el.style} />
+                            <img src={el.content} alt="Logo" className="w-full h-full object-contain" style={el.style} />
                           )}
                           {el.type === 'shape' && (
-                            <div className="w-full h-full" style={el.style} />
+                            <div 
+                              className="w-full h-full" 
+                              style={{ 
+                                backgroundColor: el.style?.backgroundColor,
+                                borderRadius: el.style?.borderRadius || '0',
+                                border: el.style?.border || 'none'
+                              }} 
+                            />
                           )}
+                          
+                          {/* Resize Handles */}
+                          {selectedElement === el.id && !previewMode && !el.locked && renderResizeHandles(el.id)}
                         </div>
                       ))}
                   </div>
@@ -981,14 +1485,14 @@ const MagazineBuilder = () => {
                 
                 {/* Right Sidebar - Layers & Properties */}
                 {showLayers && (
-                  <div className="w-64 bg-[#0A1628] rounded-lg p-3 overflow-y-auto flex-shrink-0">
-                    <h3 className="text-[#A0A5B0] text-xs uppercase tracking-wider mb-3">Layers</h3>
-                    <div className="space-y-1">
+                  <div className="w-56 bg-[#0A1628] rounded-lg p-2 overflow-y-auto flex-shrink-0 text-sm">
+                    <h3 className="text-[#A0A5B0] text-xs uppercase tracking-wider mb-2">Layers</h3>
+                    <div className="space-y-1 mb-3 max-h-40 overflow-y-auto">
                       {[...currentElements].reverse().map(el => (
                         <div 
                           key={el.id}
                           onClick={() => !el.locked && setSelectedElement(el.id)}
-                          className={`flex items-center gap-2 p-2 rounded cursor-pointer ${
+                          className={`flex items-center gap-1 p-1.5 rounded cursor-pointer text-xs ${
                             selectedElement === el.id ? 'bg-[#D4AF37]/20' : 'hover:bg-[#D4AF37]/10'
                           }`}
                         >
@@ -996,93 +1500,168 @@ const MagazineBuilder = () => {
                             onClick={(e) => { e.stopPropagation(); updateElement(el.id, { visible: !el.visible }); }}
                             className="text-[#A0A5B0] hover:text-[#D4AF37]"
                           >
-                            {el.visible ? <Eye size={14} /> : <EyeOff size={14} />}
+                            {el.visible ? <Eye size={12} /> : <EyeOff size={12} />}
                           </button>
                           <button 
                             onClick={(e) => { e.stopPropagation(); updateElement(el.id, { locked: !el.locked }); }}
                             className="text-[#A0A5B0] hover:text-[#D4AF37]"
                           >
-                            {el.locked ? <Lock size={14} /> : <Unlock size={14} />}
+                            {el.locked ? <Lock size={12} /> : <Unlock size={12} />}
                           </button>
-                          <span className="text-[#F5F5F0] text-xs flex-1 truncate">{el.name || el.type}</span>
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); deleteElement(el.id); }}
-                            className="text-red-400 hover:text-red-300 opacity-0 group-hover:opacity-100"
-                          >
-                            <Trash2 size={12} />
-                          </button>
+                          <span className="text-[#F5F5F0] flex-1 truncate">{el.name || el.type}</span>
                         </div>
                       ))}
                     </div>
                     
+                    {/* Page Background */}
+                    <div className="border-t border-[#D4AF37]/20 pt-2 mb-3">
+                      <h3 className="text-[#A0A5B0] text-xs uppercase tracking-wider mb-2">Page Background</h3>
+                      <div className="flex gap-2 items-center">
+                        <input 
+                          type="color" 
+                          value={currentPage?.background?.color || '#000000'}
+                          onChange={(e) => updatePageBackground({ color: e.target.value })}
+                          className="w-8 h-8 rounded cursor-pointer"
+                        />
+                        <label className="flex-1">
+                          <input 
+                            type="file" 
+                            accept="image/*" 
+                            className="hidden"
+                            onChange={async (e) => {
+                              const file = e.target.files[0];
+                              if (file) {
+                                const compressed = await autoCompressImage(file);
+                                updatePageBackground({ image: compressed, type: 'image' });
+                              }
+                            }}
+                          />
+                          <span className="text-[#D4AF37] text-xs cursor-pointer hover:underline">+ Image</span>
+                        </label>
+                        {currentPage?.background?.image && (
+                          <button 
+                            onClick={() => updatePageBackground({ image: '', type: 'solid' })}
+                            className="text-red-400 text-xs"
+                          >
+                            Clear
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    
                     {/* Element Properties */}
                     {selectedEl && (
-                      <div className="mt-4 pt-4 border-t border-[#D4AF37]/20">
-                        <h3 className="text-[#A0A5B0] text-xs uppercase tracking-wider mb-3">Properties</h3>
+                      <div className="border-t border-[#D4AF37]/20 pt-2">
+                        <h3 className="text-[#A0A5B0] text-xs uppercase tracking-wider mb-2">Properties</h3>
                         
                         {selectedEl.type === 'text' && (
-                          <div className="space-y-3">
+                          <div className="space-y-2">
+                            {/* Font Family */}
                             <div>
-                              <label className="text-[#A0A5B0] text-xs">Font Size</label>
+                              <label className="text-[#A0A5B0] text-xs">Font</label>
+                              <select 
+                                value={selectedEl.style.fontFamily || "'Lato', sans-serif"}
+                                onChange={(e) => updateElementStyle(selectedEl.id, { fontFamily: e.target.value })}
+                                className="w-full p-1 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-xs"
+                              >
+                                {FONT_FAMILIES.map(font => (
+                                  <option key={font.name} value={font.value}>{font.name}</option>
+                                ))}
+                              </select>
+                            </div>
+                            
+                            {/* Font Size */}
+                            <div>
+                              <label className="text-[#A0A5B0] text-xs">Size</label>
                               <Input 
                                 value={selectedEl.style.fontSize?.replace('px', '') || '16'}
                                 onChange={(e) => updateElementStyle(selectedEl.id, { fontSize: `${e.target.value}px` })}
-                                className="bg-[#050A14] border-[#D4AF37]/20 h-8 text-sm"
+                                className="bg-[#050A14] border-[#D4AF37]/20 h-7 text-xs text-[#F5F5F0]"
                               />
                             </div>
+                            
+                            {/* Color */}
                             <div>
                               <label className="text-[#A0A5B0] text-xs">Color</label>
-                              <div className="flex gap-2">
+                              <div className="flex gap-1">
                                 <input 
                                   type="color" 
                                   value={selectedEl.style.color || '#FFFFFF'}
                                   onChange={(e) => updateElementStyle(selectedEl.id, { color: e.target.value })}
-                                  className="w-8 h-8 rounded cursor-pointer"
+                                  className="w-7 h-7 rounded cursor-pointer"
                                 />
                                 <Input 
                                   value={selectedEl.style.color || '#FFFFFF'}
                                   onChange={(e) => updateElementStyle(selectedEl.id, { color: e.target.value })}
-                                  className="bg-[#050A14] border-[#D4AF37]/20 h-8 text-sm flex-1"
+                                  className="bg-[#050A14] border-[#D4AF37]/20 h-7 text-xs flex-1 text-[#F5F5F0]"
                                 />
                               </div>
                             </div>
-                            <div className="flex gap-1">
+                            
+                            {/* Text Formatting */}
+                            <div className="flex gap-0.5 flex-wrap">
                               <button 
                                 onClick={() => updateElementStyle(selectedEl.id, { fontWeight: selectedEl.style.fontWeight === '700' ? '400' : '700' })}
                                 className={`p-1.5 rounded ${selectedEl.style.fontWeight === '700' ? 'bg-[#D4AF37]/20' : 'hover:bg-[#D4AF37]/10'}`}
                               >
-                                <Bold size={14} className="text-[#A0A5B0]" />
+                                <Bold size={12} className="text-[#A0A5B0]" />
                               </button>
                               <button 
                                 onClick={() => updateElementStyle(selectedEl.id, { fontStyle: selectedEl.style.fontStyle === 'italic' ? 'normal' : 'italic' })}
                                 className={`p-1.5 rounded ${selectedEl.style.fontStyle === 'italic' ? 'bg-[#D4AF37]/20' : 'hover:bg-[#D4AF37]/10'}`}
                               >
-                                <Italic size={14} className="text-[#A0A5B0]" />
+                                <Italic size={12} className="text-[#A0A5B0]" />
+                              </button>
+                              <button 
+                                onClick={() => updateElementStyle(selectedEl.id, { textDecoration: selectedEl.style.textDecoration === 'underline' ? 'none' : 'underline' })}
+                                className={`p-1.5 rounded ${selectedEl.style.textDecoration === 'underline' ? 'bg-[#D4AF37]/20' : 'hover:bg-[#D4AF37]/10'}`}
+                              >
+                                <Underline size={12} className="text-[#A0A5B0]" />
                               </button>
                               <button 
                                 onClick={() => updateElementStyle(selectedEl.id, { textAlign: 'left' })}
                                 className={`p-1.5 rounded ${selectedEl.style.textAlign === 'left' ? 'bg-[#D4AF37]/20' : 'hover:bg-[#D4AF37]/10'}`}
                               >
-                                <AlignLeft size={14} className="text-[#A0A5B0]" />
+                                <AlignLeft size={12} className="text-[#A0A5B0]" />
                               </button>
                               <button 
                                 onClick={() => updateElementStyle(selectedEl.id, { textAlign: 'center' })}
                                 className={`p-1.5 rounded ${selectedEl.style.textAlign === 'center' ? 'bg-[#D4AF37]/20' : 'hover:bg-[#D4AF37]/10'}`}
                               >
-                                <AlignCenter size={14} className="text-[#A0A5B0]" />
+                                <AlignCenter size={12} className="text-[#A0A5B0]" />
                               </button>
                               <button 
                                 onClick={() => updateElementStyle(selectedEl.id, { textAlign: 'right' })}
                                 className={`p-1.5 rounded ${selectedEl.style.textAlign === 'right' ? 'bg-[#D4AF37]/20' : 'hover:bg-[#D4AF37]/10'}`}
                               >
-                                <AlignRight size={14} className="text-[#A0A5B0]" />
+                                <AlignRight size={12} className="text-[#A0A5B0]" />
                               </button>
+                            </div>
+                            
+                            {/* Line Height & Letter Spacing */}
+                            <div className="grid grid-cols-2 gap-1">
+                              <div>
+                                <label className="text-[#A0A5B0] text-[10px]">Line Height</label>
+                                <Input 
+                                  value={selectedEl.style.lineHeight || '1.5'}
+                                  onChange={(e) => updateElementStyle(selectedEl.id, { lineHeight: e.target.value })}
+                                  className="bg-[#050A14] border-[#D4AF37]/20 h-6 text-xs text-[#F5F5F0]"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[#A0A5B0] text-[10px]">Letter Space</label>
+                                <Input 
+                                  value={selectedEl.style.letterSpacing?.replace('px', '') || '0'}
+                                  onChange={(e) => updateElementStyle(selectedEl.id, { letterSpacing: `${e.target.value}px` })}
+                                  className="bg-[#050A14] border-[#D4AF37]/20 h-6 text-xs text-[#F5F5F0]"
+                                />
+                              </div>
                             </div>
                           </div>
                         )}
                         
                         {(selectedEl.type === 'image' || selectedEl.type === 'logo') && (
-                          <div className="space-y-3">
+                          <div className="space-y-2">
                             <div>
                               <label className="text-[#A0A5B0] text-xs">Replace Image</label>
                               <label className="flex items-center justify-center p-2 border border-dashed border-[#D4AF37]/30 rounded cursor-pointer hover:border-[#D4AF37] mt-1">
@@ -1102,52 +1681,82 @@ const MagazineBuilder = () => {
                               </label>
                             </div>
                             <div>
-                              <label className="text-[#A0A5B0] text-xs">Object Fit</label>
+                              <label className="text-[#A0A5B0] text-xs">Fit</label>
                               <select 
-                                value={selectedEl.style.objectFit || 'cover'}
+                                value={selectedEl.style?.objectFit || 'cover'}
                                 onChange={(e) => updateElementStyle(selectedEl.id, { objectFit: e.target.value })}
-                                className="w-full p-1.5 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-sm"
+                                className="w-full p-1 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-xs"
                               >
                                 <option value="cover">Cover</option>
                                 <option value="contain">Contain</option>
                                 <option value="fill">Fill</option>
                               </select>
                             </div>
-                          </div>
-                        )}
-                        
-                        {selectedEl.type === 'shape' && (
-                          <div className="space-y-3">
                             <div>
-                              <label className="text-[#A0A5B0] text-xs">Background Color</label>
-                              <div className="flex gap-2">
-                                <input 
-                                  type="color" 
-                                  value={selectedEl.style.backgroundColor || '#D4AF37'}
-                                  onChange={(e) => updateElementStyle(selectedEl.id, { backgroundColor: e.target.value })}
-                                  className="w-8 h-8 rounded cursor-pointer"
-                                />
-                                <Input 
-                                  value={selectedEl.style.backgroundColor || '#D4AF37'}
-                                  onChange={(e) => updateElementStyle(selectedEl.id, { backgroundColor: e.target.value })}
-                                  className="bg-[#050A14] border-[#D4AF37]/20 h-8 text-sm flex-1"
-                                />
-                              </div>
+                              <label className="text-[#A0A5B0] text-xs">Border Radius</label>
+                              <Input 
+                                value={selectedEl.style?.borderRadius?.replace('px', '').replace('%', '') || '0'}
+                                onChange={(e) => updateElementStyle(selectedEl.id, { borderRadius: `${e.target.value}px` })}
+                                className="bg-[#050A14] border-[#D4AF37]/20 h-6 text-xs text-[#F5F5F0]"
+                              />
                             </div>
                           </div>
                         )}
                         
-                        {/* Position controls for all elements */}
-                        <div className="mt-3 pt-3 border-t border-[#D4AF37]/20">
+                        {selectedEl.type === 'shape' && (
+                          <div className="space-y-2">
+                            <div>
+                              <label className="text-[#A0A5B0] text-xs">Background</label>
+                              <div className="flex gap-1">
+                                <input 
+                                  type="color" 
+                                  value={selectedEl.style?.backgroundColor || '#D4AF37'}
+                                  onChange={(e) => updateElementStyle(selectedEl.id, { backgroundColor: e.target.value })}
+                                  className="w-7 h-7 rounded cursor-pointer"
+                                />
+                                <Input 
+                                  value={selectedEl.style?.backgroundColor || '#D4AF37'}
+                                  onChange={(e) => updateElementStyle(selectedEl.id, { backgroundColor: e.target.value })}
+                                  className="bg-[#050A14] border-[#D4AF37]/20 h-7 text-xs flex-1 text-[#F5F5F0]"
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <label className="text-[#A0A5B0] text-xs">Border Radius</label>
+                              <Input 
+                                value={selectedEl.style?.borderRadius?.replace('px', '').replace('%', '') || '0'}
+                                onChange={(e) => updateElementStyle(selectedEl.id, { borderRadius: `${e.target.value}px` })}
+                                className="bg-[#050A14] border-[#D4AF37]/20 h-6 text-xs text-[#F5F5F0]"
+                              />
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Opacity for all */}
+                        <div className="mt-2">
+                          <label className="text-[#A0A5B0] text-xs">Opacity</label>
+                          <input 
+                            type="range" 
+                            min="0" 
+                            max="1" 
+                            step="0.1"
+                            value={selectedEl.style?.opacity ?? 1}
+                            onChange={(e) => updateElementStyle(selectedEl.id, { opacity: parseFloat(e.target.value) })}
+                            className="w-full h-2 bg-[#050A14] rounded-lg appearance-none cursor-pointer"
+                          />
+                        </div>
+                        
+                        {/* Position controls */}
+                        <div className="mt-2 pt-2 border-t border-[#D4AF37]/20">
                           <label className="text-[#A0A5B0] text-xs">Position (%)</label>
-                          <div className="grid grid-cols-2 gap-2 mt-1">
+                          <div className="grid grid-cols-2 gap-1 mt-1">
                             <div>
                               <label className="text-[#A0A5B0] text-[10px]">X</label>
                               <Input 
                                 type="number"
                                 value={Math.round(selectedEl.position.x)}
                                 onChange={(e) => updateElementPosition(selectedEl.id, { x: parseFloat(e.target.value) || 0 })}
-                                className="bg-[#050A14] border-[#D4AF37]/20 h-7 text-xs"
+                                className="bg-[#050A14] border-[#D4AF37]/20 h-6 text-xs text-[#F5F5F0]"
                               />
                             </div>
                             <div>
@@ -1156,25 +1765,25 @@ const MagazineBuilder = () => {
                                 type="number"
                                 value={Math.round(selectedEl.position.y)}
                                 onChange={(e) => updateElementPosition(selectedEl.id, { y: parseFloat(e.target.value) || 0 })}
-                                className="bg-[#050A14] border-[#D4AF37]/20 h-7 text-xs"
+                                className="bg-[#050A14] border-[#D4AF37]/20 h-6 text-xs text-[#F5F5F0]"
                               />
                             </div>
                             <div>
-                              <label className="text-[#A0A5B0] text-[10px]">Width</label>
+                              <label className="text-[#A0A5B0] text-[10px]">W</label>
                               <Input 
                                 type="number"
                                 value={Math.round(selectedEl.position.width)}
                                 onChange={(e) => updateElementPosition(selectedEl.id, { width: parseFloat(e.target.value) || 10 })}
-                                className="bg-[#050A14] border-[#D4AF37]/20 h-7 text-xs"
+                                className="bg-[#050A14] border-[#D4AF37]/20 h-6 text-xs text-[#F5F5F0]"
                               />
                             </div>
                             <div>
-                              <label className="text-[#A0A5B0] text-[10px]">Height</label>
+                              <label className="text-[#A0A5B0] text-[10px]">H</label>
                               <Input 
                                 type="number"
                                 value={Math.round(selectedEl.position.height)}
                                 onChange={(e) => updateElementPosition(selectedEl.id, { height: parseFloat(e.target.value) || 10 })}
-                                className="bg-[#050A14] border-[#D4AF37]/20 h-7 text-xs"
+                                className="bg-[#050A14] border-[#D4AF37]/20 h-6 text-xs text-[#F5F5F0]"
                               />
                             </div>
                           </div>
@@ -1195,6 +1804,33 @@ const MagazineBuilder = () => {
   
   return (
     <div className="p-4">
+      {/* Page Templates Modal */}
+      {showPageTemplates && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50" onClick={() => setShowPageTemplates(false)} data-testid="page-templates-modal">
+          <div className="bg-[#0A1628] rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <h3 className="text-xl font-bold text-[#D4AF37] mb-4">Add New Page</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+              {PAGE_TEMPLATES.map(template => (
+                <div
+                  key={template.id}
+                  onClick={() => addPageFromTemplate(template.id)}
+                  className="bg-[#050A14] p-3 rounded-lg border border-[#D4AF37]/20 hover:border-[#D4AF37] cursor-pointer transition-all text-center"
+                  data-testid={`page-template-${template.id}`}
+                >
+                  <div className="text-3xl mb-2">{template.icon}</div>
+                  <p className="text-[#F5F5F0] text-xs">{template.name}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 flex justify-end">
+              <Button variant="outline" onClick={() => setShowPageTemplates(false)} className="border-[#D4AF37]/30 text-[#F5F5F0]" data-testid="cancel-page-template-btn">
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Step indicator for steps 2-4 */}
       {step >= 2 && step <= 4 && (
         <div className="flex justify-center mb-6">
@@ -1215,8 +1851,8 @@ const MagazineBuilder = () => {
       
       {/* Back to list button when in editor */}
       {step === 5 && (
-        <div className="mb-4">
-          <Button variant="outline" onClick={() => setStep(1)} className="border-[#D4AF37]/30">
+        <div className="mb-3">
+          <Button variant="outline" onClick={() => setStep(1)} className="border-[#D4AF37]/30 text-[#F5F5F0]">
             <ChevronLeft size={16} /> Back to Magazines
           </Button>
         </div>
