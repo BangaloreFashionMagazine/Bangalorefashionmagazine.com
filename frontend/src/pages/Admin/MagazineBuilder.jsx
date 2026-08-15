@@ -10,7 +10,8 @@ import {
   Bold, Italic, AlignLeft, AlignCenter, AlignRight, Palette,
   Lock, Unlock, EyeOff, ChevronLeft, ChevronRight, Save, FileDown,
   Minus, Grid, ZoomIn, ZoomOut, Maximize, Minimize, Underline,
-  GripVertical, LayoutGrid, ImagePlus, Clipboard, ClipboardCopy
+  GripVertical, LayoutGrid, ImagePlus, Clipboard, ClipboardCopy,
+  FolderOpen, Layout, BookOpen, Star, Instagram, AtSign, Phone
 } from "lucide-react";
 import { API } from "@/lib/config";
 import { autoCompressImage } from "@/lib/imageOptimization";
@@ -41,16 +42,27 @@ const FONT_FAMILIES = [
 ];
 
 const PAGE_TEMPLATES = [
-  { id: "blank", name: "Blank Page", icon: "□" },
-  { id: "cover", name: "Cover Page", icon: "📰" },
-  { id: "profile", name: "Profile Page", icon: "👤" },
-  { id: "portfolio_grid", name: "Photo Grid (6)", icon: "🖼" },
-  { id: "portfolio_2col", name: "Two Column", icon: "▯▯" },
-  { id: "interview", name: "Interview", icon: "💬" },
-  { id: "full_bleed", name: "Full Bleed Image", icon: "🌄" },
-  { id: "quote", name: "Quote Page", icon: "❝" },
-  { id: "ad_full", name: "Full Page Ad", icon: "📢" },
-  { id: "ad_half", name: "Half Page Ad", icon: "📋" }
+  { id: "blank", name: "Blank Page", icon: "□", category: "Basic" },
+  { id: "cover", name: "Cover Page", icon: "📰", category: "Basic" },
+  { id: "profile", name: "Profile Page", icon: "👤", category: "Basic" },
+  { id: "portfolio_grid", name: "Photo Grid (6)", icon: "🖼", category: "Portfolio" },
+  { id: "portfolio_2col", name: "Two Column", icon: "▯▯", category: "Portfolio" },
+  { id: "portfolio_3img", name: "Three Images", icon: "▢▢▢", category: "Portfolio" },
+  { id: "portfolio_featured", name: "Featured + Grid", icon: "◉▢", category: "Portfolio" },
+  { id: "interview", name: "Interview Q&A", icon: "💬", category: "Content" },
+  { id: "full_bleed", name: "Full Bleed Image", icon: "🌄", category: "Content" },
+  { id: "quote", name: "Quote Page", icon: "❝", category: "Content" },
+  { id: "bio_sidebar", name: "Bio + Sidebar", icon: "📝", category: "Content" },
+  { id: "timeline", name: "Career Timeline", icon: "📅", category: "Content" },
+  { id: "achievements", name: "Achievements", icon: "🏆", category: "Content" },
+  { id: "behind_scenes", name: "Behind the Scenes", icon: "🎬", category: "Content" },
+  { id: "contact", name: "Contact Page", icon: "📞", category: "Utility" },
+  { id: "social_links", name: "Social Links", icon: "📱", category: "Utility" },
+  { id: "credits", name: "Credits Page", icon: "📋", category: "Utility" },
+  { id: "toc", name: "Table of Contents", icon: "📑", category: "Utility" },
+  { id: "ad_full", name: "Full Page Ad", icon: "📢", category: "Ads" },
+  { id: "ad_half", name: "Half Page Ad", icon: "📋", category: "Ads" },
+  { id: "ad_sidebar", name: "Content + Ad", icon: "📄", category: "Ads" }
 ];
 
 const MagazineBuilder = () => {
@@ -109,6 +121,19 @@ const MagazineBuilder = () => {
   const [lastSaved, setLastSaved] = useState(null);
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
   
+  // Media Library state
+  const [showMediaLibrary, setShowMediaLibrary] = useState(false);
+  const [mediaLibrary, setMediaLibrary] = useState([]);
+  
+  // Master Pages state
+  const [showMasterPages, setShowMasterPages] = useState(false);
+  const [masterElements, setMasterElements] = useState({
+    header: [],
+    footer: []
+  });
+  const [applyMasterTo, setApplyMasterTo] = useState('all'); // 'all', 'except_cover', 'custom'
+  const [excludedPages, setExcludedPages] = useState([]);
+  
   // Drag state
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
@@ -152,6 +177,108 @@ const MagazineBuilder = () => {
     }
   };
   
+  // Media Library functions
+  const addToMediaLibrary = async (file) => {
+    try {
+      const compressed = await autoCompressImage(file);
+      const newMedia = {
+        id: `media_${Date.now()}`,
+        url: compressed,
+        name: file.name,
+        addedAt: new Date().toISOString()
+      };
+      setMediaLibrary(prev => [...prev, newMedia]);
+      setHasUnsavedChanges(true);
+      return newMedia;
+    } catch (err) {
+      toast({ title: "Failed to add image", variant: "destructive" });
+      return null;
+    }
+  };
+  
+  const removeFromMediaLibrary = (mediaId) => {
+    setMediaLibrary(prev => prev.filter(m => m.id !== mediaId));
+    setHasUnsavedChanges(true);
+  };
+  
+  const addMediaToCanvas = (mediaUrl) => {
+    const newElement = {
+      id: `el_${Date.now()}`,
+      type: 'image',
+      content: mediaUrl,
+      style: { opacity: 1, objectFit: 'cover', borderRadius: '0px' },
+      position: { x: 10, y: 10, width: 30, height: 30 },
+      layer: pages[currentPageIndex].elements.length,
+      locked: false,
+      visible: true,
+      name: 'Library Image'
+    };
+    
+    const newPages = pages.map((page, pIdx) => {
+      if (pIdx !== currentPageIndex) return page;
+      return { ...page, elements: [...page.elements, newElement] };
+    });
+    setPages(newPages);
+    setSelectedElement(newElement.id);
+    saveToHistory(newPages);
+    setShowMediaLibrary(false);
+  };
+  
+  // Master Page functions
+  const addMasterElement = (position, type) => {
+    const colors = TEMPLATES.find(t => t.id === selectedTemplate)?.colors || { bg: "#000000", accent: "#D4AF37" };
+    const newElement = {
+      id: `master_${Date.now()}`,
+      type: 'text',
+      content: position === 'header' ? 'HEADER TEXT' : 'FOOTER TEXT',
+      style: { 
+        fontSize: position === 'header' ? '10px' : '9px', 
+        fontWeight: '400', 
+        color: colors.accent, 
+        textAlign: 'center',
+        letterSpacing: '2px'
+      },
+      position: position === 'header' 
+        ? { x: 5, y: 2, width: 90, height: 4 }
+        : { x: 5, y: 94, width: 90, height: 4 },
+      layer: 100,
+      locked: false,
+      visible: true,
+      name: position === 'header' ? 'Master Header' : 'Master Footer'
+    };
+    
+    setMasterElements(prev => ({
+      ...prev,
+      [position]: [...prev[position], newElement]
+    }));
+    setHasUnsavedChanges(true);
+  };
+  
+  const updateMasterElement = (position, elementId, updates) => {
+    setMasterElements(prev => ({
+      ...prev,
+      [position]: prev[position].map(el => 
+        el.id === elementId ? { ...el, ...updates } : el
+      )
+    }));
+    setHasUnsavedChanges(true);
+  };
+  
+  const removeMasterElement = (position, elementId) => {
+    setMasterElements(prev => ({
+      ...prev,
+      [position]: prev[position].filter(el => el.id !== elementId)
+    }));
+    setHasUnsavedChanges(true);
+  };
+  
+  const shouldApplyMasterToPage = (pageIndex) => {
+    if (applyMasterTo === 'all') return true;
+    if (applyMasterTo === 'except_cover' && pageIndex === 0) return false;
+    if (applyMasterTo === 'custom' && excludedPages.includes(pageIndex)) return false;
+    return true;
+  };
+
   const handleImageUpload = async (e, field, isMultiple = false) => {
     const files = Array.from(e.target.files);
     if (!files.length) return;
@@ -488,6 +615,129 @@ const MagazineBuilder = () => {
           { id: `el_${Date.now()}_3`, type: "text", content: "Content Area", style: { fontSize: "24px", fontWeight: "600", color: "#FFFFFF", textAlign: "center" }, position: { x: 10, y: 20, width: 80, height: 10 }, layer: 1, locked: false, visible: true, name: "Content Title" }
         ];
         break;
+      case "portfolio_3img":
+        newPage.elements = [
+          { id: `el_${Date.now()}_1`, type: "text", content: "PORTFOLIO", style: { fontSize: "28px", fontWeight: "700", color: colors.accent, textAlign: "center", letterSpacing: "5px" }, position: { x: 5, y: 3, width: 90, height: 7 }, layer: 3, locked: false, visible: true, name: "Section Title" },
+          { id: `el_${Date.now()}_2`, type: "shape", content: "rectangle", style: { backgroundColor: "#1A1A2E", border: "1px dashed " + colors.accent }, position: { x: 3, y: 12, width: 30, height: 85 }, layer: 1, locked: false, visible: true, name: "Image 1" },
+          { id: `el_${Date.now()}_3`, type: "shape", content: "rectangle", style: { backgroundColor: "#1A1A2E", border: "1px dashed " + colors.accent }, position: { x: 35, y: 12, width: 30, height: 85 }, layer: 1, locked: false, visible: true, name: "Image 2" },
+          { id: `el_${Date.now()}_4`, type: "shape", content: "rectangle", style: { backgroundColor: "#1A1A2E", border: "1px dashed " + colors.accent }, position: { x: 67, y: 12, width: 30, height: 85 }, layer: 1, locked: false, visible: true, name: "Image 3" }
+        ];
+        break;
+      case "portfolio_featured":
+        newPage.elements = [
+          { id: `el_${Date.now()}_1`, type: "shape", content: "rectangle", style: { backgroundColor: "#1A1A2E", border: "1px dashed " + colors.accent }, position: { x: 3, y: 3, width: 60, height: 94 }, layer: 1, locked: false, visible: true, name: "Featured Image" },
+          { id: `el_${Date.now()}_2`, type: "shape", content: "rectangle", style: { backgroundColor: "#1A1A2E", border: "1px dashed " + colors.accent }, position: { x: 65, y: 3, width: 32, height: 30 }, layer: 1, locked: false, visible: true, name: "Small 1" },
+          { id: `el_${Date.now()}_3`, type: "shape", content: "rectangle", style: { backgroundColor: "#1A1A2E", border: "1px dashed " + colors.accent }, position: { x: 65, y: 35, width: 32, height: 30 }, layer: 1, locked: false, visible: true, name: "Small 2" },
+          { id: `el_${Date.now()}_4`, type: "shape", content: "rectangle", style: { backgroundColor: "#1A1A2E", border: "1px dashed " + colors.accent }, position: { x: 65, y: 67, width: 32, height: 30 }, layer: 1, locked: false, visible: true, name: "Small 3" }
+        ];
+        break;
+      case "bio_sidebar":
+        newPage.elements = [
+          { id: `el_${Date.now()}_1`, type: "text", content: "ABOUT", style: { fontSize: "28px", fontWeight: "700", color: colors.accent, letterSpacing: "5px" }, position: { x: 5, y: 5, width: 60, height: 8 }, layer: 3, locked: false, visible: true, name: "Section Title" },
+          { id: `el_${Date.now()}_2`, type: "text", content: "Biography text goes here. Share your complete story, background, inspirations, and journey in the fashion industry.", style: { fontSize: "14px", color: "#CCCCCC", lineHeight: "1.8", textAlign: "justify" }, position: { x: 5, y: 15, width: 60, height: 70 }, layer: 2, locked: false, visible: true, name: "Bio Text" },
+          { id: `el_${Date.now()}_3`, type: "shape", content: "rectangle", style: { backgroundColor: colors.accent, opacity: 0.1 }, position: { x: 70, y: 5, width: 25, height: 90 }, layer: 0, locked: false, visible: true, name: "Sidebar BG" },
+          { id: `el_${Date.now()}_4`, type: "text", content: "QUICK FACTS", style: { fontSize: "14px", fontWeight: "700", color: colors.accent, letterSpacing: "2px" }, position: { x: 72, y: 10, width: 21, height: 5 }, layer: 2, locked: false, visible: true, name: "Sidebar Title" },
+          { id: `el_${Date.now()}_5`, type: "text", content: "• Location\n• Experience\n• Specialization\n• Languages", style: { fontSize: "12px", color: "#FFFFFF", lineHeight: "2" }, position: { x: 72, y: 18, width: 21, height: 30 }, layer: 2, locked: false, visible: true, name: "Facts List" }
+        ];
+        break;
+      case "timeline":
+        newPage.elements = [
+          { id: `el_${Date.now()}_1`, type: "text", content: "CAREER TIMELINE", style: { fontSize: "28px", fontWeight: "700", color: colors.accent, textAlign: "center", letterSpacing: "5px" }, position: { x: 5, y: 3, width: 90, height: 8 }, layer: 3, locked: false, visible: true, name: "Section Title" },
+          { id: `el_${Date.now()}_2`, type: "shape", content: "rectangle", style: { backgroundColor: colors.accent }, position: { x: 49, y: 15, width: 2, height: 80 }, layer: 0, locked: false, visible: true, name: "Timeline Line" },
+          { id: `el_${Date.now()}_3`, type: "text", content: "2020", style: { fontSize: "16px", fontWeight: "700", color: colors.accent }, position: { x: 5, y: 18, width: 40, height: 5 }, layer: 2, locked: false, visible: true, name: "Year 1" },
+          { id: `el_${Date.now()}_4`, type: "text", content: "Started journey in fashion", style: { fontSize: "12px", color: "#CCCCCC" }, position: { x: 5, y: 24, width: 40, height: 10 }, layer: 2, locked: false, visible: true, name: "Event 1" },
+          { id: `el_${Date.now()}_5`, type: "text", content: "2022", style: { fontSize: "16px", fontWeight: "700", color: colors.accent }, position: { x: 55, y: 40, width: 40, height: 5 }, layer: 2, locked: false, visible: true, name: "Year 2" },
+          { id: `el_${Date.now()}_6`, type: "text", content: "Major breakthrough moment", style: { fontSize: "12px", color: "#CCCCCC" }, position: { x: 55, y: 46, width: 40, height: 10 }, layer: 2, locked: false, visible: true, name: "Event 2" },
+          { id: `el_${Date.now()}_7`, type: "text", content: "2024", style: { fontSize: "16px", fontWeight: "700", color: colors.accent }, position: { x: 5, y: 62, width: 40, height: 5 }, layer: 2, locked: false, visible: true, name: "Year 3" },
+          { id: `el_${Date.now()}_8`, type: "text", content: "Current achievements", style: { fontSize: "12px", color: "#CCCCCC" }, position: { x: 5, y: 68, width: 40, height: 10 }, layer: 2, locked: false, visible: true, name: "Event 3" }
+        ];
+        break;
+      case "achievements":
+        newPage.elements = [
+          { id: `el_${Date.now()}_1`, type: "text", content: "ACHIEVEMENTS", style: { fontSize: "28px", fontWeight: "700", color: colors.accent, textAlign: "center", letterSpacing: "5px" }, position: { x: 5, y: 3, width: 90, height: 8 }, layer: 3, locked: false, visible: true, name: "Section Title" },
+          { id: `el_${Date.now()}_2`, type: "text", content: "🏆", style: { fontSize: "48px", textAlign: "center" }, position: { x: 5, y: 15, width: 28, height: 15 }, layer: 2, locked: false, visible: true, name: "Award Icon 1" },
+          { id: `el_${Date.now()}_3`, type: "text", content: "Award Title", style: { fontSize: "16px", fontWeight: "700", color: "#FFFFFF", textAlign: "center" }, position: { x: 5, y: 32, width: 28, height: 5 }, layer: 2, locked: false, visible: true, name: "Award 1 Title" },
+          { id: `el_${Date.now()}_4`, type: "text", content: "Description", style: { fontSize: "12px", color: "#CCCCCC", textAlign: "center" }, position: { x: 5, y: 38, width: 28, height: 8 }, layer: 2, locked: false, visible: true, name: "Award 1 Desc" },
+          { id: `el_${Date.now()}_5`, type: "text", content: "⭐", style: { fontSize: "48px", textAlign: "center" }, position: { x: 36, y: 15, width: 28, height: 15 }, layer: 2, locked: false, visible: true, name: "Award Icon 2" },
+          { id: `el_${Date.now()}_6`, type: "text", content: "Recognition", style: { fontSize: "16px", fontWeight: "700", color: "#FFFFFF", textAlign: "center" }, position: { x: 36, y: 32, width: 28, height: 5 }, layer: 2, locked: false, visible: true, name: "Award 2 Title" },
+          { id: `el_${Date.now()}_7`, type: "text", content: "Description", style: { fontSize: "12px", color: "#CCCCCC", textAlign: "center" }, position: { x: 36, y: 38, width: 28, height: 8 }, layer: 2, locked: false, visible: true, name: "Award 2 Desc" },
+          { id: `el_${Date.now()}_8`, type: "text", content: "🎖", style: { fontSize: "48px", textAlign: "center" }, position: { x: 67, y: 15, width: 28, height: 15 }, layer: 2, locked: false, visible: true, name: "Award Icon 3" },
+          { id: `el_${Date.now()}_9`, type: "text", content: "Honor", style: { fontSize: "16px", fontWeight: "700", color: "#FFFFFF", textAlign: "center" }, position: { x: 67, y: 32, width: 28, height: 5 }, layer: 2, locked: false, visible: true, name: "Award 3 Title" },
+          { id: `el_${Date.now()}_10`, type: "text", content: "Description", style: { fontSize: "12px", color: "#CCCCCC", textAlign: "center" }, position: { x: 67, y: 38, width: 28, height: 8 }, layer: 2, locked: false, visible: true, name: "Award 3 Desc" }
+        ];
+        break;
+      case "behind_scenes":
+        newPage.elements = [
+          { id: `el_${Date.now()}_1`, type: "text", content: "BEHIND THE SCENES", style: { fontSize: "28px", fontWeight: "700", color: colors.accent, textAlign: "center", letterSpacing: "5px" }, position: { x: 5, y: 3, width: 90, height: 8 }, layer: 3, locked: false, visible: true, name: "Section Title" },
+          { id: `el_${Date.now()}_2`, type: "shape", content: "rectangle", style: { backgroundColor: "#1A1A2E", border: "1px dashed " + colors.accent }, position: { x: 3, y: 13, width: 48, height: 40 }, layer: 1, locked: false, visible: true, name: "BTS Image 1" },
+          { id: `el_${Date.now()}_3`, type: "shape", content: "rectangle", style: { backgroundColor: "#1A1A2E", border: "1px dashed " + colors.accent }, position: { x: 53, y: 13, width: 44, height: 40 }, layer: 1, locked: false, visible: true, name: "BTS Image 2" },
+          { id: `el_${Date.now()}_4`, type: "shape", content: "rectangle", style: { backgroundColor: "#1A1A2E", border: "1px dashed " + colors.accent }, position: { x: 3, y: 55, width: 44, height: 40 }, layer: 1, locked: false, visible: true, name: "BTS Image 3" },
+          { id: `el_${Date.now()}_5`, type: "shape", content: "rectangle", style: { backgroundColor: "#1A1A2E", border: "1px dashed " + colors.accent }, position: { x: 49, y: 55, width: 48, height: 40 }, layer: 1, locked: false, visible: true, name: "BTS Image 4" }
+        ];
+        break;
+      case "contact":
+        newPage.elements = [
+          { id: `el_${Date.now()}_1`, type: "text", content: "GET IN TOUCH", style: { fontSize: "28px", fontWeight: "700", color: colors.accent, textAlign: "center", letterSpacing: "5px" }, position: { x: 5, y: 10, width: 90, height: 8 }, layer: 3, locked: false, visible: true, name: "Section Title" },
+          { id: `el_${Date.now()}_2`, type: "text", content: "For bookings, collaborations, and inquiries", style: { fontSize: "14px", color: "#CCCCCC", textAlign: "center", fontStyle: "italic" }, position: { x: 10, y: 20, width: 80, height: 5 }, layer: 2, locked: false, visible: true, name: "Subtitle" },
+          { id: `el_${Date.now()}_3`, type: "text", content: "📧", style: { fontSize: "32px", textAlign: "center" }, position: { x: 10, y: 35, width: 10, height: 10 }, layer: 2, locked: false, visible: true, name: "Email Icon" },
+          { id: `el_${Date.now()}_4`, type: "text", content: "email@example.com", style: { fontSize: "16px", color: "#FFFFFF" }, position: { x: 22, y: 37, width: 70, height: 6 }, layer: 2, locked: false, visible: true, name: "Email" },
+          { id: `el_${Date.now()}_5`, type: "text", content: "📱", style: { fontSize: "32px", textAlign: "center" }, position: { x: 10, y: 50, width: 10, height: 10 }, layer: 2, locked: false, visible: true, name: "Phone Icon" },
+          { id: `el_${Date.now()}_6`, type: "text", content: "+91 98765 43210", style: { fontSize: "16px", color: "#FFFFFF" }, position: { x: 22, y: 52, width: 70, height: 6 }, layer: 2, locked: false, visible: true, name: "Phone" },
+          { id: `el_${Date.now()}_7`, type: "text", content: "📍", style: { fontSize: "32px", textAlign: "center" }, position: { x: 10, y: 65, width: 10, height: 10 }, layer: 2, locked: false, visible: true, name: "Location Icon" },
+          { id: `el_${Date.now()}_8`, type: "text", content: "Bangalore, India", style: { fontSize: "16px", color: "#FFFFFF" }, position: { x: 22, y: 67, width: 70, height: 6 }, layer: 2, locked: false, visible: true, name: "Location" }
+        ];
+        break;
+      case "social_links":
+        newPage.elements = [
+          { id: `el_${Date.now()}_1`, type: "text", content: "CONNECT WITH ME", style: { fontSize: "28px", fontWeight: "700", color: colors.accent, textAlign: "center", letterSpacing: "5px" }, position: { x: 5, y: 10, width: 90, height: 8 }, layer: 3, locked: false, visible: true, name: "Section Title" },
+          { id: `el_${Date.now()}_2`, type: "shape", content: "circle", style: { backgroundColor: "#E1306C", borderRadius: "50%" }, position: { x: 20, y: 30, width: 15, height: 12 }, layer: 1, locked: false, visible: true, name: "Instagram BG" },
+          { id: `el_${Date.now()}_3`, type: "text", content: "@username", style: { fontSize: "14px", color: "#FFFFFF", textAlign: "center" }, position: { x: 15, y: 45, width: 25, height: 5 }, layer: 2, locked: false, visible: true, name: "Instagram Handle" },
+          { id: `el_${Date.now()}_4`, type: "shape", content: "circle", style: { backgroundColor: "#1DA1F2", borderRadius: "50%" }, position: { x: 42, y: 30, width: 15, height: 12 }, layer: 1, locked: false, visible: true, name: "Twitter BG" },
+          { id: `el_${Date.now()}_5`, type: "text", content: "@username", style: { fontSize: "14px", color: "#FFFFFF", textAlign: "center" }, position: { x: 37, y: 45, width: 25, height: 5 }, layer: 2, locked: false, visible: true, name: "Twitter Handle" },
+          { id: `el_${Date.now()}_6`, type: "shape", content: "circle", style: { backgroundColor: "#0077B5", borderRadius: "50%" }, position: { x: 64, y: 30, width: 15, height: 12 }, layer: 1, locked: false, visible: true, name: "LinkedIn BG" },
+          { id: `el_${Date.now()}_7`, type: "text", content: "/in/username", style: { fontSize: "14px", color: "#FFFFFF", textAlign: "center" }, position: { x: 59, y: 45, width: 25, height: 5 }, layer: 2, locked: false, visible: true, name: "LinkedIn Handle" },
+          { id: `el_${Date.now()}_8`, type: "text", content: "www.yourwebsite.com", style: { fontSize: "18px", color: colors.accent, textAlign: "center" }, position: { x: 10, y: 70, width: 80, height: 8 }, layer: 2, locked: false, visible: true, name: "Website" }
+        ];
+        break;
+      case "credits":
+        newPage.elements = [
+          { id: `el_${Date.now()}_1`, type: "text", content: "CREDITS", style: { fontSize: "28px", fontWeight: "700", color: colors.accent, textAlign: "center", letterSpacing: "5px" }, position: { x: 5, y: 10, width: 90, height: 8 }, layer: 3, locked: false, visible: true, name: "Section Title" },
+          { id: `el_${Date.now()}_2`, type: "text", content: "Photography", style: { fontSize: "12px", color: colors.accent, letterSpacing: "2px" }, position: { x: 10, y: 25, width: 35, height: 4 }, layer: 2, locked: false, visible: true, name: "Photo Label" },
+          { id: `el_${Date.now()}_3`, type: "text", content: "Photographer Name", style: { fontSize: "16px", color: "#FFFFFF" }, position: { x: 10, y: 30, width: 35, height: 6 }, layer: 2, locked: false, visible: true, name: "Photographer" },
+          { id: `el_${Date.now()}_4`, type: "text", content: "Styling", style: { fontSize: "12px", color: colors.accent, letterSpacing: "2px" }, position: { x: 55, y: 25, width: 35, height: 4 }, layer: 2, locked: false, visible: true, name: "Style Label" },
+          { id: `el_${Date.now()}_5`, type: "text", content: "Stylist Name", style: { fontSize: "16px", color: "#FFFFFF" }, position: { x: 55, y: 30, width: 35, height: 6 }, layer: 2, locked: false, visible: true, name: "Stylist" },
+          { id: `el_${Date.now()}_6`, type: "text", content: "Makeup & Hair", style: { fontSize: "12px", color: colors.accent, letterSpacing: "2px" }, position: { x: 10, y: 45, width: 35, height: 4 }, layer: 2, locked: false, visible: true, name: "MUA Label" },
+          { id: `el_${Date.now()}_7`, type: "text", content: "MUA Name", style: { fontSize: "16px", color: "#FFFFFF" }, position: { x: 10, y: 50, width: 35, height: 6 }, layer: 2, locked: false, visible: true, name: "MUA" },
+          { id: `el_${Date.now()}_8`, type: "text", content: "Creative Direction", style: { fontSize: "12px", color: colors.accent, letterSpacing: "2px" }, position: { x: 55, y: 45, width: 35, height: 4 }, layer: 2, locked: false, visible: true, name: "CD Label" },
+          { id: `el_${Date.now()}_9`, type: "text", content: "Director Name", style: { fontSize: "16px", color: "#FFFFFF" }, position: { x: 55, y: 50, width: 35, height: 6 }, layer: 2, locked: false, visible: true, name: "Director" },
+          { id: `el_${Date.now()}_10`, type: "text", content: "Special Thanks", style: { fontSize: "12px", color: colors.accent, letterSpacing: "2px", textAlign: "center" }, position: { x: 10, y: 70, width: 80, height: 4 }, layer: 2, locked: false, visible: true, name: "Thanks Label" },
+          { id: `el_${Date.now()}_11`, type: "text", content: "Name 1, Name 2, Name 3", style: { fontSize: "14px", color: "#CCCCCC", textAlign: "center" }, position: { x: 10, y: 76, width: 80, height: 6 }, layer: 2, locked: false, visible: true, name: "Thanks List" }
+        ];
+        break;
+      case "toc":
+        newPage.elements = [
+          { id: `el_${Date.now()}_1`, type: "text", content: "CONTENTS", style: { fontSize: "28px", fontWeight: "700", color: colors.accent, textAlign: "center", letterSpacing: "5px" }, position: { x: 5, y: 10, width: 90, height: 8 }, layer: 3, locked: false, visible: true, name: "Section Title" },
+          { id: `el_${Date.now()}_2`, type: "text", content: "COVER STORY", style: { fontSize: "14px", color: "#FFFFFF", letterSpacing: "1px" }, position: { x: 10, y: 28, width: 60, height: 5 }, layer: 2, locked: false, visible: true, name: "Item 1" },
+          { id: `el_${Date.now()}_3`, type: "text", content: "04", style: { fontSize: "14px", color: colors.accent, textAlign: "right" }, position: { x: 75, y: 28, width: 15, height: 5 }, layer: 2, locked: false, visible: true, name: "Page 1" },
+          { id: `el_${Date.now()}_4`, type: "text", content: "THE JOURNEY", style: { fontSize: "14px", color: "#FFFFFF", letterSpacing: "1px" }, position: { x: 10, y: 38, width: 60, height: 5 }, layer: 2, locked: false, visible: true, name: "Item 2" },
+          { id: `el_${Date.now()}_5`, type: "text", content: "08", style: { fontSize: "14px", color: colors.accent, textAlign: "right" }, position: { x: 75, y: 38, width: 15, height: 5 }, layer: 2, locked: false, visible: true, name: "Page 2" },
+          { id: `el_${Date.now()}_6`, type: "text", content: "PORTFOLIO", style: { fontSize: "14px", color: "#FFFFFF", letterSpacing: "1px" }, position: { x: 10, y: 48, width: 60, height: 5 }, layer: 2, locked: false, visible: true, name: "Item 3" },
+          { id: `el_${Date.now()}_7`, type: "text", content: "12", style: { fontSize: "14px", color: colors.accent, textAlign: "right" }, position: { x: 75, y: 48, width: 15, height: 5 }, layer: 2, locked: false, visible: true, name: "Page 3" },
+          { id: `el_${Date.now()}_8`, type: "text", content: "INTERVIEW", style: { fontSize: "14px", color: "#FFFFFF", letterSpacing: "1px" }, position: { x: 10, y: 58, width: 60, height: 5 }, layer: 2, locked: false, visible: true, name: "Item 4" },
+          { id: `el_${Date.now()}_9`, type: "text", content: "18", style: { fontSize: "14px", color: colors.accent, textAlign: "right" }, position: { x: 75, y: 58, width: 15, height: 5 }, layer: 2, locked: false, visible: true, name: "Page 4" },
+          { id: `el_${Date.now()}_10`, type: "shape", content: "rectangle", style: { backgroundColor: colors.accent, opacity: 0.3 }, position: { x: 10, y: 35, width: 80, height: 0.5 }, layer: 0, locked: false, visible: true, name: "Divider 1" },
+          { id: `el_${Date.now()}_11`, type: "shape", content: "rectangle", style: { backgroundColor: colors.accent, opacity: 0.3 }, position: { x: 10, y: 45, width: 80, height: 0.5 }, layer: 0, locked: false, visible: true, name: "Divider 2" },
+          { id: `el_${Date.now()}_12`, type: "shape", content: "rectangle", style: { backgroundColor: colors.accent, opacity: 0.3 }, position: { x: 10, y: 55, width: 80, height: 0.5 }, layer: 0, locked: false, visible: true, name: "Divider 3" }
+        ];
+        break;
+      case "ad_sidebar":
+        newPage.elements = [
+          { id: `el_${Date.now()}_1`, type: "text", content: "CONTENT TITLE", style: { fontSize: "24px", fontWeight: "700", color: "#FFFFFF" }, position: { x: 5, y: 5, width: 60, height: 8 }, layer: 2, locked: false, visible: true, name: "Content Title" },
+          { id: `el_${Date.now()}_2`, type: "text", content: "Your main content text goes here. This layout combines editorial content with a sidebar advertisement space.", style: { fontSize: "14px", color: "#CCCCCC", lineHeight: "1.8", textAlign: "justify" }, position: { x: 5, y: 15, width: 60, height: 75 }, layer: 2, locked: false, visible: true, name: "Content Text" },
+          { id: `el_${Date.now()}_3`, type: "shape", content: "rectangle", style: { backgroundColor: "#0A1628", border: "2px dashed " + colors.accent }, position: { x: 68, y: 5, width: 28, height: 90 }, layer: 0, locked: false, visible: true, name: "Ad Container" },
+          { id: `el_${Date.now()}_4`, type: "text", content: "AD", style: { fontSize: "14px", fontWeight: "700", color: colors.accent, textAlign: "center", letterSpacing: "2px" }, position: { x: 70, y: 45, width: 24, height: 5 }, layer: 1, locked: false, visible: true, name: "Ad Label" }
+        ];
+        break;
       default:
         break;
     }
@@ -562,7 +812,10 @@ const MagazineBuilder = () => {
         talent: talentDetails,
         images: images,
         pages: pages,
-        template: selectedTemplate
+        template: selectedTemplate,
+        media_library: mediaLibrary,
+        master_elements: masterElements,
+        master_settings: { applyTo: applyMasterTo, excludedPages }
       });
       setHasUnsavedChanges(false);
       setLastSaved(new Date());
@@ -683,6 +936,18 @@ const MagazineBuilder = () => {
       setCurrentPageIndex(0);
       setStep(5);
       saveToHistory(res.data.pages);
+      
+      // Load media library and master elements if they exist
+      if (res.data.media_library) {
+        setMediaLibrary(res.data.media_library);
+      }
+      if (res.data.master_elements) {
+        setMasterElements(res.data.master_elements);
+      }
+      if (res.data.master_settings) {
+        setApplyMasterTo(res.data.master_settings.applyTo || 'all');
+        setExcludedPages(res.data.master_settings.excludedPages || []);
+      }
     } catch (err) {
       toast({ title: "Failed to load magazine", variant: "destructive" });
     }
@@ -1315,6 +1580,12 @@ const MagazineBuilder = () => {
                   <button onClick={() => addElement('shape', 'line')} className="p-1.5 hover:bg-[#D4AF37]/20 rounded" title="Add Line/Divider" data-testid="add-line-btn">
                     <Minus size={14} className="text-[#A0A5B0]" />
                   </button>
+                  <button onClick={() => setShowMediaLibrary(true)} className="p-1.5 hover:bg-[#D4AF37]/20 rounded" title="Media Library" data-testid="media-library-btn">
+                    <FolderOpen size={14} className="text-[#A0A5B0]" />
+                  </button>
+                  <button onClick={() => setShowMasterPages(true)} className="p-1.5 hover:bg-[#D4AF37]/20 rounded" title="Master Pages (Headers/Footers)" data-testid="master-pages-btn">
+                    <Layout size={14} className="text-[#A0A5B0]" />
+                  </button>
                 </div>
                 
                 {/* Page Actions */}
@@ -1523,6 +1794,67 @@ const MagazineBuilder = () => {
                           {selectedElement === el.id && !previewMode && !el.locked && renderResizeHandles(el.id)}
                         </div>
                       ))}
+                    
+                    {/* Render Master Elements */}
+                    {shouldApplyMasterToPage(currentPageIndex) && (
+                      <>
+                        {/* Header Master Elements */}
+                        {masterElements.header.map(el => (
+                          <div
+                            key={el.id}
+                            className="absolute pointer-events-none"
+                            style={{
+                              left: `${el.position.x}%`,
+                              top: `${el.position.y}%`,
+                              width: `${el.position.width}%`,
+                              height: `${el.position.height}%`,
+                              opacity: el.style?.opacity ?? 1
+                            }}
+                          >
+                            <div 
+                              className="w-full h-full overflow-hidden whitespace-pre-wrap"
+                              style={{
+                                fontSize: el.style.fontSize,
+                                fontWeight: el.style.fontWeight,
+                                color: el.style.color,
+                                textAlign: el.style.textAlign,
+                                letterSpacing: el.style.letterSpacing || '0px'
+                              }}
+                            >
+                              {el.content.replace('{{page}}', String(currentPageIndex + 1))}
+                            </div>
+                          </div>
+                        ))}
+                        
+                        {/* Footer Master Elements */}
+                        {masterElements.footer.map(el => (
+                          <div
+                            key={el.id}
+                            className="absolute pointer-events-none"
+                            style={{
+                              left: `${el.position.x}%`,
+                              top: `${el.position.y}%`,
+                              width: `${el.position.width}%`,
+                              height: `${el.position.height}%`,
+                              opacity: el.style?.opacity ?? 1
+                            }}
+                          >
+                            <div 
+                              className="w-full h-full overflow-hidden whitespace-pre-wrap"
+                              style={{
+                                fontSize: el.style.fontSize,
+                                fontWeight: el.style.fontWeight,
+                                color: el.style.color,
+                                textAlign: el.style.textAlign,
+                                letterSpacing: el.style.letterSpacing || '0px'
+                              }}
+                            >
+                              {el.content.replace('{{page}}', String(currentPageIndex + 1))}
+                            </div>
+                          </div>
+                        ))}
+                      </>
+                    )}
                   </div>
                 </div>
                 
@@ -1850,24 +2182,207 @@ const MagazineBuilder = () => {
       {/* Page Templates Modal */}
       {showPageTemplates && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50" onClick={() => setShowPageTemplates(false)} data-testid="page-templates-modal">
-          <div className="bg-[#0A1628] rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+          <div className="bg-[#0A1628] rounded-lg p-6 max-w-3xl w-full mx-4 max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <h3 className="text-xl font-bold text-[#D4AF37] mb-4">Add New Page</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-              {PAGE_TEMPLATES.map(template => (
-                <div
-                  key={template.id}
-                  onClick={() => addPageFromTemplate(template.id)}
-                  className="bg-[#050A14] p-3 rounded-lg border border-[#D4AF37]/20 hover:border-[#D4AF37] cursor-pointer transition-all text-center"
-                  data-testid={`page-template-${template.id}`}
-                >
-                  <div className="text-3xl mb-2">{template.icon}</div>
-                  <p className="text-[#F5F5F0] text-xs">{template.name}</p>
+            {['Basic', 'Portfolio', 'Content', 'Utility', 'Ads'].map(category => (
+              <div key={category} className="mb-4">
+                <h4 className="text-[#A0A5B0] text-xs uppercase tracking-wider mb-2">{category}</h4>
+                <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                  {PAGE_TEMPLATES.filter(t => t.category === category).map(template => (
+                    <div
+                      key={template.id}
+                      onClick={() => addPageFromTemplate(template.id)}
+                      className="bg-[#050A14] p-2 rounded-lg border border-[#D4AF37]/20 hover:border-[#D4AF37] cursor-pointer transition-all text-center"
+                      data-testid={`page-template-${template.id}`}
+                    >
+                      <div className="text-2xl mb-1">{template.icon}</div>
+                      <p className="text-[#F5F5F0] text-[10px]">{template.name}</p>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
             <div className="mt-4 flex justify-end">
               <Button variant="outline" onClick={() => setShowPageTemplates(false)} className="border-[#D4AF37]/30 text-[#F5F5F0]" data-testid="cancel-page-template-btn">
                 Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Media Library Modal */}
+      {showMediaLibrary && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50" onClick={() => setShowMediaLibrary(false)} data-testid="media-library-modal">
+          <div className="bg-[#0A1628] rounded-lg p-6 max-w-3xl w-full mx-4 max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-[#D4AF37]">Media Library</h3>
+              <label className="cursor-pointer">
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  multiple 
+                  className="hidden"
+                  onChange={async (e) => {
+                    const files = Array.from(e.target.files);
+                    for (const file of files) {
+                      await addToMediaLibrary(file);
+                    }
+                  }}
+                />
+                <span className="bg-[#D4AF37] text-[#050A14] px-3 py-1.5 rounded text-sm font-medium hover:bg-[#F5D76E]">
+                  + Upload Images
+                </span>
+              </label>
+            </div>
+            
+            {mediaLibrary.length === 0 ? (
+              <div className="text-center py-12 bg-[#050A14] rounded-lg border border-dashed border-[#D4AF37]/30">
+                <FolderOpen size={48} className="mx-auto text-[#D4AF37]/30 mb-3" />
+                <p className="text-[#A0A5B0]">No images in library yet</p>
+                <p className="text-[#A0A5B0] text-sm">Upload images to reuse across pages</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+                {mediaLibrary.map(media => (
+                  <div key={media.id} className="relative group">
+                    <img 
+                      src={media.url} 
+                      alt={media.name}
+                      className="w-full aspect-square object-cover rounded cursor-pointer border-2 border-transparent hover:border-[#D4AF37]"
+                      onClick={() => addMediaToCanvas(media.url)}
+                    />
+                    <button
+                      onClick={(e) => { e.stopPropagation(); removeFromMediaLibrary(media.id); }}
+                      className="absolute top-1 right-1 p-1 bg-red-500 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            <div className="mt-4 flex justify-end">
+              <Button variant="outline" onClick={() => setShowMediaLibrary(false)} className="border-[#D4AF37]/30 text-[#F5F5F0]">
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Master Pages Modal */}
+      {showMasterPages && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50" onClick={() => setShowMasterPages(false)} data-testid="master-pages-modal">
+          <div className="bg-[#0A1628] rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <h3 className="text-xl font-bold text-[#D4AF37] mb-4">Master Pages</h3>
+            <p className="text-[#A0A5B0] text-sm mb-4">Header and footer elements will appear on all selected pages.</p>
+            
+            {/* Apply Settings */}
+            <div className="mb-6 p-3 bg-[#050A14] rounded-lg">
+              <label className="text-[#A0A5B0] text-xs uppercase tracking-wider block mb-2">Apply Master Elements To</label>
+              <select 
+                value={applyMasterTo}
+                onChange={(e) => setApplyMasterTo(e.target.value)}
+                className="w-full p-2 bg-[#0A1628] border border-[#D4AF37]/30 rounded text-[#F5F5F0] text-sm"
+              >
+                <option value="all">All Pages</option>
+                <option value="except_cover">All Except Cover (First Page)</option>
+                <option value="custom">Custom Selection</option>
+              </select>
+              
+              {applyMasterTo === 'custom' && (
+                <div className="mt-3">
+                  <label className="text-[#A0A5B0] text-xs block mb-2">Exclude pages (comma-separated numbers):</label>
+                  <Input 
+                    placeholder="e.g., 1, 3, 5"
+                    value={excludedPages.join(', ')}
+                    onChange={(e) => {
+                      const nums = e.target.value.split(',').map(n => parseInt(n.trim()) - 1).filter(n => !isNaN(n) && n >= 0);
+                      setExcludedPages(nums);
+                    }}
+                    className="bg-[#0A1628] border-[#D4AF37]/30 text-[#F5F5F0]"
+                  />
+                </div>
+              )}
+            </div>
+            
+            {/* Header Elements */}
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-2">
+                <h4 className="text-[#F5F5F0] font-medium">Header Elements</h4>
+                <Button size="sm" onClick={() => addMasterElement('header', 'text')} className="bg-[#D4AF37]/20 text-[#D4AF37] h-7">
+                  <Plus size={12} className="mr-1" /> Add Header Text
+                </Button>
+              </div>
+              {masterElements.header.length === 0 ? (
+                <p className="text-[#A0A5B0] text-sm italic">No header elements</p>
+              ) : (
+                <div className="space-y-2">
+                  {masterElements.header.map(el => (
+                    <div key={el.id} className="flex items-center gap-2 p-2 bg-[#050A14] rounded">
+                      <Input 
+                        value={el.content}
+                        onChange={(e) => updateMasterElement('header', el.id, { content: e.target.value })}
+                        className="bg-[#0A1628] border-[#D4AF37]/20 text-[#F5F5F0] text-sm flex-1"
+                      />
+                      <input 
+                        type="color" 
+                        value={el.style.color}
+                        onChange={(e) => updateMasterElement('header', el.id, { style: { ...el.style, color: e.target.value } })}
+                        className="w-8 h-8 rounded cursor-pointer"
+                      />
+                      <button onClick={() => removeMasterElement('header', el.id)} className="text-red-400 hover:text-red-300">
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            {/* Footer Elements */}
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-2">
+                <h4 className="text-[#F5F5F0] font-medium">Footer Elements</h4>
+                <Button size="sm" onClick={() => addMasterElement('footer', 'text')} className="bg-[#D4AF37]/20 text-[#D4AF37] h-7">
+                  <Plus size={12} className="mr-1" /> Add Footer Text
+                </Button>
+              </div>
+              {masterElements.footer.length === 0 ? (
+                <p className="text-[#A0A5B0] text-sm italic">No footer elements</p>
+              ) : (
+                <div className="space-y-2">
+                  {masterElements.footer.map(el => (
+                    <div key={el.id} className="flex items-center gap-2 p-2 bg-[#050A14] rounded">
+                      <Input 
+                        value={el.content}
+                        onChange={(e) => updateMasterElement('footer', el.id, { content: e.target.value })}
+                        className="bg-[#0A1628] border-[#D4AF37]/20 text-[#F5F5F0] text-sm flex-1"
+                      />
+                      <input 
+                        type="color" 
+                        value={el.style.color}
+                        onChange={(e) => updateMasterElement('footer', el.id, { style: { ...el.style, color: e.target.value } })}
+                        className="w-8 h-8 rounded cursor-pointer"
+                      />
+                      <button onClick={() => removeMasterElement('footer', el.id)} className="text-red-400 hover:text-red-300">
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            <div className="p-3 bg-[#050A14] rounded text-[#A0A5B0] text-xs">
+              <p><strong>Tip:</strong> Add page numbers by including <code className="bg-[#0A1628] px-1 rounded">{'{{page}}'}</code> in your text. It will be replaced with the actual page number.</p>
+            </div>
+            
+            <div className="mt-4 flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowMasterPages(false)} className="border-[#D4AF37]/30 text-[#F5F5F0]">
+                Close
               </Button>
             </div>
           </div>
