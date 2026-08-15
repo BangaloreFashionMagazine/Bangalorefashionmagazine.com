@@ -1783,7 +1783,24 @@ const MagazineBuilder = () => {
                             <img src={el.content} alt="" className="w-full h-full" style={{ objectFit: el.style?.objectFit || 'cover', borderRadius: el.style?.borderRadius || '0' }} />
                           )}
                           {el.type === 'logo' && (
-                            <img src={el.content} alt="Logo" className="w-full h-full object-contain" style={el.style} />
+                            <div 
+                              className="w-full h-full overflow-hidden"
+                              style={{ 
+                                borderRadius: '50%', 
+                                border: el.style?.border || '2px solid #D4AF37',
+                                backgroundColor: '#000',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                              }}
+                            >
+                              <img 
+                                src={el.content} 
+                                alt="BFM Logo" 
+                                className="w-full h-full"
+                                style={{ objectFit: 'cover', borderRadius: '50%' }} 
+                              />
+                            </div>
                           )}
                           {el.type === 'shape' && (
                             <div 

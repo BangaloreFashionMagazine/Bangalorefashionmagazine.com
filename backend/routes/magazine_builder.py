@@ -143,8 +143,8 @@ def create_magazine_builder_router(db):
                     "id": str(uuid.uuid4()),
                     "type": "logo",
                     "content": "/bfm-logo.jpeg",
-                    "style": {"borderRadius": "50%", "border": f"2px solid {colors['accent']}"},
-                    "position": {"x": 5, "y": 5, "width": 12, "height": 10},
+                    "style": {"borderRadius": "50%", "border": f"3px solid {colors['accent']}"},
+                    "position": {"x": 4, "y": 4, "width": 10, "height": 9},
                     "layer": 5,
                     "locked": False,
                     "visible": True,
@@ -649,8 +649,8 @@ def create_magazine_builder_router(db):
         logo_element = {
             "type": "logo",
             "content": "/bfm-logo.jpeg",
-            "style": {"borderRadius": "50%", "border": f"2px solid {colors['accent']}", "opacity": 0.9},
-            "position": {"x": 3, "y": 3, "width": 8, "height": 7},
+            "style": {"borderRadius": "50%", "border": f"2px solid {colors['accent']}"},
+            "position": {"x": 3, "y": 2, "width": 7, "height": 6},
             "locked": False,
             "visible": True,
             "name": "BFM Logo"
