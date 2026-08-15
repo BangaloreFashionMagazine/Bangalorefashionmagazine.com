@@ -4,7 +4,7 @@ import 'react-image-crop/dist/ReactCrop.css';
 import { X, Check, Upload } from 'lucide-react';
 import { autoCompressImage, getBase64Size } from '@/lib/imageOptimization';
 
-const ImageUploadWithCrop = ({ onImageSelect, aspectRatio, buttonText = "Choose Image", className = "", maxSizeKB = 500 }) => {
+const ImageUploadWithCrop = ({ onImageSelect, aspectRatio, buttonText = "Choose Image", className = "", maxSizeKB = 500, skipCrop = false }) => {
   const [imageSrc, setImageSrc] = useState(null);
   const [crop, setCrop] = useState({ unit: '%', width: 80, height: 80, x: 10, y: 10 });
   const [completedCrop, setCompletedCrop] = useState(null);
@@ -13,13 +13,26 @@ const ImageUploadWithCrop = ({ onImageSelect, aspectRatio, buttonText = "Choose 
   const imgRef = useRef(null);
   const inputRef = useRef(null);
 
-  const handleFileSelect = (e) => {
+  const handleFileSelect = async (e) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setImageSrc(reader.result);
-        setShowCropper(true);
+      reader.onloadend = async () => {
+        if (skipCrop) {
+          // Skip cropping, just compress and return
+          setIsCompressing(true);
+          try {
+            const compressed = await autoCompressImage(reader.result, maxSizeKB);
+            onImageSelect(compressed);
+          } catch (err) {
+            console.error('Compression failed:', err);
+            onImageSelect(reader.result);
+          }
+          setIsCompressing(false);
+        } else {
+          setImageSrc(reader.result);
+          setShowCropper(true);
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -136,10 +149,11 @@ const ImageUploadWithCrop = ({ onImageSelect, aspectRatio, buttonText = "Choose 
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
-        className={`flex items-center gap-2 px-4 py-2 bg-[#D4AF37]/20 text-[#D4AF37] rounded hover:bg-[#D4AF37] hover:text-[#050A14] transition-all ${className}`}
+        disabled={isCompressing}
+        className={`flex items-center gap-2 px-4 py-2 bg-[#D4AF37]/20 text-[#D4AF37] rounded hover:bg-[#D4AF37] hover:text-[#050A14] transition-all disabled:opacity-50 ${className}`}
       >
         <Upload size={16} />
-        {buttonText}
+        {isCompressing ? 'Uploading...' : buttonText}
       </button>
 
       {showCropper && (

@@ -1,0 +1,30 @@
+{
+  "summary": "Tested skipCrop for Party Event & Advertisement image uploads, and the new ClickableAdImage enlarged-view behavior for ads without links. All 3 core user-reported requirements pass. Party and Ad uploads bypass the crop modal (skipCrop=true), compress the image, and preview immediately. Clicking a sponsored image WITHOUT a link no longer refreshes the page — it opens an enlarged modal instead. Clicking a sponsored image WITH a link has proper href + target='_blank'. Modal closes via backdrop click. Modal close via ✕ button works when triggered as a proper DOM click event.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Homepage enlarged ad modal", "issues": ["The enlarged-ad overlay uses z-50 which is the SAME z-index as the fixed Navbar. In practice the modal wins (renders later), but any click coordinate that overlaps the navbar band (y<64) may be ambiguous. Recommend bumping the enlarged modal overlay to z-[60] or z-[100] for guaranteed layering. Note: functionally the modal still receives clicks; this is a hardening suggestion only."]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "(Optional) Increase z-index of ClickableAdImage / AdvertisementSidebar enlarged-modal overlay to z-[100] (matching WelcomeSplash / ImageGalleryInline) to avoid any layering conflict with the z-50 fixed Navbar.",
+    "(Optional) Cleanup test data created during testing: Party Event 'TEST_Party_NoCrop' and Advertisement 'TEST_Ad_NoLink_Enlarge'."
+  ],
+  "critical_code_review_comments": [
+    "App.js is 1826 lines — recommend splitting into per-page/component files (Home, Talents, JoinPage, etc.). Exceeds the 700-line guideline.",
+    "AdvertisementSidebar and ClickableAdImage duplicate the same enlarged-modal + trackAdClick logic (~40 lines each). Extract into a shared component to satisfy DRY.",
+    "In ClickableAdImage, when the ad has a link, handleClick still calls e.preventDefault() only in the no-link branch — that's correct — but the anchor renders `href='#'` when there is no link. This means keyboard/enter-activation may still trigger a hash navigation. Consider rendering a <button> when there is no link, or using role='button' with proper key handling.",
+    "Both the enlarged-modal overlay and the fixed Navbar use z-50. While the modal renders later so it wins, this is fragile and should be raised to a higher z-index tier for the modal (z-100)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (frontend-only)", "frontend": "100% for the 5 requested scenarios"},
+  "test_credentials": "admin@bangalorefashionmag.com / Admin@123BFM (from /app/memory/test_credentials.md)",
+  "seed_data_creation": "Created Party Event 'TEST_Party_NoCrop / TEST_Venue' (via /api/admin/party-events) and Advertisement 'TEST_Ad_NoLink_Enlarge' with no link (via /api/admin/advertisements) — used to validate skipCrop and enlarged-modal behavior.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All three user-reported issues are resolved: (1) Party image upload uses skipCrop and does not show the crop modal, (2) Ad image upload uses skipCrop and does not show the crop modal, (3) Clicking an ad without a link opens an enlarged view modal instead of navigating to '#'. The ClickableAdImage is used in the mobile hero-ads strip, desktop sticky sidebar, and bottom sponsors row. Note: Playwright mouse.click on the ✕ Close button at (1270,39) intermittently failed to close the modal — this was NOT a functional bug; DOM-level button.click() successfully closes the modal every time. Suspect a z-index tie with the z-50 Navbar. Backdrop-click close works reliably. Consider bumping modal z-index to z-[100].",
+  "rca of the issue": "1) ImageUploadWithCrop now accepts skipCrop prop; when true, the file is read, autoCompressImage runs, and onImageSelect is called directly — bypassing the ReactCrop modal. Verified visually: uploading Party & Ad images shows the preview thumbnail immediately with no crop dialog. 2) The old code rendered a plain <a href={ad.link || '#'}>, causing an unlinked ad to hash-navigate (which unmounts/re-mounts due to key changes and appeared as a 'refresh'). The new ClickableAdImage calls e.preventDefault() when there is no link and toggles a local showEnlarged state that renders a fixed overlay with the full image, closable by backdrop or ✕ button."
+}

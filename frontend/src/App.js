@@ -377,6 +377,8 @@ const ContestWinnersSection = ({ awards }) => {
 
 // Advertisement Sidebar
 const AdvertisementSidebar = ({ ads }) => {
+  const [enlargedAd, setEnlargedAd] = useState(null);
+  
   if (!ads || ads.length === 0) return null;
   
   // Track ad click
@@ -390,16 +392,123 @@ const AdvertisementSidebar = ({ ads }) => {
     }).catch(() => {});
   };
   
+  const handleAdClick = (e, ad) => {
+    trackAdClick(ad.id);
+    if (ad.link) {
+      // Has link - let it navigate
+      return;
+    }
+    // No link - prevent default and show enlarged image
+    e.preventDefault();
+    setEnlargedAd(ad);
+  };
+  
   return (
-    <div className="w-full lg:w-64 space-y-4">
-      <p className="text-[#A0A5B0] text-xs uppercase tracking-wider text-center">Sponsored</p>
-      {ads.map((ad, i) => (
-        <a key={i} href={ad.link || "#"} target="_blank" rel="noopener noreferrer" className="block"
-          onClick={() => trackAdClick(ad.id)}>
-          <img src={ad.image_data} alt={ad.title} className="w-full rounded-lg border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all" />
-        </a>
-      ))}
-    </div>
+    <>
+      <div className="w-full lg:w-64 space-y-4">
+        <p className="text-[#A0A5B0] text-xs uppercase tracking-wider text-center">Sponsored</p>
+        {ads.map((ad, i) => (
+          <a 
+            key={i} 
+            href={ad.link || "#"} 
+            target={ad.link ? "_blank" : undefined}
+            rel={ad.link ? "noopener noreferrer" : undefined}
+            className="block cursor-pointer"
+            onClick={(e) => handleAdClick(e, ad)}
+          >
+            <img src={ad.image_data} alt={ad.title} className="w-full rounded-lg border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all" />
+          </a>
+        ))}
+      </div>
+      
+      {/* Enlarged Ad Modal */}
+      {enlargedAd && (
+        <div 
+          className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4"
+          onClick={() => setEnlargedAd(null)}
+        >
+          <div className="relative max-w-4xl max-h-[90vh]">
+            <button 
+              onClick={() => setEnlargedAd(null)}
+              className="absolute -top-10 right-0 text-white hover:text-[#D4AF37] text-xl"
+            >
+              ✕ Close
+            </button>
+            <img 
+              src={enlargedAd.image_data} 
+              alt={enlargedAd.title} 
+              className="max-w-full max-h-[85vh] object-contain rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+            {enlargedAd.title && (
+              <p className="text-white text-center mt-2">{enlargedAd.title}</p>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
+
+// Clickable Ad Image Component (shows enlarged view if no link)
+const ClickableAdImage = ({ ad, className = "", imgClassName = "" }) => {
+  const [showEnlarged, setShowEnlarged] = useState(false);
+  
+  const trackAdClick = (adId) => {
+    const sessionId = sessionStorage.getItem('bfm_session_id') || 'unknown';
+    axios.post(`${API}/analytics/track`, {
+      event_type: 'ad_click',
+      ad_id: adId,
+      page: window.location.pathname,
+      session_id: sessionId
+    }).catch(() => {});
+  };
+  
+  const handleClick = (e) => {
+    trackAdClick(ad.id);
+    if (!ad.link) {
+      e.preventDefault();
+      setShowEnlarged(true);
+    }
+  };
+  
+  return (
+    <>
+      <a 
+        href={ad.link || "#"} 
+        target={ad.link ? "_blank" : undefined}
+        rel={ad.link ? "noopener noreferrer" : undefined}
+        className={className}
+        onClick={handleClick}
+      >
+        <img src={ad.image_data} alt={ad.title || "Sponsored"} className={imgClassName} />
+      </a>
+      
+      {showEnlarged && (
+        <div 
+          className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4"
+          onClick={() => setShowEnlarged(false)}
+        >
+          <div className="relative max-w-4xl max-h-[90vh]">
+            <button 
+              onClick={() => setShowEnlarged(false)}
+              className="absolute -top-10 right-0 text-white hover:text-[#D4AF37] text-xl"
+            >
+              ✕ Close
+            </button>
+            <img 
+              src={ad.image_data} 
+              alt={ad.title || "Sponsored"} 
+              className="max-w-full max-h-[85vh] object-contain rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+            {ad.title && (
+              <p className="text-white text-center mt-2">{ad.title}</p>
+            )}
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
@@ -738,9 +847,12 @@ const TalentsPage = ({ ads }) => {
               <p className="text-[#A0A5B0] text-xs uppercase tracking-wider text-center mb-3">Sponsored</p>
               <div className="flex flex-col gap-3">
                 {ads.map((ad, i) => (
-                  <a key={i} href={ad.link || "#"} target="_blank" rel="noopener noreferrer" className="block">
-                    <img src={ad.image_data} alt={ad.title || "Ad"} className="w-full rounded-lg border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all" />
-                  </a>
+                  <ClickableAdImage 
+                    key={i} 
+                    ad={ad} 
+                    className="block"
+                    imgClassName="w-full rounded-lg border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all"
+                  />
                 ))}
               </div>
             </div>
@@ -1443,9 +1555,12 @@ const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine, v
               <p className="text-[#A0A5B0] text-[10px] uppercase tracking-wider text-center mb-2">Sponsored</p>
               <div className="flex gap-2 overflow-x-auto pb-2 justify-center">
                 {ads.map((ad, i) => (
-                  <a key={i} href={ad.link || "#"} target="_blank" rel="noopener noreferrer" className="flex-shrink-0 w-20">
-                    <img src={ad.image_data} alt={ad.title || "Ad"} className="w-full rounded border border-[#D4AF37]/10" />
-                  </a>
+                  <ClickableAdImage 
+                    key={i} 
+                    ad={ad} 
+                    className="flex-shrink-0 w-20"
+                    imgClassName="w-full rounded border border-[#D4AF37]/10"
+                  />
                 ))}
               </div>
             </div>
@@ -1529,9 +1644,12 @@ const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine, v
             <p className="text-[#A0A5B0] text-[10px] uppercase tracking-wider text-center mb-3">Sponsored</p>
             <div className="flex flex-col gap-3">
               {ads.map((ad, i) => (
-                <a key={i} href={ad.link || "#"} target="_blank" rel="noopener noreferrer" className="block">
-                  <img src={ad.image_data} alt={ad.title || "Ad"} className="w-full rounded-lg border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all" />
-                </a>
+                <ClickableAdImage 
+                  key={i} 
+                  ad={ad} 
+                  className="block"
+                  imgClassName="w-full rounded-lg border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all"
+                />
               ))}
             </div>
           </div>
@@ -1546,9 +1664,12 @@ const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine, v
           <p className="text-[#A0A5B0] text-xs uppercase tracking-wider text-center mb-6">Our Sponsors</p>
           <div className="flex flex-wrap justify-center gap-8">
             {ads.map((ad, i) => (
-              <a key={i} href={ad.link || "#"} target="_blank" rel="noopener noreferrer" className="w-40 md:w-48">
-                <img src={ad.image_data} alt={ad.title || "Ad"} className="w-full rounded-lg border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all" />
-              </a>
+              <ClickableAdImage 
+                key={i} 
+                ad={ad} 
+                className="w-40 md:w-48"
+                imgClassName="w-full rounded-lg border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all"
+              />
             ))}
           </div>
         </div>

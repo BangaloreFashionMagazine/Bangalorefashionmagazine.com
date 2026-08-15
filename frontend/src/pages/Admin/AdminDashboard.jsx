@@ -1276,8 +1276,8 @@ const AdminDashboard = () => {
               <div className="flex flex-col md:flex-row items-start md:items-center gap-4 mb-4">
                 <ImageUploadWithCrop 
                   onImageSelect={(img) => setNewPartyEvent({...newPartyEvent, image: img})} 
-                  aspectRatio={16/9}
                   buttonText="Choose Event Image"
+                  skipCrop={true}
                 />
                 {newPartyEvent.image && <img src={newPartyEvent.image} className="h-20 rounded" alt="Preview" />}
               </div>
@@ -1416,6 +1416,7 @@ const AdminDashboard = () => {
               <ImageUploadWithCrop 
                 onImageSelect={(img) => setNewAd({...newAd, image_data: img})} 
                 buttonText="Choose Ad Image"
+                skipCrop={true}
               />
               {newAd.image_data && <img src={newAd.image_data} className="h-16 rounded" alt="Preview" />}
               <button onClick={addAd} className="w-full md:w-auto px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold">Add Ad</button>
