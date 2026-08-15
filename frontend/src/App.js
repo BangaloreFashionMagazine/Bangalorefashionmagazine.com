@@ -17,6 +17,7 @@ import { autoCompressImage } from "@/lib/imageOptimization";
 import DesignerStorePageComponent from "@/pages/DesignerStorePage";
 import AdminDashboard from "@/pages/Admin/AdminDashboard";
 import TalentDashboard from "@/pages/TalentDashboard";
+import ResetPassword from "@/pages/ResetPassword";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -108,7 +109,7 @@ const Navbar = ({ user, talent, onLogout }) => {
             <Link to="/about" className="text-xs uppercase tracking-wider text-[#A0A5B0] hover:text-[#D4AF37]">About Us</Link>
             {user ? (
               <>
-                {isAdmin && <Link to="/admin" className="px-3 py-1.5 bg-[#D4AF37] text-[#050A14] text-xs uppercase rounded flex items-center gap-1"><Shield size={12} /> Admin</Link>}
+                {/* Admin link hidden - access via /admin directly */}
                 <span className="text-xs text-[#D4AF37]">{user.name}</span>
                 <button onClick={onLogout} className="text-xs uppercase text-[#A0A5B0] hover:text-[#D4AF37]">Logout</button>
               </>
@@ -119,7 +120,6 @@ const Navbar = ({ user, talent, onLogout }) => {
               </>
             ) : (
               <>
-                <Link to="/login" className="text-xs uppercase text-[#D4AF37]">Admin</Link>
                 <Link to="/talent-login" className="text-xs uppercase text-[#A0A5B0] hover:text-[#D4AF37]">Talent Login</Link>
                 <Link to="/join" className="px-3 py-1.5 border border-[#D4AF37] text-[#D4AF37] text-xs uppercase rounded hover:bg-[#D4AF37] hover:text-[#050A14]">Join Us</Link>
               </>
@@ -142,7 +142,7 @@ const Navbar = ({ user, talent, onLogout }) => {
             <Link to="/designer-store" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-2 text-[#A0A5B0]">Designer Store</Link>
             {user ? (
               <>
-                {isAdmin && <Link to="/admin" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-2 text-[#D4AF37]">Admin Panel</Link>}
+                {/* Admin link hidden - access via /admin directly */}
                 <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-2 text-[#D4AF37]">{user.name}</Link>
                 <button onClick={() => { onLogout(); setMobileMenuOpen(false); }} className="block px-4 py-2 text-red-400">Logout</button>
               </>
@@ -153,7 +153,6 @@ const Navbar = ({ user, talent, onLogout }) => {
               </>
             ) : (
               <>
-                <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-2 text-[#D4AF37]">Admin Login</Link>
                 <Link to="/talent-login" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-2 text-[#A0A5B0]">Talent Login</Link>
                 <Link to="/join" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-2 text-[#D4AF37] font-bold">Join Us</Link>
               </>
@@ -920,6 +919,9 @@ const LoginPage = ({ onLogin }) => {
             {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
+        <div className="mt-4 text-center">
+          <Link to="/reset-password" className="text-[#D4AF37] text-sm hover:underline">Forgot Password?</Link>
+        </div>
       </div>
     </div>
   );
@@ -1810,6 +1812,7 @@ function App() {
         <Route path="/login" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><LoginPage onLogin={setUser} /></>} />
         <Route path="/talent-login" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><TalentLoginPage onTalentLogin={setTalent} /></>} />
         <Route path="/forgot-password" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><ForgotPasswordPage /></>} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/join" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><JoinPage /></>} />
         <Route path="/about" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><AboutPage /></>} />
         <Route path="/designer-store" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><DesignerStorePageComponent /></>} />
