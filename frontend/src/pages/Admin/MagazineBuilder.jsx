@@ -159,6 +159,9 @@ const MagazineBuilder = () => {
   const [showExportOptions, setShowExportOptions] = useState(false);
   const [editingText, setEditingText] = useState(null);
   const [alignmentGuides, setAlignmentGuides] = useState({ horizontal: null, vertical: null });
+  const [showDecorativeDropdown, setShowDecorativeDropdown] = useState(false);
+  const [showButtonDropdown, setShowButtonDropdown] = useState(false);
+  const [showSocialDropdown, setShowSocialDropdown] = useState(false);
   
   // Page Size Presets
   const PAGE_SIZES = {
@@ -2591,6 +2594,76 @@ const MagazineBuilder = () => {
                   </button>
                 </div>
                 
+                {/* Decorative Elements Dropdown */}
+                <div className="relative flex items-center gap-0.5 border-r border-[#D4AF37]/20 pr-2 mr-1">
+                  <div className="relative">
+                    <button 
+                      onClick={() => setShowDecorativeDropdown(!showDecorativeDropdown)} 
+                      className={`p-1.5 rounded flex items-center gap-1 ${showDecorativeDropdown ? 'bg-[#D4AF37]/20' : 'hover:bg-[#D4AF37]/20'}`} 
+                      title="Decorative Elements"
+                    >
+                      <Star size={14} className="text-[#D4AF37]" />
+                      <ChevronDown size={10} className="text-[#A0A5B0]" />
+                    </button>
+                    {showDecorativeDropdown && (
+                      <div className="absolute top-8 left-0 bg-[#0A1628] border border-[#D4AF37]/30 rounded-lg shadow-xl z-50 w-44 py-1">
+                        <p className="px-3 py-1 text-[10px] text-[#A0A5B0] uppercase">Lines & Shapes</p>
+                        <button onClick={() => { addDecorativeElement('line_horizontal'); setShowDecorativeDropdown(false); }} className="w-full text-left px-3 py-1.5 text-xs text-[#F5F5F0] hover:bg-[#D4AF37]/20">— Horizontal Line</button>
+                        <button onClick={() => { addDecorativeElement('line_vertical'); setShowDecorativeDropdown(false); }} className="w-full text-left px-3 py-1.5 text-xs text-[#F5F5F0] hover:bg-[#D4AF37]/20">| Vertical Line</button>
+                        <button onClick={() => { addDecorativeElement('divider'); setShowDecorativeDropdown(false); }} className="w-full text-left px-3 py-1.5 text-xs text-[#F5F5F0] hover:bg-[#D4AF37]/20">― Divider</button>
+                        <button onClick={() => { addDecorativeElement('circle'); setShowDecorativeDropdown(false); }} className="w-full text-left px-3 py-1.5 text-xs text-[#F5F5F0] hover:bg-[#D4AF37]/20">● Circle</button>
+                        <button onClick={() => { addDecorativeElement('frame'); setShowDecorativeDropdown(false); }} className="w-full text-left px-3 py-1.5 text-xs text-[#F5F5F0] hover:bg-[#D4AF37]/20">▢ Frame</button>
+                        <button onClick={() => { addDecorativeElement('quote_mark'); setShowDecorativeDropdown(false); }} className="w-full text-left px-3 py-1.5 text-xs text-[#F5F5F0] hover:bg-[#D4AF37]/20">❝ Quote Mark</button>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Buttons/CTA Dropdown */}
+                  <div className="relative">
+                    <button 
+                      onClick={() => setShowButtonDropdown(!showButtonDropdown)} 
+                      className={`p-1.5 rounded flex items-center gap-1 ${showButtonDropdown ? 'bg-[#D4AF37]/20' : 'hover:bg-[#D4AF37]/20'}`} 
+                      title="Buttons & CTA"
+                    >
+                      <Square size={14} className="text-[#A0A5B0]" />
+                      <ChevronDown size={10} className="text-[#A0A5B0]" />
+                    </button>
+                    {showButtonDropdown && (
+                      <div className="absolute top-8 left-0 bg-[#0A1628] border border-[#D4AF37]/30 rounded-lg shadow-xl z-50 w-44 py-1">
+                        <p className="px-3 py-1 text-[10px] text-[#A0A5B0] uppercase">Buttons</p>
+                        <button onClick={() => { addButton('read_more'); setShowButtonDropdown(false); }} className="w-full text-left px-3 py-1.5 text-xs text-[#F5F5F0] hover:bg-[#D4AF37]/20">Read More</button>
+                        <button onClick={() => { addButton('view_profile'); setShowButtonDropdown(false); }} className="w-full text-left px-3 py-1.5 text-xs text-[#F5F5F0] hover:bg-[#D4AF37]/20">View Profile</button>
+                        <button onClick={() => { addButton('book_now'); setShowButtonDropdown(false); }} className="w-full text-left px-3 py-1.5 text-xs text-[#F5F5F0] hover:bg-[#D4AF37]/20">Book Now</button>
+                        <button onClick={() => { addButton('contact'); setShowButtonDropdown(false); }} className="w-full text-left px-3 py-1.5 text-xs text-[#F5F5F0] hover:bg-[#D4AF37]/20">Contact</button>
+                        <button onClick={() => { addButton('follow_instagram'); setShowButtonDropdown(false); }} className="w-full text-left px-3 py-1.5 text-xs text-[#F5F5F0] hover:bg-[#D4AF37]/20">Follow on Instagram</button>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Social Icons Dropdown */}
+                  <div className="relative">
+                    <button 
+                      onClick={() => setShowSocialDropdown(!showSocialDropdown)} 
+                      className={`p-1.5 rounded flex items-center gap-1 ${showSocialDropdown ? 'bg-[#D4AF37]/20' : 'hover:bg-[#D4AF37]/20'}`} 
+                      title="Social Icons"
+                    >
+                      <Instagram size={14} className="text-[#E1306C]" />
+                      <ChevronDown size={10} className="text-[#A0A5B0]" />
+                    </button>
+                    {showSocialDropdown && (
+                      <div className="absolute top-8 left-0 bg-[#0A1628] border border-[#D4AF37]/30 rounded-lg shadow-xl z-50 w-40 py-1">
+                        <button onClick={() => { addSocialIcon('instagram'); setShowSocialDropdown(false); }} className="w-full text-left px-3 py-1.5 text-xs text-[#F5F5F0] hover:bg-[#D4AF37]/20">📸 Instagram</button>
+                        <button onClick={() => { addSocialIcon('facebook'); setShowSocialDropdown(false); }} className="w-full text-left px-3 py-1.5 text-xs text-[#F5F5F0] hover:bg-[#D4AF37]/20">📘 Facebook</button>
+                        <button onClick={() => { addSocialIcon('twitter'); setShowSocialDropdown(false); }} className="w-full text-left px-3 py-1.5 text-xs text-[#F5F5F0] hover:bg-[#D4AF37]/20">🐦 Twitter/X</button>
+                        <button onClick={() => { addSocialIcon('youtube'); setShowSocialDropdown(false); }} className="w-full text-left px-3 py-1.5 text-xs text-[#F5F5F0] hover:bg-[#D4AF37]/20">▶️ YouTube</button>
+                        <button onClick={() => { addSocialIcon('linkedin'); setShowSocialDropdown(false); }} className="w-full text-left px-3 py-1.5 text-xs text-[#F5F5F0] hover:bg-[#D4AF37]/20">💼 LinkedIn</button>
+                        <button onClick={() => { addSocialIcon('whatsapp'); setShowSocialDropdown(false); }} className="w-full text-left px-3 py-1.5 text-xs text-[#F5F5F0] hover:bg-[#D4AF37]/20">💬 WhatsApp</button>
+                        <button onClick={() => { addSocialIcon('website'); setShowSocialDropdown(false); }} className="w-full text-left px-3 py-1.5 text-xs text-[#F5F5F0] hover:bg-[#D4AF37]/20">🌐 Website</button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
                 {/* Alignment */}
                 {selectedElement && (
                   <div className="flex items-center gap-0.5 border-r border-[#D4AF37]/20 pr-2 mr-1">
@@ -3315,6 +3388,167 @@ const MagazineBuilder = () => {
                                 </button>
                               </div>
                             )}
+                            
+                            {/* Image Effects Section */}
+                            <div className="pt-2 border-t border-[#D4AF37]/10">
+                              <label className="text-[#A0A5B0] text-xs flex items-center gap-1 mb-2">
+                                <Sparkles size={10} /> Image Effects
+                              </label>
+                              
+                              {/* Brightness */}
+                              <div className="mb-2">
+                                <div className="flex justify-between text-[10px] text-[#A0A5B0] mb-1">
+                                  <span className="flex items-center gap-1"><Sun size={10} /> Brightness</span>
+                                  <span>{selectedEl.effects?.brightness || 100}%</span>
+                                </div>
+                                <input 
+                                  type="range" 
+                                  min="0" 
+                                  max="200" 
+                                  value={selectedEl.effects?.brightness || 100}
+                                  onChange={(e) => {
+                                    const val = parseInt(e.target.value);
+                                    updateElement(selectedEl.id, { effects: { ...selectedEl.effects, brightness: val } });
+                                    updateElementStyle(selectedEl.id, { filter: `brightness(${val}%) contrast(${selectedEl.effects?.contrast || 100}%) saturate(${selectedEl.effects?.saturation || 100}%) blur(${selectedEl.effects?.blur || 0}px)` });
+                                  }}
+                                  className="w-full h-1 bg-[#050A14] rounded appearance-none cursor-pointer accent-[#D4AF37]"
+                                />
+                              </div>
+                              
+                              {/* Contrast */}
+                              <div className="mb-2">
+                                <div className="flex justify-between text-[10px] text-[#A0A5B0] mb-1">
+                                  <span className="flex items-center gap-1"><Contrast size={10} /> Contrast</span>
+                                  <span>{selectedEl.effects?.contrast || 100}%</span>
+                                </div>
+                                <input 
+                                  type="range" 
+                                  min="0" 
+                                  max="200" 
+                                  value={selectedEl.effects?.contrast || 100}
+                                  onChange={(e) => {
+                                    const val = parseInt(e.target.value);
+                                    updateElement(selectedEl.id, { effects: { ...selectedEl.effects, contrast: val } });
+                                    updateElementStyle(selectedEl.id, { filter: `brightness(${selectedEl.effects?.brightness || 100}%) contrast(${val}%) saturate(${selectedEl.effects?.saturation || 100}%) blur(${selectedEl.effects?.blur || 0}px)` });
+                                  }}
+                                  className="w-full h-1 bg-[#050A14] rounded appearance-none cursor-pointer accent-[#D4AF37]"
+                                />
+                              </div>
+                              
+                              {/* Saturation */}
+                              <div className="mb-2">
+                                <div className="flex justify-between text-[10px] text-[#A0A5B0] mb-1">
+                                  <span className="flex items-center gap-1"><Droplets size={10} /> Saturation</span>
+                                  <span>{selectedEl.effects?.saturation || 100}%</span>
+                                </div>
+                                <input 
+                                  type="range" 
+                                  min="0" 
+                                  max="200" 
+                                  value={selectedEl.effects?.saturation || 100}
+                                  onChange={(e) => {
+                                    const val = parseInt(e.target.value);
+                                    updateElement(selectedEl.id, { effects: { ...selectedEl.effects, saturation: val } });
+                                    updateElementStyle(selectedEl.id, { filter: `brightness(${selectedEl.effects?.brightness || 100}%) contrast(${selectedEl.effects?.contrast || 100}%) saturate(${val}%) blur(${selectedEl.effects?.blur || 0}px)` });
+                                  }}
+                                  className="w-full h-1 bg-[#050A14] rounded appearance-none cursor-pointer accent-[#D4AF37]"
+                                />
+                              </div>
+                              
+                              {/* Blur */}
+                              <div className="mb-2">
+                                <div className="flex justify-between text-[10px] text-[#A0A5B0] mb-1">
+                                  <span>Blur</span>
+                                  <span>{selectedEl.effects?.blur || 0}px</span>
+                                </div>
+                                <input 
+                                  type="range" 
+                                  min="0" 
+                                  max="20" 
+                                  value={selectedEl.effects?.blur || 0}
+                                  onChange={(e) => {
+                                    const val = parseInt(e.target.value);
+                                    updateElement(selectedEl.id, { effects: { ...selectedEl.effects, blur: val } });
+                                    updateElementStyle(selectedEl.id, { filter: `brightness(${selectedEl.effects?.brightness || 100}%) contrast(${selectedEl.effects?.contrast || 100}%) saturate(${selectedEl.effects?.saturation || 100}%) blur(${val}px)` });
+                                  }}
+                                  className="w-full h-1 bg-[#050A14] rounded appearance-none cursor-pointer accent-[#D4AF37]"
+                                />
+                              </div>
+                              
+                              {/* Quick Filters */}
+                              <div>
+                                <label className="text-[#A0A5B0] text-[10px] mb-1 block">Quick Filters</label>
+                                <div className="grid grid-cols-4 gap-1">
+                                  {[
+                                    { name: 'None', filter: 'none' },
+                                    { name: 'B&W', filter: 'grayscale(100%)' },
+                                    { name: 'Sepia', filter: 'sepia(100%)' },
+                                    { name: 'Vivid', filter: 'saturate(150%) contrast(110%)' },
+                                    { name: 'Muted', filter: 'saturate(70%) brightness(95%)' },
+                                    { name: 'Warm', filter: 'sepia(30%) saturate(110%)' },
+                                    { name: 'Cool', filter: 'hue-rotate(180deg) saturate(80%)' },
+                                    { name: 'Vintage', filter: 'sepia(40%) contrast(90%)' }
+                                  ].map(f => (
+                                    <button
+                                      key={f.name}
+                                      onClick={() => updateElementStyle(selectedEl.id, { filter: f.filter })}
+                                      className="p-1 bg-[#050A14] text-[#A0A5B0] rounded text-[8px] hover:bg-[#D4AF37]/20 hover:text-[#D4AF37]"
+                                    >
+                                      {f.name}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                              
+                              {/* Image Shape */}
+                              <div className="mt-2">
+                                <label className="text-[#A0A5B0] text-[10px] mb-1 block">Shape</label>
+                                <div className="grid grid-cols-4 gap-1">
+                                  <button onClick={() => updateElementStyle(selectedEl.id, { borderRadius: '0px' })} className="p-1.5 bg-[#050A14] rounded text-[#A0A5B0] hover:bg-[#D4AF37]/20" title="Rectangle">◻</button>
+                                  <button onClick={() => updateElementStyle(selectedEl.id, { borderRadius: '8px' })} className="p-1.5 bg-[#050A14] rounded text-[#A0A5B0] hover:bg-[#D4AF37]/20" title="Rounded">▢</button>
+                                  <button onClick={() => updateElementStyle(selectedEl.id, { borderRadius: '50%' })} className="p-1.5 bg-[#050A14] rounded text-[#A0A5B0] hover:bg-[#D4AF37]/20" title="Circle">●</button>
+                                  <button onClick={() => updateElementStyle(selectedEl.id, { borderRadius: '20px' })} className="p-1.5 bg-[#050A14] rounded text-[#A0A5B0] hover:bg-[#D4AF37]/20" title="Pill">⬭</button>
+                                </div>
+                              </div>
+                              
+                              {/* Border */}
+                              <div className="mt-2">
+                                <label className="text-[#A0A5B0] text-[10px] mb-1 block">Border</label>
+                                <div className="flex gap-1">
+                                  <Input 
+                                    type="number"
+                                    min="0"
+                                    max="20"
+                                    placeholder="Width"
+                                    value={parseInt(selectedEl.style?.borderWidth) || 0}
+                                    onChange={(e) => updateElementStyle(selectedEl.id, { borderWidth: `${e.target.value}px`, borderStyle: 'solid' })}
+                                    className="bg-[#050A14] border-[#D4AF37]/20 h-6 text-[10px] w-12 text-[#F5F5F0]"
+                                  />
+                                  <input 
+                                    type="color"
+                                    value={selectedEl.style?.borderColor || '#D4AF37'}
+                                    onChange={(e) => updateElementStyle(selectedEl.id, { borderColor: e.target.value, borderStyle: 'solid' })}
+                                    className="w-6 h-6 rounded cursor-pointer"
+                                  />
+                                </div>
+                              </div>
+                              
+                              {/* Shadow */}
+                              <div className="mt-2">
+                                <label className="text-[#A0A5B0] text-[10px] mb-1 block">Shadow</label>
+                                <select
+                                  value={selectedEl.style?.boxShadow || 'none'}
+                                  onChange={(e) => updateElementStyle(selectedEl.id, { boxShadow: e.target.value })}
+                                  className="w-full p-1 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-[10px]"
+                                >
+                                  <option value="none">None</option>
+                                  <option value="0 2px 4px rgba(0,0,0,0.3)">Small</option>
+                                  <option value="0 4px 8px rgba(0,0,0,0.4)">Medium</option>
+                                  <option value="0 8px 16px rgba(0,0,0,0.5)">Large</option>
+                                  <option value="0 0 20px rgba(212,175,55,0.5)">Gold Glow</option>
+                                </select>
+                              </div>
+                            </div>
                           </div>
                         )}
                         
