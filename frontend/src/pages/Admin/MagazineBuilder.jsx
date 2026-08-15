@@ -2296,25 +2296,45 @@ const MagazineBuilder = () => {
                             </div>
                           )}
                           {el.type === 'image' && el.content && (
-                            <img src={el.content} alt="" className="w-full h-full" style={{ objectFit: el.style?.objectFit || 'cover', borderRadius: el.style?.borderRadius || '0' }} />
+                            <img 
+                              src={el.content} 
+                              alt="" 
+                              className="w-full h-full" 
+                              style={{ 
+                                objectFit: el.style?.objectFit || 'cover', 
+                                objectPosition: el.style?.objectPosition || 'center',
+                                borderRadius: el.style?.borderRadius || '0',
+                                transform: el.style?.transform || 'none',
+                                opacity: el.style?.opacity ?? 1
+                              }} 
+                            />
                           )}
                           {el.type === 'logo' && (
                             <div 
-                              className="w-full h-full overflow-hidden"
+                              className="overflow-hidden"
                               style={{ 
+                                width: '100%',
+                                height: '100%',
                                 borderRadius: '50%', 
                                 border: el.style?.border || '2px solid #D4AF37',
-                                backgroundColor: '#000',
+                                backgroundColor: '#FFF8E7',
                                 display: 'flex',
                                 alignItems: 'center',
-                                justifyContent: 'center'
+                                justifyContent: 'center',
+                                aspectRatio: '1/1',
+                                maxWidth: '100%',
+                                maxHeight: '100%'
                               }}
                             >
                               <img 
                                 src={el.content} 
                                 alt="BFM Logo" 
-                                className="w-full h-full"
-                                style={{ objectFit: 'cover', borderRadius: '50%' }} 
+                                style={{ 
+                                  width: '100%', 
+                                  height: '100%', 
+                                  objectFit: 'contain', 
+                                  borderRadius: '50%' 
+                                }} 
                               />
                             </div>
                           )}
@@ -2609,16 +2629,50 @@ const MagazineBuilder = () => {
                               </label>
                             </div>
                             <div>
-                              <label className="text-[#A0A5B0] text-xs">Fit</label>
+                              <label className="text-[#A0A5B0] text-xs">Image Fit</label>
                               <select 
                                 value={selectedEl.style?.objectFit || 'cover'}
                                 onChange={(e) => updateElementStyle(selectedEl.id, { objectFit: e.target.value })}
                                 className="w-full p-1 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-xs"
                               >
-                                <option value="cover">Cover</option>
-                                <option value="contain">Contain</option>
-                                <option value="fill">Fill</option>
+                                <option value="cover">Cover (Fill & Crop)</option>
+                                <option value="contain">Contain (Fit Inside)</option>
+                                <option value="fill">Stretch to Fill</option>
+                                <option value="none">Original Size</option>
+                                <option value="scale-down">Scale Down Only</option>
                               </select>
+                            </div>
+                            <div>
+                              <label className="text-[#A0A5B0] text-xs">Image Position</label>
+                              <select 
+                                value={selectedEl.style?.objectPosition || 'center'}
+                                onChange={(e) => updateElementStyle(selectedEl.id, { objectPosition: e.target.value })}
+                                className="w-full p-1 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-xs"
+                              >
+                                <option value="center">Center</option>
+                                <option value="top">Top</option>
+                                <option value="bottom">Bottom</option>
+                                <option value="left">Left</option>
+                                <option value="right">Right</option>
+                                <option value="top left">Top Left</option>
+                                <option value="top right">Top Right</option>
+                                <option value="bottom left">Bottom Left</option>
+                                <option value="bottom right">Bottom Right</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="text-[#A0A5B0] text-xs">Zoom/Scale (%)</label>
+                              <Input 
+                                type="number"
+                                min="10"
+                                max="500"
+                                value={parseInt(selectedEl.style?.transform?.match(/scale\(([^)]+)\)/)?.[1] * 100) || 100}
+                                onChange={(e) => {
+                                  const scale = Math.max(10, Math.min(500, parseInt(e.target.value) || 100)) / 100;
+                                  updateElementStyle(selectedEl.id, { transform: `scale(${scale})` });
+                                }}
+                                className="bg-[#050A14] border-[#D4AF37]/20 h-6 text-xs text-[#F5F5F0]"
+                              />
                             </div>
                             <div>
                               <label className="text-[#A0A5B0] text-xs">Border Radius</label>
@@ -2628,6 +2682,31 @@ const MagazineBuilder = () => {
                                 className="bg-[#050A14] border-[#D4AF37]/20 h-6 text-xs text-[#F5F5F0]"
                               />
                             </div>
+                            <div>
+                              <label className="text-[#A0A5B0] text-xs">Opacity (%)</label>
+                              <Input 
+                                type="number"
+                                min="0"
+                                max="100"
+                                value={Math.round((selectedEl.style?.opacity || 1) * 100)}
+                                onChange={(e) => updateElementStyle(selectedEl.id, { opacity: parseInt(e.target.value) / 100 })}
+                                className="bg-[#050A14] border-[#D4AF37]/20 h-6 text-xs text-[#F5F5F0]"
+                              />
+                            </div>
+                            {selectedEl.type === 'logo' && (
+                              <div className="pt-2 border-t border-[#D4AF37]/10">
+                                <button 
+                                  onClick={() => {
+                                    const size = Math.min(selectedEl.position.width, selectedEl.position.height);
+                                    updateElementPosition(selectedEl.id, { width: size, height: size });
+                                    toast({ title: "Logo made perfectly round!" });
+                                  }}
+                                  className="w-full py-1 px-2 bg-[#D4AF37]/20 text-[#D4AF37] rounded text-xs hover:bg-[#D4AF37]/30"
+                                >
+                                  Make Perfect Circle
+                                </button>
+                              </div>
+                            )}
                           </div>
                         )}
                         

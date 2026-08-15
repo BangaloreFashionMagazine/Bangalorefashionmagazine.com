@@ -143,8 +143,8 @@ def create_magazine_builder_router(db):
                     "id": str(uuid.uuid4()),
                     "type": "logo",
                     "content": "/bfm-logo.jpeg",
-                    "style": {"borderRadius": "50%", "border": f"3px solid {colors['accent']}"},
-                    "position": {"x": 4, "y": 4, "width": 10, "height": 9},
+                    "style": {"borderRadius": "50%", "border": f"3px solid {colors['accent']}", "objectFit": "cover", "aspectRatio": "1/1"},
+                    "position": {"x": 4, "y": 3, "width": 10, "height": 10},
                     "layer": 5,
                     "locked": False,
                     "visible": True,
@@ -683,13 +683,13 @@ def create_magazine_builder_router(db):
             "page_type": "back_cover",
             "background": {"type": "solid", "color": colors["bg"]},
             "elements": [
-                # Large BFM Logo - Centered and prominent
+                # Large BFM Logo - Centered and perfectly round
                 {
                     "id": str(uuid.uuid4()),
                     "type": "logo",
                     "content": "/bfm-logo.jpeg",
-                    "style": {"borderRadius": "50%", "border": f"5px solid {colors['accent']}"},
-                    "position": {"x": 25, "y": 8, "width": 50, "height": 42},
+                    "style": {"borderRadius": "50%", "border": f"5px solid {colors['accent']}", "objectFit": "cover", "aspectRatio": "1/1"},
+                    "position": {"x": 25, "y": 5, "width": 50, "height": 40},
                     "layer": 2,
                     "locked": False,
                     "visible": True,
@@ -797,8 +797,8 @@ def create_magazine_builder_router(db):
         logo_element = {
             "type": "logo",
             "content": "/bfm-logo.jpeg",
-            "style": {"borderRadius": "50%", "border": f"2px solid {colors['accent']}"},
-            "position": {"x": 3, "y": 2, "width": 7, "height": 6},
+            "style": {"borderRadius": "50%", "border": f"2px solid {colors['accent']}", "objectFit": "cover", "aspectRatio": "1/1"},
+            "position": {"x": 3, "y": 2, "width": 7, "height": 7},
             "locked": False,
             "visible": True,
             "name": "BFM Logo"
