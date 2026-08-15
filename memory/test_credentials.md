@@ -2,7 +2,7 @@
 
 ## Admin Login
 - **Email:** admin@bangalorefashionmag.com
-- **Password:** Rilrocky9295@BFM
+- **Password:** Rilrocky@9295BFM
 - **Access URL:** /login (direct link - not visible in navigation)
 
 ## Talent Test Account

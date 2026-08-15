@@ -504,7 +504,7 @@ const MagazineBuilder = () => {
                   value={talentDetails.name}
                   onChange={(e) => setTalentDetails(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="Enter talent name"
-                  className="bg-[#0A1628] border-[#D4AF37]/30"
+                  className="bg-[#0A1628] border-[#D4AF37]/30 text-[#F5F5F0] placeholder:text-[#A0A5B0]/50"
                 />
               </div>
               <div>
@@ -527,7 +527,7 @@ const MagazineBuilder = () => {
                 value={talentDetails.headline}
                 onChange={(e) => setTalentDetails(prev => ({ ...prev, headline: e.target.value }))}
                 placeholder="e.g., 'Rising Star of Indian Fashion'"
-                className="bg-[#0A1628] border-[#D4AF37]/30"
+                className="bg-[#0A1628] border-[#D4AF37]/30 text-[#F5F5F0] placeholder:text-[#A0A5B0]/50"
               />
             </div>
             
@@ -537,7 +537,7 @@ const MagazineBuilder = () => {
                 value={talentDetails.introduction}
                 onChange={(e) => setTalentDetails(prev => ({ ...prev, introduction: e.target.value }))}
                 placeholder="Brief introduction (2-3 sentences)"
-                className="bg-[#0A1628] border-[#D4AF37]/30"
+                className="bg-[#0A1628] border-[#D4AF37]/30 text-[#F5F5F0] placeholder:text-[#A0A5B0]/50"
                 rows={3}
               />
             </div>
@@ -548,7 +548,7 @@ const MagazineBuilder = () => {
                 value={talentDetails.biography}
                 onChange={(e) => setTalentDetails(prev => ({ ...prev, biography: e.target.value }))}
                 placeholder="Detailed biography"
-                className="bg-[#0A1628] border-[#D4AF37]/30"
+                className="bg-[#0A1628] border-[#D4AF37]/30 text-[#F5F5F0] placeholder:text-[#A0A5B0]/50"
                 rows={5}
               />
             </div>
@@ -559,7 +559,7 @@ const MagazineBuilder = () => {
                 value={talentDetails.career_journey}
                 onChange={(e) => setTalentDetails(prev => ({ ...prev, career_journey: e.target.value }))}
                 placeholder="How did the journey begin? Key milestones..."
-                className="bg-[#0A1628] border-[#D4AF37]/30"
+                className="bg-[#0A1628] border-[#D4AF37]/30 text-[#F5F5F0] placeholder:text-[#A0A5B0]/50"
                 rows={4}
               />
             </div>
@@ -571,7 +571,7 @@ const MagazineBuilder = () => {
                   value={talentDetails.achievements}
                   onChange={(e) => setTalentDetails(prev => ({ ...prev, achievements: e.target.value }))}
                   placeholder="Awards, recognitions..."
-                  className="bg-[#0A1628] border-[#D4AF37]/30"
+                  className="bg-[#0A1628] border-[#D4AF37]/30 text-[#F5F5F0] placeholder:text-[#A0A5B0]/50"
                   rows={3}
                 />
               </div>
@@ -581,7 +581,7 @@ const MagazineBuilder = () => {
                   value={talentDetails.specialization}
                   onChange={(e) => setTalentDetails(prev => ({ ...prev, specialization: e.target.value }))}
                   placeholder="Areas of expertise..."
-                  className="bg-[#0A1628] border-[#D4AF37]/30"
+                  className="bg-[#0A1628] border-[#D4AF37]/30 text-[#F5F5F0] placeholder:text-[#A0A5B0]/50"
                   rows={3}
                 />
               </div>
@@ -594,7 +594,7 @@ const MagazineBuilder = () => {
                   value={talentDetails.location}
                   onChange={(e) => setTalentDetails(prev => ({ ...prev, location: e.target.value }))}
                   placeholder="Bangalore, India"
-                  className="bg-[#0A1628] border-[#D4AF37]/30"
+                  className="bg-[#0A1628] border-[#D4AF37]/30 text-[#F5F5F0] placeholder:text-[#A0A5B0]/50"
                 />
               </div>
               <div>
@@ -603,7 +603,7 @@ const MagazineBuilder = () => {
                   value={talentDetails.instagram}
                   onChange={(e) => setTalentDetails(prev => ({ ...prev, instagram: e.target.value }))}
                   placeholder="username"
-                  className="bg-[#0A1628] border-[#D4AF37]/30"
+                  className="bg-[#0A1628] border-[#D4AF37]/30 text-[#F5F5F0] placeholder:text-[#A0A5B0]/50"
                 />
               </div>
               <div>
@@ -612,7 +612,7 @@ const MagazineBuilder = () => {
                   value={talentDetails.website}
                   onChange={(e) => setTalentDetails(prev => ({ ...prev, website: e.target.value }))}
                   placeholder="www.example.com"
-                  className="bg-[#0A1628] border-[#D4AF37]/30"
+                  className="bg-[#0A1628] border-[#D4AF37]/30 text-[#F5F5F0] placeholder:text-[#A0A5B0]/50"
                 />
               </div>
             </div>
@@ -646,7 +646,7 @@ const MagazineBuilder = () => {
                       value={qa.answer}
                       onChange={(e) => updateQA(i, "answer", e.target.value)}
                       placeholder="Answer"
-                      className="bg-[#050A14] border-[#D4AF37]/20"
+                      className="bg-[#050A14] border-[#D4AF37]/20 text-[#F5F5F0] placeholder:text-[#A0A5B0]/50"
                       rows={2}
                     />
                   </div>
