@@ -2959,7 +2959,7 @@ const MagazineBuilder = () => {
                                   e.target.focus();
                                 }
                               }}
-                              className="w-full h-full overflow-hidden whitespace-pre-wrap outline-none cursor-text"
+                              className="w-full h-full outline-none cursor-text"
                               style={{
                                 fontSize: el.style.fontSize,
                                 fontWeight: el.style.fontWeight,
@@ -2970,7 +2970,15 @@ const MagazineBuilder = () => {
                                 textDecoration: el.style.textDecoration || 'none',
                                 lineHeight: el.style.lineHeight || '1.5',
                                 letterSpacing: el.style.letterSpacing || '0px',
-                                textShadow: el.style.textShadow || 'none'
+                                textShadow: el.style.textShadow || 'none',
+                                textTransform: el.style.textTransform || 'none',
+                                // Prevent text overflow and overlapping
+                                wordWrap: 'break-word',
+                                overflowWrap: 'break-word',
+                                wordBreak: 'break-word',
+                                whiteSpace: 'pre-wrap',
+                                overflow: 'hidden',
+                                hyphens: 'auto'
                               }}
                             >
                               {el.content}
@@ -3288,6 +3296,53 @@ const MagazineBuilder = () => {
                                   max="20"
                                   value={parseInt(selectedEl.style.letterSpacing?.replace('px', '')) || 0}
                                   onChange={(e) => updateElementStyle(selectedEl.id, { letterSpacing: `${e.target.value}px` })}
+                                  className="w-full h-1.5 bg-[#050A14] rounded appearance-none cursor-pointer accent-[#D4AF37]"
+                                />
+                              </div>
+                              
+                              {/* Text Transform */}
+                              <div>
+                                <label className="text-[#A0A5B0] text-[10px] mb-1 block">Text Case</label>
+                                <div className="flex gap-1">
+                                  <button 
+                                    onClick={() => updateElementStyle(selectedEl.id, { textTransform: 'none' })}
+                                    className={`flex-1 p-1 rounded text-[10px] ${selectedEl.style.textTransform === 'none' || !selectedEl.style.textTransform ? 'bg-[#D4AF37]/30 text-[#D4AF37]' : 'bg-[#050A14] text-[#A0A5B0]'}`}
+                                  >
+                                    Aa
+                                  </button>
+                                  <button 
+                                    onClick={() => updateElementStyle(selectedEl.id, { textTransform: 'uppercase' })}
+                                    className={`flex-1 p-1 rounded text-[10px] ${selectedEl.style.textTransform === 'uppercase' ? 'bg-[#D4AF37]/30 text-[#D4AF37]' : 'bg-[#050A14] text-[#A0A5B0]'}`}
+                                  >
+                                    AA
+                                  </button>
+                                  <button 
+                                    onClick={() => updateElementStyle(selectedEl.id, { textTransform: 'lowercase' })}
+                                    className={`flex-1 p-1 rounded text-[10px] ${selectedEl.style.textTransform === 'lowercase' ? 'bg-[#D4AF37]/30 text-[#D4AF37]' : 'bg-[#050A14] text-[#A0A5B0]'}`}
+                                  >
+                                    aa
+                                  </button>
+                                  <button 
+                                    onClick={() => updateElementStyle(selectedEl.id, { textTransform: 'capitalize' })}
+                                    className={`flex-1 p-1 rounded text-[10px] ${selectedEl.style.textTransform === 'capitalize' ? 'bg-[#D4AF37]/30 text-[#D4AF37]' : 'bg-[#050A14] text-[#A0A5B0]'}`}
+                                  >
+                                    Aa Bb
+                                  </button>
+                                </div>
+                              </div>
+                              
+                              {/* Font Size Quick Adjust */}
+                              <div>
+                                <div className="flex justify-between text-[10px] text-[#A0A5B0] mb-1">
+                                  <span>Font Size</span>
+                                  <span>{parseInt(selectedEl.style.fontSize) || 14}px</span>
+                                </div>
+                                <input 
+                                  type="range"
+                                  min="8"
+                                  max="120"
+                                  value={parseInt(selectedEl.style.fontSize) || 14}
+                                  onChange={(e) => updateElementStyle(selectedEl.id, { fontSize: `${e.target.value}px` })}
                                   className="w-full h-1.5 bg-[#050A14] rounded appearance-none cursor-pointer accent-[#D4AF37]"
                                 />
                               </div>
