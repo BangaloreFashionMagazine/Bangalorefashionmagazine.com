@@ -458,7 +458,7 @@ const MagazineBuilder = () => {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold text-[#D4AF37]">BFM Magazine Builder</h2>
-              <Button onClick={() => setStep(2)} className="bg-[#D4AF37] text-[#050A14] hover:bg-[#F5D76E]">
+              <Button onClick={() => setStep(2)} className="bg-[#D4AF37] text-[#050A14] hover:bg-[#F5D76E]" data-testid="create-magazine-btn">
                 <Plus className="mr-2" size={18} /> Create New Magazine
               </Button>
             </div>
@@ -470,6 +470,7 @@ const MagazineBuilder = () => {
                     key={mag.id} 
                     className="bg-[#0A1628] rounded-lg p-4 border border-[#D4AF37]/20 hover:border-[#D4AF37]/50 cursor-pointer transition-all"
                     onClick={() => loadMagazine(mag.id)}
+                    data-testid={`magazine-card-${mag.id}`}
                   >
                     <h3 className="text-[#F5F5F0] font-bold">{mag.title}</h3>
                     <p className="text-[#A0A5B0] text-sm">{mag.talent?.category}</p>
@@ -799,6 +800,7 @@ const MagazineBuilder = () => {
                 onClick={generateMagazine} 
                 disabled={loading}
                 className="bg-gradient-to-r from-[#D4AF37] to-[#F5D76E] text-[#050A14] px-8 py-3 text-lg font-bold"
+                data-testid="generate-magazine-btn"
               >
                 {loading ? "Generating..." : "✨ Generate Magazine"}
               </Button>
@@ -889,20 +891,28 @@ const MagazineBuilder = () => {
                 
                 <div className="flex-1" />
                 
-                <Button onClick={saveMagazine} disabled={loading} size="sm" variant="outline" className="border-[#D4AF37]/30">
+                <Button onClick={saveMagazine} disabled={loading} size="sm" className="bg-[#0A1628] border border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#050A14]" data-testid="save-magazine-btn">
                   <Save size={14} className="mr-1" /> Save
                 </Button>
-                <Button onClick={exportToPDF} size="sm" className="bg-[#D4AF37] text-[#050A14]">
+                <Button onClick={exportToPDF} size="sm" className="bg-[#D4AF37] text-[#050A14]" data-testid="export-pdf-btn">
                   <FileDown size={14} className="mr-1" /> Export PDF
                 </Button>
-                <div className="relative group">
-                  <Button size="sm" variant="outline" className="border-[#D4AF37]/30">
+                <div className="relative">
+                  <Button 
+                    size="sm" 
+                    className="bg-[#0A1628] border border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#050A14]"
+                    onClick={(e) => {
+                      const dropdown = e.currentTarget.nextElementSibling;
+                      dropdown.classList.toggle('hidden');
+                    }}
+                    data-testid="export-instagram-btn"
+                  >
                     <Download size={14} className="mr-1" /> Instagram
                   </Button>
-                  <div className="absolute right-0 top-full mt-1 bg-[#0A1628] border border-[#D4AF37]/30 rounded shadow-lg hidden group-hover:block z-10">
-                    <button onClick={() => exportForInstagram('portrait')} className="block w-full px-3 py-2 text-sm text-left hover:bg-[#D4AF37]/20 text-[#F5F5F0]">Portrait (1080×1350)</button>
-                    <button onClick={() => exportForInstagram('square')} className="block w-full px-3 py-2 text-sm text-left hover:bg-[#D4AF37]/20 text-[#F5F5F0]">Square (1080×1080)</button>
-                    <button onClick={() => exportForInstagram('story')} className="block w-full px-3 py-2 text-sm text-left hover:bg-[#D4AF37]/20 text-[#F5F5F0]">Story (1080×1920)</button>
+                  <div className="absolute right-0 top-full mt-1 bg-[#0A1628] border border-[#D4AF37]/30 rounded shadow-lg hidden z-10">
+                    <button onClick={() => exportForInstagram('portrait')} className="block w-full px-3 py-2 text-sm text-left hover:bg-[#D4AF37]/20 text-[#F5F5F0]" data-testid="export-ig-portrait">Portrait (1080×1350)</button>
+                    <button onClick={() => exportForInstagram('square')} className="block w-full px-3 py-2 text-sm text-left hover:bg-[#D4AF37]/20 text-[#F5F5F0]" data-testid="export-ig-square">Square (1080×1080)</button>
+                    <button onClick={() => exportForInstagram('story')} className="block w-full px-3 py-2 text-sm text-left hover:bg-[#D4AF37]/20 text-[#F5F5F0]" data-testid="export-ig-story">Story (1080×1920)</button>
                   </div>
                 </div>
               </div>
