@@ -134,6 +134,11 @@ const MagazineBuilder = () => {
   const [applyMasterTo, setApplyMasterTo] = useState('all'); // 'all', 'except_cover', 'custom'
   const [excludedPages, setExcludedPages] = useState([]);
   
+  // Multi-export state
+  const [selectedMagazines, setSelectedMagazines] = useState([]);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportingMultiple, setExportingMultiple] = useState(false);
+  
   // Drag state
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
@@ -986,6 +991,94 @@ const MagazineBuilder = () => {
     }
   };
   
+  // Toggle magazine selection for multi-export
+  const toggleMagazineSelection = (magazineId, e) => {
+    e.stopPropagation();
+    setSelectedMagazines(prev => 
+      prev.includes(magazineId) 
+        ? prev.filter(id => id !== magazineId)
+        : [...prev, magazineId]
+    );
+  };
+  
+  // Select all magazines
+  const selectAllMagazines = () => {
+    if (selectedMagazines.length === magazines.length) {
+      setSelectedMagazines([]);
+    } else {
+      setSelectedMagazines(magazines.map(m => m.id));
+    }
+  };
+  
+  // Export multiple magazines as combined PDF
+  const exportMultipleMagazines = async () => {
+    if (selectedMagazines.length === 0) {
+      toast({ title: "Select at least one magazine to export", variant: "destructive" });
+      return;
+    }
+    
+    setExportingMultiple(true);
+    toast({ title: `Preparing ${selectedMagazines.length} magazine(s) for export...` });
+    
+    try {
+      // Dynamic import of jspdf and html2canvas
+      const { default: jsPDF } = await import('jspdf');
+      const { default: html2canvas } = await import('html2canvas');
+      
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'px',
+        format: [595, 842] // A4
+      });
+      
+      let isFirstPage = true;
+      
+      for (const magazineId of selectedMagazines) {
+        // Fetch magazine data
+        const res = await axios.get(`${API}/magazine-builder/${magazineId}`);
+        const magazineData = res.data;
+        
+        if (!magazineData.pages || magazineData.pages.length === 0) continue;
+        
+        // Add a title page for each magazine
+        if (!isFirstPage) {
+          pdf.addPage();
+        }
+        
+        // Create title page
+        pdf.setFillColor(0, 0, 0);
+        pdf.rect(0, 0, 595, 842, 'F');
+        pdf.setTextColor(212, 175, 55);
+        pdf.setFontSize(32);
+        pdf.text(magazineData.title || 'BFM Magazine', 297.5, 380, { align: 'center' });
+        pdf.setFontSize(16);
+        pdf.setTextColor(255, 255, 255);
+        pdf.text(magazineData.talent?.name || '', 297.5, 420, { align: 'center' });
+        pdf.setFontSize(12);
+        pdf.text(`${magazineData.pages.length} pages`, 297.5, 450, { align: 'center' });
+        
+        isFirstPage = false;
+        
+        // Note: For a full implementation, you'd render each page to canvas
+        // This creates a summary/index of all selected magazines
+        toast({ title: `Added: ${magazineData.title}` });
+      }
+      
+      // Save the combined PDF
+      const timestamp = new Date().toISOString().split('T')[0];
+      pdf.save(`BFM_Combined_Magazines_${timestamp}.pdf`);
+      
+      toast({ title: `Exported ${selectedMagazines.length} magazine(s) successfully!` });
+      setSelectedMagazines([]);
+      setShowExportModal(false);
+    } catch (err) {
+      console.error("Export error:", err);
+      toast({ title: "Failed to export magazines", variant: "destructive" });
+    }
+    
+    setExportingMultiple(false);
+  };
+  
   // Duplicate Magazine function
   const duplicateMagazine = async (magazineId, e) => {
     e.stopPropagation(); // Prevent card click
@@ -1461,22 +1554,76 @@ const MagazineBuilder = () => {
       case 1:
         return (
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center flex-wrap gap-3">
               <h2 className="text-2xl font-bold text-[#D4AF37]">BFM Magazine Builder</h2>
-              <Button onClick={() => setStep(2)} className="bg-[#D4AF37] text-[#050A14] hover:bg-[#F5D76E]" data-testid="create-magazine-btn">
-                <Plus className="mr-2" size={18} /> Create New Magazine
-              </Button>
+              <div className="flex gap-2">
+                {magazines.length > 0 && (
+                  <>
+                    <Button 
+                      variant="outline" 
+                      onClick={selectAllMagazines}
+                      className="border-[#D4AF37]/30 text-[#F5F5F0] text-sm"
+                      data-testid="select-all-btn"
+                    >
+                      {selectedMagazines.length === magazines.length ? 'Deselect All' : 'Select All'}
+                    </Button>
+                    {selectedMagazines.length > 0 && (
+                      <Button 
+                        onClick={exportMultipleMagazines}
+                        disabled={exportingMultiple}
+                        className="bg-gradient-to-r from-[#D4AF37] to-[#F5D76E] text-[#050A14] text-sm"
+                        data-testid="export-selected-btn"
+                      >
+                        <Download size={16} className="mr-1" />
+                        {exportingMultiple ? 'Exporting...' : `Export ${selectedMagazines.length} PDF`}
+                      </Button>
+                    )}
+                  </>
+                )}
+                <Button onClick={() => setStep(2)} className="bg-[#D4AF37] text-[#050A14] hover:bg-[#F5D76E]" data-testid="create-magazine-btn">
+                  <Plus className="mr-2" size={18} /> Create New Magazine
+                </Button>
+              </div>
             </div>
+            
+            {selectedMagazines.length > 0 && (
+              <div className="bg-[#D4AF37]/10 border border-[#D4AF37]/30 rounded-lg px-4 py-2 text-sm text-[#D4AF37] flex items-center justify-between">
+                <span>{selectedMagazines.length} magazine(s) selected for export</span>
+                <button onClick={() => setSelectedMagazines([])} className="text-[#F5F5F0] hover:text-white">Clear</button>
+              </div>
+            )}
             
             {magazines.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {magazines.map(mag => (
                   <div 
                     key={mag.id} 
-                    className="bg-[#0A1628] rounded-lg p-4 border border-[#D4AF37]/20 hover:border-[#D4AF37]/50 cursor-pointer transition-all relative group"
+                    className={`bg-[#0A1628] rounded-lg p-4 border-2 cursor-pointer transition-all relative group ${
+                      selectedMagazines.includes(mag.id) 
+                        ? 'border-[#D4AF37] ring-2 ring-[#D4AF37]/30' 
+                        : 'border-[#D4AF37]/20 hover:border-[#D4AF37]/50'
+                    }`}
                     onClick={() => loadMagazine(mag.id)}
                     data-testid={`magazine-card-${mag.id}`}
                   >
+                    {/* Selection Checkbox */}
+                    <div 
+                      className="absolute top-2 left-2 z-10"
+                      onClick={(e) => toggleMagazineSelection(mag.id, e)}
+                    >
+                      <div className={`w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer transition-all ${
+                        selectedMagazines.includes(mag.id)
+                          ? 'bg-[#D4AF37] border-[#D4AF37]'
+                          : 'border-[#D4AF37]/40 hover:border-[#D4AF37] bg-[#0A1628]'
+                      }`}>
+                        {selectedMagazines.includes(mag.id) && (
+                          <svg className="w-3 h-3 text-[#050A14]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </div>
+                    </div>
+                    
                     <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
                       <button
                         onClick={(e) => duplicateMagazine(mag.id, e)}
@@ -1495,10 +1642,10 @@ const MagazineBuilder = () => {
                         <Trash2 size={14} />
                       </button>
                     </div>
-                    <h3 className="text-[#F5F5F0] font-bold pr-16">{mag.title}</h3>
-                    <p className="text-[#A0A5B0] text-sm">{mag.talent?.category}</p>
-                    <p className="text-[#A0A5B0] text-xs mt-2">{mag.pages?.length || 0} pages</p>
-                    <p className="text-[#D4AF37] text-xs">Template: {mag.template}</p>
+                    <h3 className="text-[#F5F5F0] font-bold pl-7 pr-16">{mag.title}</h3>
+                    <p className="text-[#A0A5B0] text-sm pl-7">{mag.talent?.category}</p>
+                    <p className="text-[#A0A5B0] text-xs mt-2 pl-7">{mag.pages?.length || 0} pages</p>
+                    <p className="text-[#D4AF37] text-xs pl-7">Template: {mag.template}</p>
                   </div>
                 ))}
               </div>

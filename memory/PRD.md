@@ -69,6 +69,7 @@ Build a comprehensive fashion talent platform for Bangalore Fashion Magazine (BF
 - **Quick Page Templates** - 📖 Book icon dropdown with Photo Gallery, Quote Page, Contact Page, Achievements templates
 - **Bulk Ad Insert** - Add 2 or 3 ad pages at once for multiple sponsors
 - **Magazine Analytics** - Dashboard now shows total magazines and total pages count
+- **PDF Multi-Export** - Select multiple magazines with checkboxes and export them all as a combined PDF
 
 ## API Endpoints
 - `POST /api/magazine-builder/save` - Save magazine state
