@@ -91,6 +91,15 @@ def create_analytics_routes(db):
         # Ads count
         total_ads = await db.advertisements.count_documents({})
         
+        # Magazine stats
+        total_magazines = await db.magazine_builder.count_documents({})
+        magazine_pages_pipeline = [
+            {"$project": {"page_count": {"$size": {"$ifNull": ["$pages", []]}}}},
+            {"$group": {"_id": None, "total_pages": {"$sum": "$page_count"}}}
+        ]
+        pages_result = await db.magazine_builder.aggregate(magazine_pages_pipeline).to_list(1)
+        total_magazine_pages = pages_result[0]["total_pages"] if pages_result else 0
+        
         return {
             "traffic": {
                 "total_page_views": total_views,
@@ -109,7 +118,9 @@ def create_analytics_routes(db):
             "content": {
                 "total_parties": total_parties,
                 "active_parties": active_parties,
-                "total_ads": total_ads
+                "total_ads": total_ads,
+                "total_magazines": total_magazines,
+                "total_magazine_pages": total_magazine_pages
             }
         }
     

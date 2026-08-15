@@ -1102,6 +1102,142 @@ const MagazineBuilder = () => {
     toast({ title: "Ad page inserted!" });
   };
   
+  // Bulk insert multiple ad pages
+  const insertMultipleAdPages = (count = 2) => {
+    const colors = TEMPLATES.find(t => t.id === selectedTemplate)?.colors || { bg: "#000000", accent: "#D4AF37" };
+    const newAdPages = [];
+    
+    for (let i = 0; i < count; i++) {
+      newAdPages.push({
+        id: `page_ad_${Date.now()}_${i}`,
+        name: `Advertisement ${i + 1}`,
+        page_type: "advertisement",
+        background: { type: "solid", color: colors.bg },
+        elements: [
+          {
+            id: `el_${Date.now()}_${i}_1`,
+            type: "text",
+            content: "FEATURED PARTNER",
+            style: { fontSize: "14px", fontWeight: "600", color: colors.accent, textAlign: "center", letterSpacing: "4px" },
+            position: { x: 10, y: 5, width: 80, height: 5 },
+            layer: 2, locked: false, visible: true, name: "Section Header"
+          },
+          {
+            id: `el_${Date.now()}_${i}_2`,
+            type: "image",
+            content: "",
+            style: { objectFit: "cover", backgroundColor: colors.bg, border: `2px solid ${colors.accent}` },
+            position: { x: 10, y: 12, width: 80, height: 50 },
+            layer: 1, locked: false, visible: true, name: "Ad Image"
+          },
+          {
+            id: `el_${Date.now()}_${i}_3`,
+            type: "text",
+            content: `SPONSOR ${i + 1}`,
+            style: { fontSize: "28px", fontWeight: "700", color: colors.accent, textAlign: "center", letterSpacing: "3px" },
+            position: { x: 10, y: 65, width: 80, height: 8 },
+            layer: 2, locked: false, visible: true, name: "Partner Name"
+          },
+          {
+            id: `el_${Date.now()}_${i}_4`,
+            type: "text",
+            content: "Add sponsor details here.",
+            style: { fontSize: "12px", fontWeight: "400", color: "#FFFFFF", textAlign: "center", lineHeight: "1.6" },
+            position: { x: 10, y: 75, width: 80, height: 10 },
+            layer: 2, locked: false, visible: true, name: "Partner Description"
+          }
+        ]
+      });
+    }
+    
+    const newPages = [...pages, ...newAdPages];
+    setPages(newPages);
+    setCurrentPageIndex(pages.length);
+    saveToHistory(newPages);
+    setHasUnsavedChanges(true);
+    toast({ title: `${count} ad pages added!` });
+  };
+  
+  // Quick page templates
+  const addQuickPage = (type) => {
+    const colors = TEMPLATES.find(t => t.id === selectedTemplate)?.colors || { bg: "#000000", accent: "#D4AF37" };
+    let newPage;
+    
+    switch(type) {
+      case 'gallery':
+        newPage = {
+          id: `page_gallery_${Date.now()}`,
+          name: "Photo Gallery",
+          page_type: "gallery",
+          background: { type: "solid", color: colors.bg },
+          elements: [
+            { id: `el_${Date.now()}_1`, type: "text", content: "PHOTO GALLERY", style: { fontSize: "18px", fontWeight: "700", color: colors.accent, textAlign: "center", letterSpacing: "4px" }, position: { x: 10, y: 3, width: 80, height: 5 }, layer: 2, locked: false, visible: true, name: "Title" },
+            { id: `el_${Date.now()}_2`, type: "image", content: "", style: { objectFit: "cover", border: `1px solid ${colors.accent}` }, position: { x: 5, y: 10, width: 42, height: 40 }, layer: 1, locked: false, visible: true, name: "Photo 1" },
+            { id: `el_${Date.now()}_3`, type: "image", content: "", style: { objectFit: "cover", border: `1px solid ${colors.accent}` }, position: { x: 53, y: 10, width: 42, height: 40 }, layer: 1, locked: false, visible: true, name: "Photo 2" },
+            { id: `el_${Date.now()}_4`, type: "image", content: "", style: { objectFit: "cover", border: `1px solid ${colors.accent}` }, position: { x: 5, y: 55, width: 42, height: 40 }, layer: 1, locked: false, visible: true, name: "Photo 3" },
+            { id: `el_${Date.now()}_5`, type: "image", content: "", style: { objectFit: "cover", border: `1px solid ${colors.accent}` }, position: { x: 53, y: 55, width: 42, height: 40 }, layer: 1, locked: false, visible: true, name: "Photo 4" }
+          ]
+        };
+        break;
+      case 'quote':
+        newPage = {
+          id: `page_quote_${Date.now()}`,
+          name: "Quote Page",
+          page_type: "quote",
+          background: { type: "solid", color: colors.bg },
+          elements: [
+            { id: `el_${Date.now()}_1`, type: "text", content: '"', style: { fontSize: "120px", fontWeight: "300", color: colors.accent, textAlign: "center", fontFamily: "'Playfair Display', serif" }, position: { x: 10, y: 15, width: 80, height: 20 }, layer: 2, locked: false, visible: true, name: "Quote Mark" },
+            { id: `el_${Date.now()}_2`, type: "text", content: "Your inspiring quote goes here. Double-click to edit.", style: { fontSize: "24px", fontWeight: "400", color: "#FFFFFF", textAlign: "center", fontStyle: "italic", lineHeight: "1.6" }, position: { x: 10, y: 35, width: 80, height: 25 }, layer: 2, locked: false, visible: true, name: "Quote Text" },
+            { id: `el_${Date.now()}_3`, type: "text", content: "— Talent Name", style: { fontSize: "14px", fontWeight: "600", color: colors.accent, textAlign: "center", letterSpacing: "2px" }, position: { x: 20, y: 70, width: 60, height: 5 }, layer: 2, locked: false, visible: true, name: "Attribution" }
+          ]
+        };
+        break;
+      case 'contact':
+        newPage = {
+          id: `page_contact_${Date.now()}`,
+          name: "Contact Page",
+          page_type: "contact",
+          background: { type: "solid", color: colors.bg },
+          elements: [
+            { id: `el_${Date.now()}_1`, type: "text", content: "GET IN TOUCH", style: { fontSize: "24px", fontWeight: "700", color: colors.accent, textAlign: "center", letterSpacing: "5px" }, position: { x: 10, y: 10, width: 80, height: 8 }, layer: 2, locked: false, visible: true, name: "Title" },
+            { id: `el_${Date.now()}_2`, type: "text", content: "For bookings & collaborations", style: { fontSize: "14px", fontWeight: "300", color: "#FFFFFF", textAlign: "center", fontStyle: "italic" }, position: { x: 15, y: 22, width: 70, height: 5 }, layer: 2, locked: false, visible: true, name: "Subtitle" },
+            { id: `el_${Date.now()}_3`, type: "text", content: "📧 email@example.com", style: { fontSize: "16px", fontWeight: "500", color: "#FFFFFF", textAlign: "center" }, position: { x: 15, y: 40, width: 70, height: 6 }, layer: 2, locked: false, visible: true, name: "Email" },
+            { id: `el_${Date.now()}_4`, type: "text", content: "📱 +91 98765 43210", style: { fontSize: "16px", fontWeight: "500", color: "#FFFFFF", textAlign: "center" }, position: { x: 15, y: 50, width: 70, height: 6 }, layer: 2, locked: false, visible: true, name: "Phone" },
+            { id: `el_${Date.now()}_5`, type: "text", content: "📍 Bangalore, India", style: { fontSize: "16px", fontWeight: "500", color: "#FFFFFF", textAlign: "center" }, position: { x: 15, y: 60, width: 70, height: 6 }, layer: 2, locked: false, visible: true, name: "Location" },
+            { id: `el_${Date.now()}_6`, type: "text", content: "@instagram_handle", style: { fontSize: "18px", fontWeight: "600", color: colors.accent, textAlign: "center" }, position: { x: 15, y: 75, width: 70, height: 6 }, layer: 2, locked: false, visible: true, name: "Instagram" }
+          ]
+        };
+        break;
+      case 'achievements':
+        newPage = {
+          id: `page_achievements_${Date.now()}`,
+          name: "Achievements",
+          page_type: "achievements",
+          background: { type: "solid", color: colors.bg },
+          elements: [
+            { id: `el_${Date.now()}_1`, type: "text", content: "ACHIEVEMENTS", style: { fontSize: "22px", fontWeight: "700", color: colors.accent, textAlign: "center", letterSpacing: "5px" }, position: { x: 10, y: 5, width: 80, height: 8 }, layer: 2, locked: false, visible: true, name: "Title" },
+            { id: `el_${Date.now()}_2`, type: "text", content: "🏆 Award Name 2024", style: { fontSize: "16px", fontWeight: "600", color: "#FFFFFF", textAlign: "center" }, position: { x: 10, y: 25, width: 80, height: 6 }, layer: 2, locked: false, visible: true, name: "Award 1" },
+            { id: `el_${Date.now()}_3`, type: "text", content: "🌟 Fashion Week Feature", style: { fontSize: "16px", fontWeight: "600", color: "#FFFFFF", textAlign: "center" }, position: { x: 10, y: 40, width: 80, height: 6 }, layer: 2, locked: false, visible: true, name: "Award 2" },
+            { id: `el_${Date.now()}_4`, type: "text", content: "📸 Magazine Cover 2023", style: { fontSize: "16px", fontWeight: "600", color: "#FFFFFF", textAlign: "center" }, position: { x: 10, y: 55, width: 80, height: 6 }, layer: 2, locked: false, visible: true, name: "Award 3" },
+            { id: `el_${Date.now()}_5`, type: "text", content: "💫 Brand Ambassador", style: { fontSize: "16px", fontWeight: "600", color: "#FFFFFF", textAlign: "center" }, position: { x: 10, y: 70, width: 80, height: 6 }, layer: 2, locked: false, visible: true, name: "Award 4" }
+          ]
+        };
+        break;
+      default:
+        return;
+    }
+    
+    const newPages = [...pages, newPage];
+    setPages(newPages);
+    setCurrentPageIndex(newPages.length - 1);
+    saveToHistory(newPages);
+    setHasUnsavedChanges(true);
+    toast({ title: `${newPage.name} added!` });
+  };
+  
+  // State for quick pages dropdown
+  const [showQuickPages, setShowQuickPages] = useState(false);
+  
   // Move page by drag (for reordering)
   const movePageToIndex = (fromIndex, toIndex) => {
     if (fromIndex === toIndex) return;
@@ -1702,7 +1838,28 @@ const MagazineBuilder = () => {
             <div className="w-44 bg-[#0A1628] rounded-lg p-2 overflow-y-auto flex-shrink-0">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-[#A0A5B0] text-xs uppercase tracking-wider">Pages</span>
-                <div className="flex gap-1">
+                <div className="flex gap-1 relative">
+                  <div className="relative">
+                    <button 
+                      onClick={() => setShowQuickPages(!showQuickPages)} 
+                      className="text-[#D4AF37] hover:text-[#F5D76E] p-0.5" 
+                      title="Quick Pages"
+                      data-testid="quick-pages-btn"
+                    >
+                      <BookOpen size={14} />
+                    </button>
+                    {showQuickPages && (
+                      <div className="absolute top-6 right-0 bg-[#0A1628] border border-[#D4AF37]/30 rounded-lg shadow-xl z-50 w-40 py-1">
+                        <button onClick={() => { addQuickPage('gallery'); setShowQuickPages(false); }} className="w-full text-left px-3 py-1.5 text-xs text-[#F5F5F0] hover:bg-[#D4AF37]/20">📷 Photo Gallery</button>
+                        <button onClick={() => { addQuickPage('quote'); setShowQuickPages(false); }} className="w-full text-left px-3 py-1.5 text-xs text-[#F5F5F0] hover:bg-[#D4AF37]/20">❝ Quote Page</button>
+                        <button onClick={() => { addQuickPage('contact'); setShowQuickPages(false); }} className="w-full text-left px-3 py-1.5 text-xs text-[#F5F5F0] hover:bg-[#D4AF37]/20">📞 Contact Page</button>
+                        <button onClick={() => { addQuickPage('achievements'); setShowQuickPages(false); }} className="w-full text-left px-3 py-1.5 text-xs text-[#F5F5F0] hover:bg-[#D4AF37]/20">🏆 Achievements</button>
+                        <div className="border-t border-[#D4AF37]/20 my-1"></div>
+                        <button onClick={() => { insertMultipleAdPages(2); setShowQuickPages(false); }} className="w-full text-left px-3 py-1.5 text-xs text-[#D4AF37] hover:bg-[#D4AF37]/20">➕ Add 2 Ad Pages</button>
+                        <button onClick={() => { insertMultipleAdPages(3); setShowQuickPages(false); }} className="w-full text-left px-3 py-1.5 text-xs text-[#D4AF37] hover:bg-[#D4AF37]/20">➕ Add 3 Ad Pages</button>
+                      </div>
+                    )}
+                  </div>
                   <button 
                     onClick={() => insertAdPage()} 
                     className="text-[#D4AF37] hover:text-[#F5D76E] p-0.5" 

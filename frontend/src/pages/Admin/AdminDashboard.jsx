@@ -1241,6 +1241,11 @@ const AdminDashboard = () => {
                 <p className="text-xl font-bold text-[#F5F5F0]">{analyticsSummary?.content?.total_ads || 0}</p>
               </div>
               <div className="bg-gradient-to-br from-[#0A1628] to-[#0A1628]/50 rounded-xl p-4 border border-[#D4AF37]/10">
+                <p className="text-[#A0A5B0] text-xs mb-1">📰 Magazines</p>
+                <p className="text-xl font-bold text-[#F5F5F0]">{analyticsSummary?.content?.total_magazines || 0}</p>
+                <p className="text-xs text-[#D4AF37]">{analyticsSummary?.content?.total_magazine_pages || 0} pages</p>
+              </div>
+              <div className="bg-gradient-to-br from-[#0A1628] to-[#0A1628]/50 rounded-xl p-4 border border-[#D4AF37]/10">
                 <p className="text-[#A0A5B0] text-xs mb-1">Approved Talents</p>
                 <p className="text-xl font-bold text-[#F5F5F0]">{analyticsSummary?.talents?.approved || 0}</p>
               </div>
