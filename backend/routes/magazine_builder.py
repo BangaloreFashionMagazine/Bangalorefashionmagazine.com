@@ -487,7 +487,113 @@ def create_magazine_builder_router(db):
             })
         pages.append(interview_page)
         
-        # Page 6: Spotlight
+        # Page 6: Advertisement/Sponsor Page
+        ad_page = {
+            "id": str(uuid.uuid4()),
+            "name": "Featured Partner",
+            "page_type": "advertisement",
+            "background": {"type": "solid", "color": colors["bg"]},
+            "elements": [
+                # Header
+                {
+                    "id": str(uuid.uuid4()),
+                    "type": "text",
+                    "content": "FEATURED PARTNER",
+                    "style": {
+                        "fontSize": "14px",
+                        "fontWeight": "600",
+                        "color": colors["accent"],
+                        "textAlign": "center",
+                        "letterSpacing": "4px"
+                    },
+                    "position": {"x": 10, "y": 5, "width": 80, "height": 5},
+                    "layer": 2,
+                    "locked": False,
+                    "visible": True,
+                    "name": "Section Header"
+                },
+                # Main Ad Image Placeholder
+                {
+                    "id": str(uuid.uuid4()),
+                    "type": "image",
+                    "content": "",
+                    "style": {"objectFit": "cover", "backgroundColor": colors["secondary"], "border": f"2px solid {colors['accent']}"},
+                    "position": {"x": 10, "y": 12, "width": 80, "height": 50},
+                    "layer": 1,
+                    "locked": False,
+                    "visible": True,
+                    "name": "Ad Image (Upload Your Ad)"
+                },
+                # Partner Name
+                {
+                    "id": str(uuid.uuid4()),
+                    "type": "text",
+                    "content": "PARTNER NAME",
+                    "style": {
+                        "fontSize": "28px",
+                        "fontWeight": "700",
+                        "color": colors["accent"],
+                        "textAlign": "center",
+                        "letterSpacing": "3px"
+                    },
+                    "position": {"x": 10, "y": 65, "width": 80, "height": 8},
+                    "layer": 2,
+                    "locked": False,
+                    "visible": True,
+                    "name": "Partner Name"
+                },
+                # Partner Description
+                {
+                    "id": str(uuid.uuid4()),
+                    "type": "text",
+                    "content": "Add partner description here. Click to edit and customize this text with your sponsor's details.",
+                    "style": {
+                        "fontSize": "12px",
+                        "fontWeight": "400",
+                        "color": "#FFFFFF" if template != "editorial" else "#333333",
+                        "textAlign": "center",
+                        "lineHeight": "1.6"
+                    },
+                    "position": {"x": 10, "y": 75, "width": 80, "height": 10},
+                    "layer": 2,
+                    "locked": False,
+                    "visible": True,
+                    "name": "Partner Description"
+                },
+                # Contact/CTA
+                {
+                    "id": str(uuid.uuid4()),
+                    "type": "text",
+                    "content": "www.partnername.com | @partner_social",
+                    "style": {
+                        "fontSize": "11px",
+                        "fontWeight": "500",
+                        "color": colors["accent"],
+                        "textAlign": "center"
+                    },
+                    "position": {"x": 15, "y": 87, "width": 70, "height": 4},
+                    "layer": 2,
+                    "locked": False,
+                    "visible": True,
+                    "name": "Partner Contact"
+                },
+                # Decorative line
+                {
+                    "id": str(uuid.uuid4()),
+                    "type": "shape",
+                    "content": "rectangle",
+                    "style": {"backgroundColor": colors["accent"]},
+                    "position": {"x": 35, "y": 93, "width": 30, "height": 0.5},
+                    "layer": 2,
+                    "locked": False,
+                    "visible": True,
+                    "name": "Decorative Line"
+                }
+            ]
+        }
+        pages.append(ad_page)
+        
+        # Page 7: Spotlight
         spotlight_page = {
             "id": str(uuid.uuid4()),
             "name": "BFM Spotlight",
@@ -570,73 +676,115 @@ def create_magazine_builder_router(db):
         }
         pages.append(spotlight_page)
         
-        # Page 7: Back Cover
+        # Page 8: Back Cover - Enhanced with larger, clearer elements
         back_cover = {
             "id": str(uuid.uuid4()),
             "name": "Back Cover",
             "page_type": "back_cover",
             "background": {"type": "solid", "color": colors["bg"]},
             "elements": [
+                # Large BFM Logo - Centered and prominent
                 {
                     "id": str(uuid.uuid4()),
                     "type": "logo",
                     "content": "/bfm-logo.jpeg",
-                    "style": {"borderRadius": "50%", "border": f"3px solid {colors['accent']}"},
-                    "position": {"x": 35, "y": 25, "width": 30, "height": 25},
+                    "style": {"borderRadius": "50%", "border": f"5px solid {colors['accent']}"},
+                    "position": {"x": 25, "y": 8, "width": 50, "height": 42},
                     "layer": 2,
                     "locked": False,
                     "visible": True,
                     "name": "BFM Logo"
                 },
+                # Magazine Name - Larger and bolder
                 {
                     "id": str(uuid.uuid4()),
                     "type": "text",
                     "content": "BANGALORE\nFASHION\nMAGAZINE",
                     "style": {
-                        "fontSize": "32px",
-                        "fontWeight": "700",
+                        "fontSize": "38px",
+                        "fontWeight": "800",
                         "color": colors["accent"],
                         "textAlign": "center",
-                        "letterSpacing": "3px",
-                        "lineHeight": "1.4"
+                        "letterSpacing": "4px",
+                        "lineHeight": "1.3"
                     },
-                    "position": {"x": 10, "y": 55, "width": 80, "height": 20},
+                    "position": {"x": 5, "y": 52, "width": 90, "height": 25},
                     "layer": 2,
                     "locked": False,
                     "visible": True,
                     "name": "Magazine Name"
                 },
+                # Tagline
+                {
+                    "id": str(uuid.uuid4()),
+                    "type": "text",
+                    "content": "Celebrating Fashion & Talent",
+                    "style": {
+                        "fontSize": "14px",
+                        "fontWeight": "300",
+                        "fontStyle": "italic",
+                        "color": "#FFFFFF" if template != "editorial" else "#555555",
+                        "textAlign": "center",
+                        "letterSpacing": "2px"
+                    },
+                    "position": {"x": 15, "y": 78, "width": 70, "height": 4},
+                    "layer": 2,
+                    "locked": False,
+                    "visible": True,
+                    "name": "Tagline"
+                },
+                # Website - Larger and clearer
                 {
                     "id": str(uuid.uuid4()),
                     "type": "text",
                     "content": "www.bangalorefashionmagazine.com",
                     "style": {
-                        "fontSize": "14px",
-                        "fontWeight": "400",
+                        "fontSize": "16px",
+                        "fontWeight": "500",
                         "color": "#FFFFFF" if template != "editorial" else "#333333",
-                        "textAlign": "center"
-                    },
-                    "position": {"x": 10, "y": 78, "width": 80, "height": 5},
-                    "layer": 2,
-                    "locked": False,
-                    "visible": True,
-                    "name": "Website"
-                },
-                {
-                    "id": str(uuid.uuid4()),
-                    "type": "text",
-                    "content": "@banglorefashionmag",
-                    "style": {
-                        "fontSize": "12px",
-                        "fontWeight": "400",
-                        "color": colors["accent"],
-                        "textAlign": "center"
+                        "textAlign": "center",
+                        "letterSpacing": "1px"
                     },
                     "position": {"x": 10, "y": 84, "width": 80, "height": 5},
                     "layer": 2,
                     "locked": False,
                     "visible": True,
+                    "name": "Website"
+                },
+                # Social Media - More prominent
+                {
+                    "id": str(uuid.uuid4()),
+                    "type": "text",
+                    "content": "@bangalorefashionmag  |  @bfm_official",
+                    "style": {
+                        "fontSize": "13px",
+                        "fontWeight": "500",
+                        "color": colors["accent"],
+                        "textAlign": "center",
+                        "letterSpacing": "1px"
+                    },
+                    "position": {"x": 10, "y": 90, "width": 80, "height": 4},
+                    "layer": 2,
+                    "locked": False,
+                    "visible": True,
                     "name": "Social Media"
+                },
+                # Contact Info
+                {
+                    "id": str(uuid.uuid4()),
+                    "type": "text",
+                    "content": "contact@bangalorefashionmagazine.com",
+                    "style": {
+                        "fontSize": "11px",
+                        "fontWeight": "400",
+                        "color": "#888888" if template != "editorial" else "#666666",
+                        "textAlign": "center"
+                    },
+                    "position": {"x": 20, "y": 95, "width": 60, "height": 3},
+                    "layer": 2,
+                    "locked": False,
+                    "visible": True,
+                    "name": "Contact Email"
                 }
             ]
         }

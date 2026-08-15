@@ -60,6 +60,8 @@ Build a comprehensive fashion talent platform for Bangalore Fashion Magazine (BF
 - Delete magazine feature
 - **CRITICAL FIX**: Image upload bug resolved (File to base64 conversion)
 - E2E tested and verified working
+- **Enhanced Back Cover page** with larger logo (50% width), bigger text (38px), tagline, and clearer contact details
+- **New "Featured Partner" page** (Page 6) for cafe/sponsor advertisements with customizable image, name, description, and contact sections
 
 ## API Endpoints
 - `POST /api/magazine-builder/save` - Save magazine state
