@@ -11,7 +11,10 @@ import {
   Lock, Unlock, EyeOff, ChevronLeft, ChevronRight, Save, FileDown,
   Minus, Grid, ZoomIn, ZoomOut, Maximize, Minimize, Underline,
   GripVertical, LayoutGrid, ImagePlus, Clipboard, ClipboardCopy,
-  FolderOpen, Layout, BookOpen, Star, Instagram, AtSign, Phone
+  FolderOpen, Layout, BookOpen, Star, Instagram, AtSign, Phone,
+  Settings, FlipHorizontal, FlipVertical, History, Sun, Contrast,
+  Droplets, Sparkles, Globe, Mail, MessageCircle, Linkedin, Facebook,
+  Youtube, Twitter, AlignJustify, Strikethrough, Superscript, Subscript
 } from "lucide-react";
 import { API } from "@/lib/config";
 import { autoCompressImage } from "@/lib/imageOptimization";
@@ -138,6 +141,57 @@ const MagazineBuilder = () => {
   const [selectedMagazines, setSelectedMagazines] = useState([]);
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportingMultiple, setExportingMultiple] = useState(false);
+  
+  // Advanced Editor State
+  const [pageSize, setPageSize] = useState({ name: "BFM Standard", width: 816, height: 1056, ratio: "3:4" });
+  const [pageMargins, setPageMargins] = useState({ top: 40, bottom: 40, left: 40, right: 40 });
+  const [gridSettings, setGridSettings] = useState({ showGrid: false, columns: 12, gutter: 20, snapToGrid: true, showGuides: true });
+  const [colorPalette, setColorPalette] = useState('bfm_gold_black');
+  const [copiedStyle, setCopiedStyle] = useState(null);
+  const [copiedElement, setCopiedElement] = useState(null);
+  const [copiedPage, setCopiedPage] = useState(null);
+  const [versionHistory, setVersionHistory] = useState([]);
+  const [showVersionHistory, setShowVersionHistory] = useState(false);
+  const [previewDevice, setPreviewDevice] = useState('desktop'); // desktop, tablet, mobile
+  const [showPageSettings, setShowPageSettings] = useState(false);
+  const [showTextStyles, setShowTextStyles] = useState(false);
+  const [showColorPalettes, setShowColorPalettes] = useState(false);
+  const [showExportOptions, setShowExportOptions] = useState(false);
+  const [editingText, setEditingText] = useState(null);
+  const [alignmentGuides, setAlignmentGuides] = useState({ horizontal: null, vertical: null });
+  
+  // Page Size Presets
+  const PAGE_SIZES = {
+    bfm_standard: { name: "BFM Standard", width: 816, height: 1056, ratio: "3:4" },
+    a4_portrait: { name: "A4 Portrait", width: 595, height: 842, ratio: "1:1.41" },
+    a4_landscape: { name: "A4 Landscape", width: 842, height: 595, ratio: "1.41:1" },
+    a5_portrait: { name: "A5 Portrait", width: 420, height: 595, ratio: "1:1.41" },
+    a5_landscape: { name: "A5 Landscape", width: 595, height: 420, ratio: "1.41:1" },
+    instagram_square: { name: "Instagram Square", width: 1080, height: 1080, ratio: "1:1" },
+    instagram_portrait: { name: "Instagram Portrait", width: 1080, height: 1350, ratio: "4:5" },
+    instagram_story: { name: "Instagram Story", width: 1080, height: 1920, ratio: "9:16" }
+  };
+  
+  // Text Style Presets
+  const TEXT_STYLES = {
+    cover_title: { name: "Cover Title", fontSize: "72px", fontWeight: "800", fontFamily: "'Playfair Display', serif", letterSpacing: "4px", lineHeight: "1.1", textTransform: "uppercase" },
+    cover_subtitle: { name: "Cover Subtitle", fontSize: "24px", fontWeight: "400", fontFamily: "'Montserrat', sans-serif", letterSpacing: "6px", lineHeight: "1.4", textTransform: "uppercase" },
+    main_headline: { name: "Main Headline", fontSize: "48px", fontWeight: "700", fontFamily: "'Playfair Display', serif", letterSpacing: "2px", lineHeight: "1.2" },
+    subheadline: { name: "Subheadline", fontSize: "24px", fontWeight: "600", fontFamily: "'Montserrat', sans-serif", letterSpacing: "1px", lineHeight: "1.3" },
+    section_heading: { name: "Section Heading", fontSize: "18px", fontWeight: "700", fontFamily: "'Oswald', sans-serif", letterSpacing: "4px", lineHeight: "1.4", textTransform: "uppercase" },
+    body: { name: "Body Text", fontSize: "14px", fontWeight: "400", fontFamily: "'Lato', sans-serif", letterSpacing: "0.5px", lineHeight: "1.7" },
+    quote: { name: "Quote", fontSize: "28px", fontWeight: "300", fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", letterSpacing: "1px", lineHeight: "1.5" },
+    caption: { name: "Caption", fontSize: "11px", fontWeight: "400", fontFamily: "'Montserrat', sans-serif", letterSpacing: "0.5px", lineHeight: "1.4" },
+    credit: { name: "Credit", fontSize: "10px", fontWeight: "500", fontFamily: "'Montserrat', sans-serif", letterSpacing: "1px", lineHeight: "1.3", textTransform: "uppercase" }
+  };
+  
+  // Color Palettes
+  const COLOR_PALETTES = {
+    bfm_gold_black: { name: "BFM Gold & Black", primary: "#000000", secondary: "#0A0A0A", accent: "#D4AF37", text: "#FFFFFF", muted: "#A0A5B0" },
+    minimal_white: { name: "Minimal White", primary: "#FFFFFF", secondary: "#F5F5F5", accent: "#000000", text: "#1A1A1A", muted: "#666666" },
+    luxury_beige: { name: "Luxury Beige", primary: "#F5F0E8", secondary: "#E8E0D5", accent: "#8B7355", text: "#2C2416", muted: "#9C8B7A" },
+    editorial_black: { name: "Editorial Black", primary: "#1A1A1A", secondary: "#2D2D2D", accent: "#FFFFFF", text: "#F0F0F0", muted: "#888888" }
+  };
   
   // Drag state
   const [isDragging, setIsDragging] = useState(false);
@@ -815,6 +869,370 @@ const MagazineBuilder = () => {
     setPages(newPages);
     setCurrentPageIndex(newIndex);
     saveToHistory(newPages);
+  };
+  
+  // === COMPREHENSIVE PAGE CONTROLS ===
+  
+  // Rename page
+  const renamePage = (newName) => {
+    const newPages = pages.map((page, i) => 
+      i === currentPageIndex ? { ...page, name: newName } : page
+    );
+    setPages(newPages);
+    saveToHistory(newPages);
+  };
+  
+  // Copy page to clipboard
+  const copyPage = () => {
+    setCopiedPage(JSON.parse(JSON.stringify(pages[currentPageIndex])));
+    toast({ title: "Page copied!" });
+  };
+  
+  // Paste page
+  const pastePage = () => {
+    if (!copiedPage) {
+      toast({ title: "No page copied", variant: "destructive" });
+      return;
+    }
+    const newPage = {
+      ...copiedPage,
+      id: `page_${Date.now()}`,
+      name: `${copiedPage.name} (Pasted)`,
+      elements: copiedPage.elements.map(el => ({
+        ...el,
+        id: `el_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      }))
+    };
+    const newPages = [...pages.slice(0, currentPageIndex + 1), newPage, ...pages.slice(currentPageIndex + 1)];
+    setPages(newPages);
+    setCurrentPageIndex(currentPageIndex + 1);
+    saveToHistory(newPages);
+    toast({ title: "Page pasted!" });
+  };
+  
+  // Reset page (clear all elements)
+  const resetPage = () => {
+    if (!confirm("Are you sure you want to reset this page? All elements will be removed.")) return;
+    const newPages = pages.map((page, i) => 
+      i === currentPageIndex ? { ...page, elements: [] } : page
+    );
+    setPages(newPages);
+    setSelectedElement(null);
+    saveToHistory(newPages);
+    toast({ title: "Page reset!" });
+  };
+  
+  // Hide/Show page
+  const togglePageVisibility = (pageIndex) => {
+    const newPages = pages.map((page, i) => 
+      i === pageIndex ? { ...page, hidden: !page.hidden } : page
+    );
+    setPages(newPages);
+    saveToHistory(newPages);
+  };
+  
+  // Change page size
+  const changePageSize = (sizeKey, customSize = null) => {
+    const size = customSize || PAGE_SIZES[sizeKey];
+    setPageSize(size);
+    setHasUnsavedChanges(true);
+  };
+  
+  // Apply margins to current page
+  const applyMarginsToPage = (margins) => {
+    const newPages = pages.map((page, i) => 
+      i === currentPageIndex ? { ...page, margins } : page
+    );
+    setPages(newPages);
+    saveToHistory(newPages);
+  };
+  
+  // Apply margins to all pages
+  const applyMarginsToAllPages = (margins) => {
+    const newPages = pages.map(page => ({ ...page, margins }));
+    setPages(newPages);
+    saveToHistory(newPages);
+    toast({ title: "Margins applied to all pages!" });
+  };
+  
+  // === STYLE CONTROLS ===
+  
+  // Apply text style preset
+  const applyTextStyle = (styleKey) => {
+    if (!selectedElement) return;
+    const style = TEXT_STYLES[styleKey];
+    if (!style) return;
+    updateElementStyle(selectedElement, style);
+    toast({ title: `Applied ${style.name} style` });
+  };
+  
+  // Copy element style
+  const copyStyle = () => {
+    if (!selectedElement) return;
+    const el = currentElements.find(e => e.id === selectedElement);
+    if (el) {
+      setCopiedStyle(JSON.parse(JSON.stringify(el.style)));
+      toast({ title: "Style copied!" });
+    }
+  };
+  
+  // Paste element style
+  const pasteStyle = () => {
+    if (!selectedElement || !copiedStyle) return;
+    updateElementStyle(selectedElement, copiedStyle);
+    toast({ title: "Style pasted!" });
+  };
+  
+  // Apply color palette
+  const applyColorPalette = (paletteKey) => {
+    setColorPalette(paletteKey);
+    const palette = COLOR_PALETTES[paletteKey];
+    // Update page background
+    updatePageBackground({ type: 'solid', color: palette.primary });
+    toast({ title: `Applied ${palette.name} palette` });
+  };
+  
+  // === ALIGNMENT FUNCTIONS ===
+  
+  const alignElement = (alignment) => {
+    if (!selectedElement) return;
+    const el = currentElements.find(e => e.id === selectedElement);
+    if (!el) return;
+    
+    let updates = {};
+    switch(alignment) {
+      case 'left': updates = { x: 5 }; break;
+      case 'centerH': updates = { x: 50 - el.position.width / 2 }; break;
+      case 'right': updates = { x: 95 - el.position.width }; break;
+      case 'top': updates = { y: 5 }; break;
+      case 'centerV': updates = { y: 50 - el.position.height / 2 }; break;
+      case 'bottom': updates = { y: 95 - el.position.height }; break;
+    }
+    updateElementPosition(selectedElement, updates);
+  };
+  
+  // === VERSION HISTORY ===
+  
+  const saveVersion = (versionName) => {
+    const version = {
+      id: `version_${Date.now()}`,
+      name: versionName || `Version ${versionHistory.length + 1}`,
+      timestamp: new Date().toISOString(),
+      pages: JSON.parse(JSON.stringify(pages)),
+      pageSize: { ...pageSize },
+      pageMargins: { ...pageMargins }
+    };
+    setVersionHistory(prev => [...prev, version]);
+    toast({ title: `Saved: ${version.name}` });
+  };
+  
+  const restoreVersion = (versionId) => {
+    const version = versionHistory.find(v => v.id === versionId);
+    if (!version) return;
+    if (!confirm(`Restore "${version.name}"? Current changes will be lost.`)) return;
+    setPages(JSON.parse(JSON.stringify(version.pages)));
+    if (version.pageSize) setPageSize(version.pageSize);
+    if (version.pageMargins) setPageMargins(version.pageMargins);
+    setCurrentPageIndex(0);
+    saveToHistory(version.pages);
+    toast({ title: `Restored: ${version.name}` });
+  };
+  
+  // === DECORATIVE ELEMENTS ===
+  
+  const addDecorativeElement = (type) => {
+    const colors = TEMPLATES.find(t => t.id === selectedTemplate)?.colors || { accent: "#D4AF37" };
+    let newElement;
+    
+    switch(type) {
+      case 'line_horizontal':
+        newElement = { type: "shape", content: "rectangle", style: { backgroundColor: colors.accent }, position: { x: 10, y: 50, width: 80, height: 0.5 }, name: "Horizontal Line" };
+        break;
+      case 'line_vertical':
+        newElement = { type: "shape", content: "rectangle", style: { backgroundColor: colors.accent }, position: { x: 50, y: 10, width: 0.5, height: 80 }, name: "Vertical Line" };
+        break;
+      case 'divider':
+        newElement = { type: "shape", content: "rectangle", style: { backgroundColor: colors.accent, opacity: 0.5 }, position: { x: 20, y: 50, width: 60, height: 0.3 }, name: "Divider" };
+        break;
+      case 'circle':
+        newElement = { type: "shape", content: "circle", style: { backgroundColor: colors.accent, borderRadius: "50%", opacity: 0.3 }, position: { x: 40, y: 40, width: 20, height: 20 }, name: "Circle" };
+        break;
+      case 'frame':
+        newElement = { type: "shape", content: "rectangle", style: { backgroundColor: "transparent", border: `2px solid ${colors.accent}` }, position: { x: 10, y: 10, width: 80, height: 80 }, name: "Frame" };
+        break;
+      case 'quote_mark':
+        newElement = { type: "text", content: "❝", style: { fontSize: "72px", color: colors.accent, opacity: 0.3 }, position: { x: 5, y: 5, width: 15, height: 15 }, name: "Quote Mark" };
+        break;
+      default:
+        return;
+    }
+    
+    addElement(newElement.type, newElement.content);
+    // Apply additional styling
+    setTimeout(() => {
+      if (selectedElement) {
+        updateElementStyle(selectedElement, newElement.style);
+        updateElementPosition(selectedElement, newElement.position);
+        updateElement(selectedElement, { name: newElement.name });
+      }
+    }, 100);
+  };
+  
+  // === BUTTON/CTA ELEMENT ===
+  
+  const addButton = (preset) => {
+    const colors = TEMPLATES.find(t => t.id === selectedTemplate)?.colors || { accent: "#D4AF37" };
+    const BUTTON_PRESETS = {
+      read_more: { text: "Read More", bg: colors.accent, textColor: "#000000" },
+      view_profile: { text: "View Profile", bg: colors.accent, textColor: "#000000" },
+      book_now: { text: "Book Now", bg: "#E1306C", textColor: "#FFFFFF" },
+      contact: { text: "Contact", bg: "transparent", textColor: colors.accent, border: `2px solid ${colors.accent}` },
+      follow_instagram: { text: "Follow on Instagram", bg: "#E1306C", textColor: "#FFFFFF" }
+    };
+    
+    const buttonConfig = BUTTON_PRESETS[preset] || BUTTON_PRESETS.read_more;
+    
+    const newElement = {
+      id: `el_${Date.now()}`,
+      type: 'button',
+      content: buttonConfig.text,
+      style: {
+        backgroundColor: buttonConfig.bg,
+        color: buttonConfig.textColor,
+        fontSize: "14px",
+        fontWeight: "600",
+        textAlign: "center",
+        padding: "10px 20px",
+        borderRadius: "4px",
+        border: buttonConfig.border || "none",
+        letterSpacing: "1px"
+      },
+      position: { x: 35, y: 80, width: 30, height: 8 },
+      layer: pages[currentPageIndex].elements.length,
+      locked: false,
+      visible: true,
+      name: buttonConfig.text,
+      link: ""
+    };
+    
+    const newPages = pages.map((page, pIdx) => {
+      if (pIdx !== currentPageIndex) return page;
+      return { ...page, elements: [...page.elements, newElement] };
+    });
+    setPages(newPages);
+    setSelectedElement(newElement.id);
+    saveToHistory(newPages);
+  };
+  
+  // === SOCIAL ICONS ===
+  
+  const addSocialIcon = (platform) => {
+    const SOCIAL_CONFIGS = {
+      instagram: { icon: "📸", color: "#E1306C", name: "Instagram" },
+      facebook: { icon: "📘", color: "#1877F2", name: "Facebook" },
+      twitter: { icon: "🐦", color: "#1DA1F2", name: "Twitter" },
+      youtube: { icon: "▶️", color: "#FF0000", name: "YouTube" },
+      linkedin: { icon: "💼", color: "#0077B5", name: "LinkedIn" },
+      whatsapp: { icon: "💬", color: "#25D366", name: "WhatsApp" },
+      website: { icon: "🌐", color: "#D4AF37", name: "Website" }
+    };
+    
+    const config = SOCIAL_CONFIGS[platform] || SOCIAL_CONFIGS.instagram;
+    
+    const newElement = {
+      id: `el_${Date.now()}`,
+      type: 'social_icon',
+      content: config.icon,
+      style: {
+        fontSize: "24px",
+        textAlign: "center",
+        backgroundColor: config.color,
+        borderRadius: "50%",
+        padding: "8px"
+      },
+      position: { x: 45, y: 85, width: 10, height: 8 },
+      layer: pages[currentPageIndex].elements.length,
+      locked: false,
+      visible: true,
+      name: config.name,
+      link: ""
+    };
+    
+    const newPages = pages.map((page, pIdx) => {
+      if (pIdx !== currentPageIndex) return page;
+      return { ...page, elements: [...page.elements, newElement] };
+    });
+    setPages(newPages);
+    setSelectedElement(newElement.id);
+    saveToHistory(newPages);
+  };
+  
+  // === IMAGE EFFECTS ===
+  
+  const applyImageEffect = (effectType, value) => {
+    if (!selectedElement) return;
+    const el = currentElements.find(e => e.id === selectedElement);
+    if (!el || (el.type !== 'image' && el.type !== 'logo')) return;
+    
+    const currentFilter = el.style?.filter || '';
+    let newFilter = '';
+    
+    switch(effectType) {
+      case 'brightness':
+        newFilter = `brightness(${value}%)`;
+        break;
+      case 'contrast':
+        newFilter = `contrast(${value}%)`;
+        break;
+      case 'saturation':
+        newFilter = `saturate(${value}%)`;
+        break;
+      case 'blur':
+        newFilter = `blur(${value}px)`;
+        break;
+      case 'grayscale':
+        newFilter = `grayscale(${value}%)`;
+        break;
+      case 'sepia':
+        newFilter = `sepia(${value}%)`;
+        break;
+      default:
+        return;
+    }
+    
+    updateElementStyle(selectedElement, { filter: newFilter });
+  };
+  
+  // === FLIP & ROTATE ===
+  
+  const flipElement = (direction) => {
+    if (!selectedElement) return;
+    const el = currentElements.find(e => e.id === selectedElement);
+    if (!el) return;
+    
+    const currentTransform = el.style?.transform || '';
+    let newTransform;
+    
+    if (direction === 'horizontal') {
+      newTransform = currentTransform.includes('scaleX(-1)') 
+        ? currentTransform.replace('scaleX(-1)', '') 
+        : `${currentTransform} scaleX(-1)`;
+    } else {
+      newTransform = currentTransform.includes('scaleY(-1)') 
+        ? currentTransform.replace('scaleY(-1)', '') 
+        : `${currentTransform} scaleY(-1)`;
+    }
+    
+    updateElementStyle(selectedElement, { transform: newTransform.trim() });
+  };
+  
+  const rotateElement = (degrees) => {
+    if (!selectedElement) return;
+    const el = currentElements.find(e => e.id === selectedElement);
+    if (!el) return;
+    
+    const currentRotation = el.position?.rotation || 0;
+    updateElementPosition(selectedElement, { rotation: currentRotation + degrees });
   };
   
   const updatePageBackground = (updates) => {
@@ -2157,6 +2575,46 @@ const MagazineBuilder = () => {
                   </button>
                 </div>
                 
+                {/* Advanced Tools */}
+                <div className="flex items-center gap-0.5 border-r border-[#D4AF37]/20 pr-2 mr-1">
+                  <button onClick={() => setShowPageSettings(!showPageSettings)} className={`p-1.5 rounded ${showPageSettings ? 'bg-[#D4AF37]/20' : 'hover:bg-[#D4AF37]/20'}`} title="Page Settings">
+                    <Settings size={14} className="text-[#A0A5B0]" />
+                  </button>
+                  <button onClick={() => setShowTextStyles(!showTextStyles)} className={`p-1.5 rounded ${showTextStyles ? 'bg-[#D4AF37]/20' : 'hover:bg-[#D4AF37]/20'}`} title="Text Styles">
+                    <Type size={14} className="text-[#D4AF37]" />
+                  </button>
+                  <button onClick={() => setShowColorPalettes(!showColorPalettes)} className={`p-1.5 rounded ${showColorPalettes ? 'bg-[#D4AF37]/20' : 'hover:bg-[#D4AF37]/20'}`} title="Color Palettes">
+                    <Palette size={14} className="text-[#A0A5B0]" />
+                  </button>
+                  <button onClick={() => setShowVersionHistory(!showVersionHistory)} className={`p-1.5 rounded ${showVersionHistory ? 'bg-[#D4AF37]/20' : 'hover:bg-[#D4AF37]/20'}`} title="Version History">
+                    <History size={14} className="text-[#A0A5B0]" />
+                  </button>
+                </div>
+                
+                {/* Alignment */}
+                {selectedElement && (
+                  <div className="flex items-center gap-0.5 border-r border-[#D4AF37]/20 pr-2 mr-1">
+                    <button onClick={() => alignElement('left')} className="p-1.5 hover:bg-[#D4AF37]/20 rounded" title="Align Left">
+                      <AlignLeft size={14} className="text-[#A0A5B0]" />
+                    </button>
+                    <button onClick={() => alignElement('centerH')} className="p-1.5 hover:bg-[#D4AF37]/20 rounded" title="Align Center">
+                      <AlignCenter size={14} className="text-[#A0A5B0]" />
+                    </button>
+                    <button onClick={() => alignElement('right')} className="p-1.5 hover:bg-[#D4AF37]/20 rounded" title="Align Right">
+                      <AlignRight size={14} className="text-[#A0A5B0]" />
+                    </button>
+                    <button onClick={() => flipElement('horizontal')} className="p-1.5 hover:bg-[#D4AF37]/20 rounded" title="Flip Horizontal">
+                      <FlipHorizontal size={14} className="text-[#A0A5B0]" />
+                    </button>
+                    <button onClick={() => flipElement('vertical')} className="p-1.5 hover:bg-[#D4AF37]/20 rounded" title="Flip Vertical">
+                      <FlipVertical size={14} className="text-[#A0A5B0]" />
+                    </button>
+                    <button onClick={() => rotateElement(90)} className="p-1.5 hover:bg-[#D4AF37]/20 rounded" title="Rotate 90°">
+                      <RotateCw size={14} className="text-[#A0A5B0]" />
+                    </button>
+                  </div>
+                )}
+                
                 {/* Zoom Controls */}
                 <div className="flex items-center gap-1 border-r border-[#D4AF37]/20 pr-2 mr-1">
                   <button onClick={() => setZoom(Math.max(50, zoom - 10))} className="p-1 hover:bg-[#D4AF37]/20 rounded" data-testid="zoom-out-btn">
@@ -2214,6 +2672,156 @@ const MagazineBuilder = () => {
                   </div>
                 </div>
               </div>
+              
+              {/* Advanced Settings Panels */}
+              {/* Page Settings Panel */}
+              {showPageSettings && (
+                <div className="bg-[#0A1628] rounded-lg p-3 mb-2 border border-[#D4AF37]/20">
+                  <div className="flex justify-between items-center mb-3">
+                    <h4 className="text-[#D4AF37] text-sm font-medium">Page Settings</h4>
+                    <button onClick={() => setShowPageSettings(false)} className="text-[#A0A5B0] hover:text-white">✕</button>
+                  </div>
+                  <div className="grid grid-cols-4 gap-3">
+                    {/* Page Size */}
+                    <div>
+                      <label className="text-[#A0A5B0] text-xs mb-1 block">Page Size</label>
+                      <select 
+                        value={pageSize.name}
+                        onChange={(e) => changePageSize(e.target.value)}
+                        className="w-full p-1.5 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-xs"
+                      >
+                        {Object.entries(PAGE_SIZES).map(([key, size]) => (
+                          <option key={key} value={key}>{size.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    {/* Background Color */}
+                    <div>
+                      <label className="text-[#A0A5B0] text-xs mb-1 block">Background</label>
+                      <div className="flex gap-1">
+                        <input 
+                          type="color" 
+                          value={currentPage?.background?.color || '#000000'}
+                          onChange={(e) => updatePageBackground({ color: e.target.value })}
+                          className="w-8 h-8 rounded cursor-pointer border-0"
+                        />
+                        <Input 
+                          value={currentPage?.background?.color || '#000000'}
+                          onChange={(e) => updatePageBackground({ color: e.target.value })}
+                          className="bg-[#050A14] border-[#D4AF37]/20 h-8 text-[10px] flex-1"
+                        />
+                      </div>
+                    </div>
+                    {/* Page Margins */}
+                    <div>
+                      <label className="text-[#A0A5B0] text-xs mb-1 block">Margins</label>
+                      <div className="grid grid-cols-2 gap-1">
+                        <Input type="number" placeholder="T" value={pageMargins.top} onChange={(e) => setPageMargins({...pageMargins, top: parseInt(e.target.value) || 0})} className="bg-[#050A14] border-[#D4AF37]/20 h-6 text-[10px]" />
+                        <Input type="number" placeholder="R" value={pageMargins.right} onChange={(e) => setPageMargins({...pageMargins, right: parseInt(e.target.value) || 0})} className="bg-[#050A14] border-[#D4AF37]/20 h-6 text-[10px]" />
+                        <Input type="number" placeholder="B" value={pageMargins.bottom} onChange={(e) => setPageMargins({...pageMargins, bottom: parseInt(e.target.value) || 0})} className="bg-[#050A14] border-[#D4AF37]/20 h-6 text-[10px]" />
+                        <Input type="number" placeholder="L" value={pageMargins.left} onChange={(e) => setPageMargins({...pageMargins, left: parseInt(e.target.value) || 0})} className="bg-[#050A14] border-[#D4AF37]/20 h-6 text-[10px]" />
+                      </div>
+                    </div>
+                    {/* Page Actions */}
+                    <div>
+                      <label className="text-[#A0A5B0] text-xs mb-1 block">Actions</label>
+                      <div className="flex flex-wrap gap-1">
+                        <button onClick={copyPage} className="px-2 py-1 bg-[#050A14] text-[#A0A5B0] rounded text-[10px] hover:bg-[#D4AF37]/20">Copy Page</button>
+                        <button onClick={pastePage} disabled={!copiedPage} className="px-2 py-1 bg-[#050A14] text-[#A0A5B0] rounded text-[10px] hover:bg-[#D4AF37]/20 disabled:opacity-30">Paste</button>
+                        <button onClick={resetPage} className="px-2 py-1 bg-red-500/20 text-red-400 rounded text-[10px] hover:bg-red-500/30">Reset</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Text Styles Panel */}
+              {showTextStyles && (
+                <div className="bg-[#0A1628] rounded-lg p-3 mb-2 border border-[#D4AF37]/20">
+                  <div className="flex justify-between items-center mb-3">
+                    <h4 className="text-[#D4AF37] text-sm font-medium">Text Styles</h4>
+                    <button onClick={() => setShowTextStyles(false)} className="text-[#A0A5B0] hover:text-white">✕</button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(TEXT_STYLES).map(([key, style]) => (
+                      <button
+                        key={key}
+                        onClick={() => applyTextStyle(key)}
+                        disabled={!selectedElement}
+                        className="px-3 py-1.5 bg-[#050A14] border border-[#D4AF37]/20 rounded text-xs text-[#F5F5F0] hover:bg-[#D4AF37]/20 disabled:opacity-30"
+                        style={{ fontFamily: style.fontFamily, fontWeight: style.fontWeight }}
+                      >
+                        {style.name}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-[#A0A5B0] text-[10px] mt-2">Select a text element to apply style</p>
+                </div>
+              )}
+              
+              {/* Color Palettes Panel */}
+              {showColorPalettes && (
+                <div className="bg-[#0A1628] rounded-lg p-3 mb-2 border border-[#D4AF37]/20">
+                  <div className="flex justify-between items-center mb-3">
+                    <h4 className="text-[#D4AF37] text-sm font-medium">Color Palettes</h4>
+                    <button onClick={() => setShowColorPalettes(false)} className="text-[#A0A5B0] hover:text-white">✕</button>
+                  </div>
+                  <div className="grid grid-cols-4 gap-3">
+                    {Object.entries(COLOR_PALETTES).map(([key, palette]) => (
+                      <button
+                        key={key}
+                        onClick={() => applyColorPalette(key)}
+                        className={`p-2 rounded border-2 transition-all ${colorPalette === key ? 'border-[#D4AF37]' : 'border-transparent hover:border-[#D4AF37]/30'}`}
+                      >
+                        <div className="flex gap-1 mb-1">
+                          <div className="w-5 h-5 rounded" style={{ backgroundColor: palette.primary }} />
+                          <div className="w-5 h-5 rounded" style={{ backgroundColor: palette.accent }} />
+                          <div className="w-5 h-5 rounded" style={{ backgroundColor: palette.text }} />
+                        </div>
+                        <p className="text-[10px] text-[#F5F5F0]">{palette.name}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Version History Panel */}
+              {showVersionHistory && (
+                <div className="bg-[#0A1628] rounded-lg p-3 mb-2 border border-[#D4AF37]/20">
+                  <div className="flex justify-between items-center mb-3">
+                    <h4 className="text-[#D4AF37] text-sm font-medium">Version History</h4>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => saveVersion()} 
+                        className="px-2 py-1 bg-[#D4AF37] text-[#050A14] rounded text-xs hover:bg-[#F5D76E]"
+                      >
+                        Save Version
+                      </button>
+                      <button onClick={() => setShowVersionHistory(false)} className="text-[#A0A5B0] hover:text-white">✕</button>
+                    </div>
+                  </div>
+                  {versionHistory.length === 0 ? (
+                    <p className="text-[#A0A5B0] text-xs">No versions saved yet. Click &quot;Save Version&quot; to create a checkpoint.</p>
+                  ) : (
+                    <div className="space-y-2 max-h-32 overflow-y-auto">
+                      {versionHistory.map(version => (
+                        <div key={version.id} className="flex justify-between items-center p-2 bg-[#050A14] rounded">
+                          <div>
+                            <p className="text-[#F5F5F0] text-xs">{version.name}</p>
+                            <p className="text-[#A0A5B0] text-[10px]">{new Date(version.timestamp).toLocaleString()}</p>
+                          </div>
+                          <button 
+                            onClick={() => restoreVersion(version.id)}
+                            className="px-2 py-1 bg-[#D4AF37]/20 text-[#D4AF37] rounded text-xs hover:bg-[#D4AF37]/30"
+                          >
+                            Restore
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
               
               {/* Editor Canvas */}
               <div className="flex-1 flex gap-2 overflow-hidden">
