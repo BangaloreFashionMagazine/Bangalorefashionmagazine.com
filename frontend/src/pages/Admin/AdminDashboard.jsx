@@ -1,10 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import axios from "axios";
-import { Users, Star, Award, Image, Download, Check, X, Phone, Mail, Trash2, ExternalLink, Music, Video, Upload, BarChart3, TrendingUp, Eye, MousePointer, ShoppingBag, Package, MapPin, Calendar } from "lucide-react";
+import { Users, Star, Award, Image, Download, Check, X, Phone, Mail, Trash2, ExternalLink, Music, Video, Upload, BarChart3, TrendingUp, Eye, MousePointer, ShoppingBag, Package, MapPin, Calendar, BookOpen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ImageUploadWithCrop from "@/components/ImageUploadWithCrop";
 import { API, BFM_LOGO, TALENT_CATEGORIES, STORE_CATEGORIES } from "@/lib/config";
 import { autoCompressImage } from "@/lib/imageOptimization";
+
+// Lazy load Magazine Builder for better performance
+const MagazineBuilder = lazy(() => import("./MagazineBuilder"));
 
 const AdminDashboard = () => {
   const [tab, setTab] = useState("pending");
@@ -544,6 +547,7 @@ const AdminDashboard = () => {
   const tabs = [
     { id: "pending", label: "Pending", icon: Users },
     { id: "talents", label: "All Talents", icon: Star },
+    { id: "magazine-builder", label: "Magazine Builder", icon: BookOpen },
     { id: "instagram", label: "Instagram Promo", icon: Image },
     { id: "analytics", label: "Analytics", icon: BarChart3 },
     { id: "hero", label: "Hero Images", icon: Image },
@@ -551,7 +555,7 @@ const AdminDashboard = () => {
     { id: "video", label: "Featured Video", icon: Video },
     { id: "contests", label: "Contest & Winners", icon: Award },
     { id: "ads", label: "Advertisements", icon: ExternalLink },
-    { id: "magazine", label: "Magazine", icon: Download },
+    { id: "magazine", label: "Magazine PDF", icon: Download },
     { id: "music", label: "Background Music", icon: Music },
     { id: "export", label: "Export", icon: Download },
     { id: "store", label: "Designer Store", icon: ShoppingBag }
@@ -679,6 +683,13 @@ const AdminDashboard = () => {
               </div>
             )}
           </div>
+        )}
+
+        {/* Magazine Builder Tab */}
+        {tab === "magazine-builder" && (
+          <Suspense fallback={<div className="flex items-center justify-center h-64 text-[#D4AF37]">Loading Magazine Builder...</div>}>
+            <MagazineBuilder />
+          </Suspense>
         )}
 
         {/* Instagram Promo Tab */}

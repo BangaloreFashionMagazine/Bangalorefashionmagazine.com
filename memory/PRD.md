@@ -209,6 +209,27 @@ The database stores old category names. Frontend maps them:
   - Generate button disabled until 2+ images uploaded when using custom mode
   - Fixed Instagram tab to always reload talent list on entry (no stale data)
 
+- **Party & Sponsored Image Fixes**:
+  - Party images now upload without cropping (skipCrop enabled)
+  - Sponsored/Advertisement images upload without cropping
+  - Clicking sponsored images without links opens enlarged modal instead of page refresh
+
+- **BFM Magazine Builder** (NEW - Phase 1 MVP):
+  - New "Magazine Builder" tab in Admin Dashboard
+  - 3-step wizard: Talent Details → Image Upload → Template Selection
+  - **Talent Details Form**: Name, category, headline, introduction, biography, career journey, achievements, specialization, location, Instagram, website, Interview Q&A (add/remove)
+  - **Image Upload**: Cover image, profile image, portfolio images (up to 10)
+  - **3 Templates**: BFM Black & Gold, BFM Editorial, BFM Dark Luxury
+  - **Auto-generates 7 pages**: Cover, Meet The Talent, The Journey, Portfolio, 10 Questions, BFM Spotlight, Back Cover
+  - **Visual Editor** with:
+    - Page thumbnails sidebar (left)
+    - Layers panel (right) with show/hide, lock/unlock per element
+    - Toolbar: Undo/Redo, Add Text/Image/Shape, Duplicate/Delete/Reorder pages
+    - Element editing: Text (font size, color, bold, italic, alignment), Image (replace, object fit), Position controls
+  - **Export Options**: PDF (high quality), Instagram (Portrait 1080x1350, Square 1080x1080, Story 1080x1920)
+  - Save magazines to database, load and edit existing magazines
+  - Backend: `/app/backend/routes/magazine_builder.py` with full CRUD
+
 ## Completed Tasks (Feb 26, 2026)
 - **Designer Store Hidden from Talents Tab**: Filtered "Designer Store" category from the Talents dropdown menu in both desktop and mobile navigation. Designer Store now has its own separate navigation link and is not mixed with regular talent categories.
 - **Major Code Refactoring (App.js)**: Reduced App.js from ~3800 lines to ~1680 lines (56% reduction!)
