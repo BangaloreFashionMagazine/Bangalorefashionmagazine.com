@@ -973,6 +973,19 @@ const MagazineBuilder = () => {
     setLoading(false);
   };
   
+  const deleteMagazine = async (magazineId, e) => {
+    e.stopPropagation(); // Prevent card click
+    if (!confirm("Are you sure you want to delete this magazine? This cannot be undone.")) return;
+    
+    try {
+      await axios.delete(`${API}/magazine-builder/${magazineId}`);
+      toast({ title: "Magazine deleted!" });
+      loadMagazines();
+    } catch (err) {
+      toast({ title: "Failed to delete magazine", variant: "destructive" });
+    }
+  };
+  
   // Drag and drop handlers
   const handleMouseDown = (e, elementId, handle = null) => {
     e.stopPropagation();
@@ -1196,11 +1209,18 @@ const MagazineBuilder = () => {
                 {magazines.map(mag => (
                   <div 
                     key={mag.id} 
-                    className="bg-[#0A1628] rounded-lg p-4 border border-[#D4AF37]/20 hover:border-[#D4AF37]/50 cursor-pointer transition-all"
+                    className="bg-[#0A1628] rounded-lg p-4 border border-[#D4AF37]/20 hover:border-[#D4AF37]/50 cursor-pointer transition-all relative group"
                     onClick={() => loadMagazine(mag.id)}
                     data-testid={`magazine-card-${mag.id}`}
                   >
-                    <h3 className="text-[#F5F5F0] font-bold">{mag.title}</h3>
+                    <button
+                      onClick={(e) => deleteMagazine(mag.id, e)}
+                      className="absolute top-2 right-2 p-1.5 bg-red-500/20 hover:bg-red-500 rounded text-red-400 hover:text-white opacity-0 group-hover:opacity-100 transition-all"
+                      title="Delete Magazine"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                    <h3 className="text-[#F5F5F0] font-bold pr-8">{mag.title}</h3>
                     <p className="text-[#A0A5B0] text-sm">{mag.talent?.category}</p>
                     <p className="text-[#A0A5B0] text-xs mt-2">{mag.pages?.length || 0} pages</p>
                     <p className="text-[#D4AF37] text-xs">Template: {mag.template}</p>
