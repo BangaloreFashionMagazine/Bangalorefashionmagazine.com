@@ -137,6 +137,40 @@ app.add_middleware(
 )
 
 
+@app.on_event("startup")
+async def startup_ensure_admin():
+    """Ensure admin user exists with correct password on startup"""
+    import hashlib
+    import secrets as sec
+    
+    def hash_pw(password: str) -> str:
+        salt = sec.token_hex(16)
+        password_hash = hashlib.sha256((password + salt).encode()).hexdigest()
+        return f'{salt}:{password_hash}'
+    
+    admin_email = "admin@bangalorefashionmag.com"
+    admin_password = "Rilrocky@9295BFM"
+    
+    existing = await db.users.find_one({"email": admin_email})
+    if not existing:
+        # Create admin user
+        await db.users.insert_one({
+            "id": str(uuid.uuid4()),
+            "name": "Admin",
+            "email": admin_email,
+            "password_hash": hash_pw(admin_password),
+            "is_admin": True
+        })
+        print(f"✅ Admin user created: {admin_email}")
+    else:
+        # Update password to ensure it's correct
+        await db.users.update_one(
+            {"email": admin_email},
+            {"$set": {"password_hash": hash_pw(admin_password)}}
+        )
+        print(f"✅ Admin password updated: {admin_email}")
+
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
