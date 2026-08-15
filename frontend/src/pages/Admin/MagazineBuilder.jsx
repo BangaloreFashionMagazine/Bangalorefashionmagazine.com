@@ -3261,21 +3261,34 @@ const MagazineBuilder = () => {
                             </div>
                             
                             {/* Line Height & Letter Spacing */}
-                            <div className="grid grid-cols-2 gap-1">
+                            <div className="space-y-2">
                               <div>
-                                <label className="text-[#A0A5B0] text-[10px]">Line Height</label>
-                                <Input 
-                                  value={selectedEl.style.lineHeight || '1.5'}
+                                <div className="flex justify-between text-[10px] text-[#A0A5B0] mb-1">
+                                  <span>Line Height</span>
+                                  <span>{selectedEl.style.lineHeight || '1.5'}</span>
+                                </div>
+                                <input 
+                                  type="range"
+                                  min="0.8"
+                                  max="3"
+                                  step="0.1"
+                                  value={parseFloat(selectedEl.style.lineHeight) || 1.5}
                                   onChange={(e) => updateElementStyle(selectedEl.id, { lineHeight: e.target.value })}
-                                  className="bg-[#050A14] border-[#D4AF37]/20 h-6 text-xs text-[#F5F5F0]"
+                                  className="w-full h-1.5 bg-[#050A14] rounded appearance-none cursor-pointer accent-[#D4AF37]"
                                 />
                               </div>
                               <div>
-                                <label className="text-[#A0A5B0] text-[10px]">Letter Space</label>
-                                <Input 
-                                  value={selectedEl.style.letterSpacing?.replace('px', '') || '0'}
+                                <div className="flex justify-between text-[10px] text-[#A0A5B0] mb-1">
+                                  <span>Letter Spacing</span>
+                                  <span>{parseInt(selectedEl.style.letterSpacing?.replace('px', '')) || 0}px</span>
+                                </div>
+                                <input 
+                                  type="range"
+                                  min="-5"
+                                  max="20"
+                                  value={parseInt(selectedEl.style.letterSpacing?.replace('px', '')) || 0}
                                   onChange={(e) => updateElementStyle(selectedEl.id, { letterSpacing: `${e.target.value}px` })}
-                                  className="bg-[#050A14] border-[#D4AF37]/20 h-6 text-xs text-[#F5F5F0]"
+                                  className="w-full h-1.5 bg-[#050A14] rounded appearance-none cursor-pointer accent-[#D4AF37]"
                                 />
                               </div>
                             </div>
@@ -3342,36 +3355,48 @@ const MagazineBuilder = () => {
                               </select>
                             </div>
                             <div>
-                              <label className="text-[#A0A5B0] text-xs">Zoom/Scale (%)</label>
-                              <Input 
-                                type="number"
+                              <div className="flex justify-between text-[10px] text-[#A0A5B0] mb-1">
+                                <span>Zoom/Scale</span>
+                                <span>{parseInt(selectedEl.style?.transform?.match(/scale\(([^)]+)\)/)?.[1] * 100) || 100}%</span>
+                              </div>
+                              <input 
+                                type="range"
                                 min="10"
-                                max="500"
+                                max="300"
                                 value={parseInt(selectedEl.style?.transform?.match(/scale\(([^)]+)\)/)?.[1] * 100) || 100}
                                 onChange={(e) => {
-                                  const scale = Math.max(10, Math.min(500, parseInt(e.target.value) || 100)) / 100;
+                                  const scale = parseInt(e.target.value) / 100;
                                   updateElementStyle(selectedEl.id, { transform: `scale(${scale})` });
                                 }}
-                                className="bg-[#050A14] border-[#D4AF37]/20 h-6 text-xs text-[#F5F5F0]"
+                                className="w-full h-1.5 bg-[#050A14] rounded appearance-none cursor-pointer accent-[#D4AF37]"
                               />
                             </div>
                             <div>
-                              <label className="text-[#A0A5B0] text-xs">Border Radius</label>
-                              <Input 
-                                value={selectedEl.style?.borderRadius?.replace('px', '').replace('%', '') || '0'}
+                              <div className="flex justify-between text-[10px] text-[#A0A5B0] mb-1">
+                                <span>Border Radius</span>
+                                <span>{parseInt(selectedEl.style?.borderRadius?.replace('px', '').replace('%', '')) || 0}px</span>
+                              </div>
+                              <input 
+                                type="range"
+                                min="0"
+                                max="100"
+                                value={parseInt(selectedEl.style?.borderRadius?.replace('px', '').replace('%', '')) || 0}
                                 onChange={(e) => updateElementStyle(selectedEl.id, { borderRadius: `${e.target.value}px` })}
-                                className="bg-[#050A14] border-[#D4AF37]/20 h-6 text-xs text-[#F5F5F0]"
+                                className="w-full h-1.5 bg-[#050A14] rounded appearance-none cursor-pointer accent-[#D4AF37]"
                               />
                             </div>
                             <div>
-                              <label className="text-[#A0A5B0] text-xs">Opacity (%)</label>
-                              <Input 
-                                type="number"
+                              <div className="flex justify-between text-[10px] text-[#A0A5B0] mb-1">
+                                <span>Opacity</span>
+                                <span>{Math.round((selectedEl.style?.opacity || 1) * 100)}%</span>
+                              </div>
+                              <input 
+                                type="range"
                                 min="0"
                                 max="100"
                                 value={Math.round((selectedEl.style?.opacity || 1) * 100)}
                                 onChange={(e) => updateElementStyle(selectedEl.id, { opacity: parseInt(e.target.value) / 100 })}
-                                className="bg-[#050A14] border-[#D4AF37]/20 h-6 text-xs text-[#F5F5F0]"
+                                className="w-full h-1.5 bg-[#050A14] rounded appearance-none cursor-pointer accent-[#D4AF37]"
                               />
                             </div>
                             {selectedEl.type === 'logo' && (
@@ -3597,42 +3622,62 @@ const MagazineBuilder = () => {
                         
                         {/* Position controls */}
                         <div className="mt-2 pt-2 border-t border-[#D4AF37]/20">
-                          <label className="text-[#A0A5B0] text-xs">Position (%)</label>
-                          <div className="grid grid-cols-2 gap-1 mt-1">
+                          <label className="text-[#A0A5B0] text-xs mb-2 block">Position & Size</label>
+                          <div className="space-y-2">
                             <div>
-                              <label className="text-[#A0A5B0] text-[10px]">X</label>
-                              <Input 
-                                type="number"
+                              <div className="flex justify-between text-[10px] text-[#A0A5B0] mb-1">
+                                <span>X Position</span>
+                                <span>{Math.round(selectedEl.position.x)}%</span>
+                              </div>
+                              <input 
+                                type="range"
+                                min="0"
+                                max="100"
                                 value={Math.round(selectedEl.position.x)}
                                 onChange={(e) => updateElementPosition(selectedEl.id, { x: parseFloat(e.target.value) || 0 })}
-                                className="bg-[#050A14] border-[#D4AF37]/20 h-6 text-xs text-[#F5F5F0]"
+                                className="w-full h-1.5 bg-[#050A14] rounded appearance-none cursor-pointer accent-[#D4AF37]"
                               />
                             </div>
                             <div>
-                              <label className="text-[#A0A5B0] text-[10px]">Y</label>
-                              <Input 
-                                type="number"
+                              <div className="flex justify-between text-[10px] text-[#A0A5B0] mb-1">
+                                <span>Y Position</span>
+                                <span>{Math.round(selectedEl.position.y)}%</span>
+                              </div>
+                              <input 
+                                type="range"
+                                min="0"
+                                max="100"
                                 value={Math.round(selectedEl.position.y)}
                                 onChange={(e) => updateElementPosition(selectedEl.id, { y: parseFloat(e.target.value) || 0 })}
-                                className="bg-[#050A14] border-[#D4AF37]/20 h-6 text-xs text-[#F5F5F0]"
+                                className="w-full h-1.5 bg-[#050A14] rounded appearance-none cursor-pointer accent-[#D4AF37]"
                               />
                             </div>
                             <div>
-                              <label className="text-[#A0A5B0] text-[10px]">W</label>
-                              <Input 
-                                type="number"
+                              <div className="flex justify-between text-[10px] text-[#A0A5B0] mb-1">
+                                <span>Width</span>
+                                <span>{Math.round(selectedEl.position.width)}%</span>
+                              </div>
+                              <input 
+                                type="range"
+                                min="5"
+                                max="100"
                                 value={Math.round(selectedEl.position.width)}
                                 onChange={(e) => updateElementPosition(selectedEl.id, { width: parseFloat(e.target.value) || 10 })}
-                                className="bg-[#050A14] border-[#D4AF37]/20 h-6 text-xs text-[#F5F5F0]"
+                                className="w-full h-1.5 bg-[#050A14] rounded appearance-none cursor-pointer accent-[#D4AF37]"
                               />
                             </div>
                             <div>
-                              <label className="text-[#A0A5B0] text-[10px]">H</label>
-                              <Input 
-                                type="number"
+                              <div className="flex justify-between text-[10px] text-[#A0A5B0] mb-1">
+                                <span>Height</span>
+                                <span>{Math.round(selectedEl.position.height)}%</span>
+                              </div>
+                              <input 
+                                type="range"
+                                min="2"
+                                max="100"
                                 value={Math.round(selectedEl.position.height)}
                                 onChange={(e) => updateElementPosition(selectedEl.id, { height: parseFloat(e.target.value) || 10 })}
-                                className="bg-[#050A14] border-[#D4AF37]/20 h-6 text-xs text-[#F5F5F0]"
+                                className="w-full h-1.5 bg-[#050A14] rounded appearance-none cursor-pointer accent-[#D4AF37]"
                               />
                             </div>
                           </div>
