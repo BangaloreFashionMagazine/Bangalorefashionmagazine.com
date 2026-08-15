@@ -105,6 +105,9 @@ const MagazineBuilder = () => {
   const [gridSize, setGridSize] = useState(5);
   const [clipboard, setClipboard] = useState(null);
   const [showPageTemplates, setShowPageTemplates] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [lastSaved, setLastSaved] = useState(null);
+  const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
   
   // Drag state
   const [isDragging, setIsDragging] = useState(false);
@@ -128,6 +131,17 @@ const MagazineBuilder = () => {
     document.head.appendChild(link);
     return () => document.head.removeChild(link);
   }, []);
+  
+  // Auto-save every 30 seconds when there are unsaved changes
+  useEffect(() => {
+    if (!autoSaveEnabled || !hasUnsavedChanges || !currentMagazine?.id || step !== 5) return;
+    
+    const autoSaveTimer = setTimeout(() => {
+      saveMagazine(true);
+    }, 30000); // 30 seconds
+    
+    return () => clearTimeout(autoSaveTimer);
+  }, [hasUnsavedChanges, autoSaveEnabled, currentMagazine?.id, step, pages]);
   
   const loadMagazines = async () => {
     try {
@@ -216,12 +230,14 @@ const MagazineBuilder = () => {
     newHistory.push(JSON.stringify(newPages));
     setHistory(newHistory.slice(-50));
     setHistoryIndex(newHistory.length - 1);
+    setHasUnsavedChanges(true);
   };
   
   const undo = () => {
     if (historyIndex > 0) {
       setHistoryIndex(historyIndex - 1);
       setPages(JSON.parse(history[historyIndex - 1]));
+      setHasUnsavedChanges(true);
     }
   };
   
@@ -229,6 +245,7 @@ const MagazineBuilder = () => {
     if (historyIndex < history.length - 1) {
       setHistoryIndex(historyIndex + 1);
       setPages(JSON.parse(history[historyIndex + 1]));
+      setHasUnsavedChanges(true);
     }
   };
   
@@ -535,7 +552,7 @@ const MagazineBuilder = () => {
     saveToHistory(newPages);
   };
   
-  const saveMagazine = async () => {
+  const saveMagazine = async (isAutoSave = false) => {
     if (!currentMagazine?.id) return;
     
     setLoading(true);
@@ -547,10 +564,18 @@ const MagazineBuilder = () => {
         pages: pages,
         template: selectedTemplate
       });
-      toast({ title: "Magazine saved!" });
+      setHasUnsavedChanges(false);
+      setLastSaved(new Date());
+      if (!isAutoSave) {
+        toast({ title: "Magazine saved!" });
+      } else {
+        toast({ title: "Auto-saved", description: "Your changes have been saved automatically" });
+      }
       loadMagazines();
     } catch (err) {
-      toast({ title: "Save failed", variant: "destructive" });
+      if (!isAutoSave) {
+        toast({ title: "Save failed", variant: "destructive" });
+      }
     }
     setLoading(false);
   };
@@ -1358,8 +1383,26 @@ const MagazineBuilder = () => {
                 
                 <div className="flex-1" />
                 
+                {/* Auto-save indicator */}
+                <div className="flex items-center gap-2 mr-2">
+                  {hasUnsavedChanges && (
+                    <span className="text-[#A0A5B0] text-xs">Unsaved changes</span>
+                  )}
+                  {lastSaved && !hasUnsavedChanges && (
+                    <span className="text-green-400 text-xs">Saved</span>
+                  )}
+                  <button 
+                    onClick={() => setAutoSaveEnabled(!autoSaveEnabled)}
+                    className={`p-1 rounded text-xs ${autoSaveEnabled ? 'text-green-400' : 'text-[#A0A5B0]'}`}
+                    title={autoSaveEnabled ? "Auto-save ON (every 30s)" : "Auto-save OFF"}
+                    data-testid="toggle-autosave-btn"
+                  >
+                    {autoSaveEnabled ? '●' : '○'} Auto
+                  </button>
+                </div>
+                
                 {/* Export Buttons */}
-                <Button onClick={saveMagazine} disabled={loading} size="sm" className="bg-[#0A1628] border border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#050A14] h-8 px-3" data-testid="save-magazine-btn">
+                <Button onClick={() => saveMagazine(false)} disabled={loading} size="sm" className="bg-[#0A1628] border border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#050A14] h-8 px-3" data-testid="save-magazine-btn">
                   <Save size={12} className="mr-1" /> Save
                 </Button>
                 <Button onClick={exportToPDF} size="sm" className="bg-[#D4AF37] text-[#050A14] h-8 px-3" data-testid="export-pdf-btn">
