@@ -132,8 +132,8 @@ def create_magazine_builder_router(db):
                     "id": str(uuid.uuid4()),
                     "type": "shape",
                     "content": "rectangle",
-                    "style": {"backgroundColor": "rgba(0,0,0,0.5)"},
-                    "position": {"x": 0, "y": 60, "width": 100, "height": 40},
+                    "style": {"backgroundColor": "rgba(0,0,0,0.6)"},
+                    "position": {"x": 0, "y": 65, "width": 100, "height": 35},
                     "layer": 1,
                     "locked": False,
                     "visible": True,
@@ -159,7 +159,10 @@ def create_magazine_builder_router(db):
                         "fontWeight": "400",
                         "color": colors["accent"],
                         "letterSpacing": "3px",
-                        "textAlign": "center"
+                        "textAlign": "center",
+                        "wordWrap": "break-word",
+                        "overflowWrap": "break-word",
+                        "whiteSpace": "pre-wrap"
                     },
                     "position": {"x": 18, "y": 6, "width": 75, "height": 6},
                     "layer": 4,
@@ -172,13 +175,16 @@ def create_magazine_builder_router(db):
                     "type": "text",
                     "content": talent.name.upper(),
                     "style": {
-                        "fontSize": "48px",
+                        "fontSize": "42px",
                         "fontWeight": "700",
                         "color": "#FFFFFF",
                         "textAlign": "center",
-                        "textShadow": "2px 2px 4px rgba(0,0,0,0.5)"
+                        "textShadow": "2px 2px 8px rgba(0,0,0,0.8)",
+                        "wordWrap": "break-word",
+                        "overflowWrap": "break-word",
+                        "whiteSpace": "pre-wrap"
                     },
-                    "position": {"x": 5, "y": 70, "width": 90, "height": 12},
+                    "position": {"x": 5, "y": 68, "width": 90, "height": 10},
                     "layer": 3,
                     "locked": False,
                     "visible": True,
@@ -189,13 +195,16 @@ def create_magazine_builder_router(db):
                     "type": "text",
                     "content": talent.category,
                     "style": {
-                        "fontSize": "18px",
+                        "fontSize": "16px",
                         "fontWeight": "400",
                         "color": colors["accent"],
                         "textAlign": "center",
-                        "letterSpacing": "3px"
+                        "letterSpacing": "3px",
+                        "wordWrap": "break-word",
+                        "overflowWrap": "break-word",
+                        "whiteSpace": "pre-wrap"
                     },
-                    "position": {"x": 5, "y": 82, "width": 90, "height": 5},
+                    "position": {"x": 5, "y": 79, "width": 90, "height": 5},
                     "layer": 3,
                     "locked": False,
                     "visible": True,
@@ -204,18 +213,21 @@ def create_magazine_builder_router(db):
                 {
                     "id": str(uuid.uuid4()),
                     "type": "text",
-                    "content": talent.headline or "EXCLUSIVE FEATURE",
+                    "content": talent.headline if talent.headline else "",
                     "style": {
-                        "fontSize": "16px",
+                        "fontSize": "14px",
                         "fontWeight": "300",
                         "color": "#FFFFFF",
                         "textAlign": "center",
-                        "fontStyle": "italic"
+                        "fontStyle": "italic",
+                        "wordWrap": "break-word",
+                        "overflowWrap": "break-word",
+                        "whiteSpace": "pre-wrap"
                     },
-                    "position": {"x": 5, "y": 88, "width": 90, "height": 5},
+                    "position": {"x": 10, "y": 85, "width": 80, "height": 5},
                     "layer": 3,
                     "locked": False,
-                    "visible": True,
+                    "visible": bool(talent.headline),
                     "name": "Headline"
                 }
             ]
@@ -231,16 +243,29 @@ def create_magazine_builder_router(db):
             "elements": [
                 {
                     "id": str(uuid.uuid4()),
+                    "type": "logo",
+                    "content": "/bfm-logo.jpeg",
+                    "style": {"borderRadius": "50%", "border": f"2px solid {colors['accent']}", "objectFit": "cover", "aspectRatio": "1/1"},
+                    "position": {"x": 3, "y": 3, "width": 8, "height": 8},
+                    "layer": 5,
+                    "locked": False,
+                    "visible": True,
+                    "name": "BFM Logo"
+                },
+                {
+                    "id": str(uuid.uuid4()),
                     "type": "text",
                     "content": "MEET THE TALENT",
                     "style": {
-                        "fontSize": "28px",
+                        "fontSize": "24px",
                         "fontWeight": "700",
                         "color": colors["accent"],
                         "textAlign": "center",
-                        "letterSpacing": "5px"
+                        "letterSpacing": "5px",
+                        "wordWrap": "break-word",
+                        "overflowWrap": "break-word"
                     },
-                    "position": {"x": 5, "y": 5, "width": 90, "height": 8},
+                    "position": {"x": 12, "y": 4, "width": 76, "height": 6},
                     "layer": 3,
                     "locked": False,
                     "visible": True,
@@ -251,7 +276,7 @@ def create_magazine_builder_router(db):
                     "type": "image",
                     "content": images.profile_image or images.cover_image or "",
                     "style": {"objectFit": "cover", "borderRadius": "0"},
-                    "position": {"x": 5, "y": 15, "width": 40, "height": 60},
+                    "position": {"x": 5, "y": 14, "width": 40, "height": 55},
                     "layer": 1,
                     "locked": False,
                     "visible": True,
@@ -262,11 +287,14 @@ def create_magazine_builder_router(db):
                     "type": "text",
                     "content": talent.name,
                     "style": {
-                        "fontSize": "32px",
+                        "fontSize": "28px",
                         "fontWeight": "700",
-                        "color": "#FFFFFF" if template != "editorial" else "#000000"
+                        "color": "#FFFFFF" if template != "editorial" else "#000000",
+                        "wordWrap": "break-word",
+                        "overflowWrap": "break-word",
+                        "whiteSpace": "pre-wrap"
                     },
-                    "position": {"x": 50, "y": 15, "width": 45, "height": 8},
+                    "position": {"x": 50, "y": 14, "width": 45, "height": 8},
                     "layer": 2,
                     "locked": False,
                     "visible": True,
@@ -275,15 +303,36 @@ def create_magazine_builder_router(db):
                 {
                     "id": str(uuid.uuid4()),
                     "type": "text",
-                    "content": talent.introduction if talent.introduction else (talent.biography[:300] + "..." if talent.biography and len(talent.biography) > 300 else (talent.biography or "A talented professional making waves in the fashion industry.")),
+                    "content": talent.category,
                     "style": {
                         "fontSize": "14px",
                         "fontWeight": "400",
-                        "color": "#CCCCCC" if template != "editorial" else "#333333",
-                        "lineHeight": "1.8",
-                        "textAlign": "justify"
+                        "color": colors["accent"],
+                        "letterSpacing": "2px",
+                        "wordWrap": "break-word",
+                        "overflowWrap": "break-word"
                     },
-                    "position": {"x": 50, "y": 25, "width": 45, "height": 50},
+                    "position": {"x": 50, "y": 23, "width": 45, "height": 4},
+                    "layer": 2,
+                    "locked": False,
+                    "visible": True,
+                    "name": "Category"
+                },
+                {
+                    "id": str(uuid.uuid4()),
+                    "type": "text",
+                    "content": talent.introduction if talent.introduction else (talent.biography[:300] + "..." if talent.biography and len(talent.biography) > 300 else (talent.biography or "A talented professional making waves in the fashion industry.")),
+                    "style": {
+                        "fontSize": "13px",
+                        "fontWeight": "400",
+                        "color": "#CCCCCC" if template != "editorial" else "#333333",
+                        "lineHeight": "1.7",
+                        "textAlign": "justify",
+                        "wordWrap": "break-word",
+                        "overflowWrap": "break-word",
+                        "whiteSpace": "pre-wrap"
+                    },
+                    "position": {"x": 50, "y": 30, "width": 45, "height": 38},
                     "layer": 2,
                     "locked": False,
                     "visible": True,
@@ -295,9 +344,10 @@ def create_magazine_builder_router(db):
                     "content": f"📍 {talent.location}" if talent.location else "",
                     "style": {
                         "fontSize": "12px",
-                        "color": colors["accent"]
+                        "color": colors["accent"],
+                        "wordWrap": "break-word"
                     },
-                    "position": {"x": 50, "y": 78, "width": 45, "height": 5},
+                    "position": {"x": 5, "y": 72, "width": 40, "height": 4},
                     "layer": 2,
                     "locked": False,
                     "visible": bool(talent.location),
@@ -309,9 +359,10 @@ def create_magazine_builder_router(db):
                     "content": f"@{talent.instagram}" if talent.instagram else "",
                     "style": {
                         "fontSize": "12px",
-                        "color": colors["accent"]
+                        "color": colors["accent"],
+                        "wordWrap": "break-word"
                     },
-                    "position": {"x": 50, "y": 83, "width": 45, "height": 5},
+                    "position": {"x": 5, "y": 77, "width": 40, "height": 4},
                     "layer": 2,
                     "locked": False,
                     "visible": bool(talent.instagram),
