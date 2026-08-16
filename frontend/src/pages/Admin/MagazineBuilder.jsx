@@ -14,7 +14,8 @@ import {
   FolderOpen, Layout, BookOpen, Star, Instagram, AtSign, Phone,
   Settings, FlipHorizontal, FlipVertical, History, Sun, Contrast,
   Droplets, Sparkles, Globe, Mail, MessageCircle, Linkedin, Facebook,
-  Youtube, Twitter, AlignJustify, Strikethrough, Superscript, Subscript
+  Youtube, Twitter, AlignJustify, Strikethrough, Superscript, Subscript,
+  FolderDown
 } from "lucide-react";
 import { API } from "@/lib/config";
 import { autoCompressImage } from "@/lib/imageOptimization";
@@ -1591,6 +1592,163 @@ const MagazineBuilder = () => {
     }
   };
   
+  // Export as editable project (layers + JSON for Photoshop editing)
+  const exportAsProject = async () => {
+    toast({ title: "Preparing project files...", description: "Exporting layers and project data" });
+    
+    try {
+      const { default: html2canvas } = await import('html2canvas');
+      const JSZip = (await import('jszip')).default;
+      
+      const zip = new JSZip();
+      const pagesFolder = zip.folder("pages");
+      const layersFolder = zip.folder("layers");
+      
+      const originalPage = currentPageIndex;
+      const originalPreview = previewMode;
+      setPreviewMode(true);
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Export project JSON with all data
+      const projectData = {
+        name: talentDetails.name || 'Magazine',
+        exportedAt: new Date().toISOString(),
+        canvasSize: { width: 595, height: 842 }, // A4 in pixels at 72dpi
+        pages: pages.map((page, pageIdx) => ({
+          id: page.id,
+          name: page.name,
+          background: page.background,
+          elements: page.elements.map(el => ({
+            id: el.id,
+            name: el.name,
+            type: el.type,
+            content: el.type === 'text' ? el.content : `layers/page${pageIdx + 1}_${el.name.replace(/[^a-zA-Z0-9]/g, '_')}.png`,
+            position: {
+              x: `${el.position.x}%`,
+              y: `${el.position.y}%`,
+              width: `${el.position.width}%`,
+              height: `${el.position.height}%`,
+              // Pixel values for Photoshop
+              xPx: Math.round(el.position.x * 595 / 100),
+              yPx: Math.round(el.position.y * 842 / 100),
+              widthPx: Math.round(el.position.width * 595 / 100),
+              heightPx: Math.round(el.position.height * 842 / 100)
+            },
+            style: el.style,
+            layer: el.layer,
+            visible: el.visible,
+            locked: el.locked
+          }))
+        })),
+        talent: talentDetails,
+        template: selectedTemplate
+      };
+      
+      zip.file("project.json", JSON.stringify(projectData, null, 2));
+      
+      // Export each page as full image
+      for (let i = 0; i < pages.length; i++) {
+        setCurrentPageIndex(i);
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        const pageEl = document.getElementById(`magazine-page-${i}`);
+        if (!pageEl) continue;
+        
+        // Full page composite
+        const pageCanvas = await html2canvas(pageEl, { 
+          scale: 2, 
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: null
+        });
+        
+        const pageBlob = await new Promise(resolve => pageCanvas.toBlob(resolve, 'image/png'));
+        pagesFolder.file(`page${i + 1}_${pages[i].name.replace(/[^a-zA-Z0-9]/g, '_')}.png`, pageBlob);
+        
+        // Export individual layers for this page
+        const pageElements = pages[i].elements.filter(el => el.visible);
+        
+        for (const el of pageElements) {
+          try {
+            if (el.type === 'image' && el.content) {
+              // For images, fetch and save directly
+              const imgResponse = await fetch(el.content);
+              if (imgResponse.ok) {
+                const imgBlob = await imgResponse.blob();
+                layersFolder.file(`page${i + 1}_${el.name.replace(/[^a-zA-Z0-9]/g, '_')}.png`, imgBlob);
+              }
+            } else if (el.type === 'text') {
+              // For text, create a canvas with just that text
+              const textCanvas = document.createElement('canvas');
+              const widthPx = Math.round(el.position.width * 595 / 100) * 2;
+              const heightPx = Math.round(el.position.height * 842 / 100) * 2;
+              textCanvas.width = widthPx;
+              textCanvas.height = heightPx;
+              const ctx = textCanvas.getContext('2d');
+              
+              // Transparent background
+              ctx.clearRect(0, 0, widthPx, heightPx);
+              
+              // Draw text
+              const fontSize = parseInt(el.style?.fontSize) || 16;
+              ctx.font = `${el.style?.fontWeight || 'normal'} ${fontSize * 2}px ${el.style?.fontFamily || 'Arial'}`;
+              ctx.fillStyle = el.style?.color || '#FFFFFF';
+              ctx.textAlign = el.style?.textAlign || 'left';
+              ctx.textBaseline = 'top';
+              
+              // Word wrap
+              const words = (el.content || '').split(' ');
+              let line = '';
+              let y = 10;
+              const maxWidth = widthPx - 20;
+              const lineHeight = fontSize * 2 * 1.4;
+              
+              for (const word of words) {
+                const testLine = line + word + ' ';
+                const metrics = ctx.measureText(testLine);
+                if (metrics.width > maxWidth && line !== '') {
+                  const x = el.style?.textAlign === 'center' ? widthPx / 2 : el.style?.textAlign === 'right' ? widthPx - 10 : 10;
+                  ctx.fillText(line.trim(), x, y);
+                  line = word + ' ';
+                  y += lineHeight;
+                } else {
+                  line = testLine;
+                }
+              }
+              const x = el.style?.textAlign === 'center' ? widthPx / 2 : el.style?.textAlign === 'right' ? widthPx - 10 : 10;
+              ctx.fillText(line.trim(), x, y);
+              
+              const textBlob = await new Promise(resolve => textCanvas.toBlob(resolve, 'image/png'));
+              layersFolder.file(`page${i + 1}_${el.name.replace(/[^a-zA-Z0-9]/g, '_')}.png`, textBlob);
+            }
+          } catch (layerErr) {
+            console.warn(`Could not export layer ${el.name}:`, layerErr);
+          }
+        }
+      }
+      
+      setCurrentPageIndex(originalPage);
+      setPreviewMode(originalPreview);
+      
+      // Generate and download ZIP
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(zipBlob);
+      link.download = `${talentDetails.name || 'Magazine'}_project.zip`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+      
+      toast({ 
+        title: "Project exported!", 
+        description: "ZIP contains: pages/, layers/, and project.json with all positions and styles" 
+      });
+    } catch (err) {
+      console.error("Project export error:", err);
+      setPreviewMode(false);
+      toast({ title: "Export failed", description: err.message, variant: "destructive" });
+    }
+  };
+
   const loadMagazine = async (magazineId) => {
     setLoading(true);
     try {
@@ -3015,6 +3173,15 @@ const MagazineBuilder = () => {
                     <button onClick={() => exportForInstagram('story')} className="block w-full px-3 py-2 text-xs text-left hover:bg-[#D4AF37]/20 text-[#F5F5F0]" data-testid="export-ig-story">Story (1080×1920)</button>
                   </div>
                 </div>
+                <Button 
+                  onClick={exportAsProject} 
+                  size="sm" 
+                  className="bg-[#0A1628] border border-purple-500 text-purple-400 hover:bg-purple-500 hover:text-white h-8 px-3" 
+                  title="Download project with all layers (for Photoshop editing)"
+                  data-testid="export-project-btn"
+                >
+                  <FolderDown size={12} className="mr-1" /> Project
+                </Button>
               </div>
               
               {/* Advanced Settings Panels */}
