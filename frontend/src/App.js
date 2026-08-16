@@ -710,12 +710,24 @@ const ImageGalleryInline = ({ images, initialIndex = 0, onClose }) => {
 // Talent Card with Voting
 const TalentCard = ({ talent, onVote, onClick }) => {
   const [voting, setVoting] = useState(false);
+  const [imgError, setImgError] = useState(false);
   
   const handleVote = async (e) => {
     e.stopPropagation();
     setVoting(true);
     await onVote(talent.id);
     setVoting(false);
+  };
+
+  // Use thumbnail endpoint for grid view, fallback to placeholder on error
+  const getImageSrc = () => {
+    if (imgError) return "https://via.placeholder.com/300x400?text=No+Image";
+    // If profile_image is already a URL, use it directly
+    if (talent.profile_image && talent.profile_image.startsWith("http")) {
+      return talent.profile_image;
+    }
+    // Otherwise, use the thumbnail endpoint
+    return `${API}/talent/${talent.id}/thumb`;
   };
 
   return (
@@ -725,7 +737,13 @@ const TalentCard = ({ talent, onVote, onClick }) => {
       data-testid={`talent-card-${talent.id}`}
     >
       <div className="aspect-[3/4] overflow-hidden relative">
-        <img src={talent.profile_image || "https://via.placeholder.com/300x400"} alt={talent.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+        <img 
+          src={getImageSrc()} 
+          alt={talent.name} 
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          onError={() => setImgError(true)}
+          loading="lazy"
+        />
         <LogoWatermark size="small" position="bottom-right" />
       </div>
       {/* Reduced overlay darkness */}
@@ -751,12 +769,24 @@ const TalentCard = ({ talent, onVote, onClick }) => {
 // Small Talent Card for category pages (7-10 per row)
 const TalentCardSmall = ({ talent, onVote, onClick }) => {
   const [voting, setVoting] = useState(false);
+  const [imgError, setImgError] = useState(false);
   
   const handleVote = async (e) => {
     e.stopPropagation();
     setVoting(true);
     await onVote(talent.id);
     setVoting(false);
+  };
+
+  // Use thumbnail endpoint for grid view, fallback to placeholder on error
+  const getImageSrc = () => {
+    if (imgError) return "https://via.placeholder.com/150x200?text=No+Image";
+    // If profile_image is already a URL, use it directly
+    if (talent.profile_image && talent.profile_image.startsWith("http")) {
+      return talent.profile_image;
+    }
+    // Otherwise, use the thumbnail endpoint
+    return `${API}/talent/${talent.id}/thumb`;
   };
 
   return (
@@ -766,7 +796,13 @@ const TalentCardSmall = ({ talent, onVote, onClick }) => {
       data-testid={`talent-card-small-${talent.id}`}
     >
       <div className="aspect-[3/4] overflow-hidden relative">
-        <img src={talent.profile_image || "https://via.placeholder.com/150x200"} alt={talent.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+        <img 
+          src={getImageSrc()} 
+          alt={talent.name} 
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+          loading="lazy"
+          onError={() => setImgError(true)}
+        />
       </div>
       <div className="absolute inset-0 bg-gradient-to-t from-[#050A14]/80 via-transparent to-transparent" />
       <div className="absolute bottom-0 left-0 right-0 p-2">
@@ -796,7 +832,7 @@ const TalentsPage = ({ ads }) => {
 
   useEffect(() => {
     setLoading(true);
-    axios.get(`${API}/talents?approved_only=true&category=${encodeURIComponent(dbCategory)}`)
+    axios.get(`${API}/talents?approved_only=true&category=${encodeURIComponent(dbCategory)}&lightweight=true`)
       .then(res => {
         setTalents(res.data);
         setLoading(false);
@@ -812,7 +848,7 @@ const TalentsPage = ({ ads }) => {
       await axios.post(`${API}/vote`, { talent_id: talentId });
       toast({ title: "Vote recorded!" });
       // Refresh
-      const res = await axios.get(`${API}/talents?approved_only=true&category=${encodeURIComponent(dbCategory)}`);
+      const res = await axios.get(`${API}/talents?approved_only=true&category=${encodeURIComponent(dbCategory)}&lightweight=true`);
       setTalents(res.data);
     } catch (err) {
       toast({ title: "Error", description: err.response?.data?.detail || "Failed to vote", variant: "destructive" });

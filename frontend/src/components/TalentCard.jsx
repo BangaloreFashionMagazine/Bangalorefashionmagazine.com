@@ -1,14 +1,27 @@
 import { useState } from "react";
 import { getCategoryDisplay } from "@/lib/constants";
+import { API } from "@/lib/config";
 
 const TalentCard = ({ talent, onVote, onClick }) => {
   const [voting, setVoting] = useState(false);
+  const [imgError, setImgError] = useState(false);
   
   const handleVote = async (e) => {
     e.stopPropagation();
     setVoting(true);
     await onVote(talent.id);
     setVoting(false);
+  };
+
+  // Use thumbnail endpoint for grid view, fallback to placeholder on error
+  const getImageSrc = () => {
+    if (imgError) return "https://via.placeholder.com/150x200?text=No+Image";
+    // If profile_image is already a URL, use it directly
+    if (talent.profile_image && talent.profile_image.startsWith("http")) {
+      return talent.profile_image;
+    }
+    // Otherwise, use the thumbnail endpoint
+    return `${API}/talent/${talent.id}/thumb`;
   };
 
   return (
@@ -18,7 +31,13 @@ const TalentCard = ({ talent, onVote, onClick }) => {
       data-testid={`talent-card-${talent.id}`}
     >
       <div className="aspect-[3/4] overflow-hidden">
-        <img src={talent.profile_image || "https://via.placeholder.com/300x400"} alt={talent.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+        <img 
+          src={getImageSrc()} 
+          alt={talent.name} 
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          onError={() => setImgError(true)}
+          loading="lazy"
+        />
       </div>
       {/* Reduced overlay darkness - from-[#050A14]/70 instead of full opacity */}
       <div className="absolute inset-0 bg-gradient-to-t from-[#050A14]/70 via-[#050A14]/20 to-transparent" />

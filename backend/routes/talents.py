@@ -1,8 +1,10 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response
 from datetime import datetime, timezone, timedelta
 from typing import List, Optional
 import uuid
 import secrets
+import base64
+import io
 
 from models import (
     TalentCreate, TalentUpdate, TalentResponse, TalentLoginResponse,
@@ -12,6 +14,51 @@ from services import hash_password, verify_password, generate_token, ALL_VALID_C
 
 import logging
 logger = logging.getLogger(__name__)
+
+# Thumbnail cache to avoid regenerating
+_THUMB_CACHE = {}
+
+def _make_thumb(data_url: str, size: tuple = (150, 200)) -> Optional[str]:
+    """
+    Convert a base64 data URL to a smaller thumbnail.
+    Returns base64 data URL of the thumbnail, or None on error.
+    """
+    if not data_url or not data_url.startswith("data:"):
+        return None
+    
+    # Check cache first
+    cache_key = hash(data_url[:100] + str(len(data_url)))  # Use partial hash for speed
+    if cache_key in _THUMB_CACHE:
+        return _THUMB_CACHE[cache_key]
+    
+    try:
+        from PIL import Image
+        
+        # Extract base64 data
+        header, b64_data = data_url.split(",", 1)
+        img_bytes = base64.b64decode(b64_data)
+        
+        # Open and resize
+        img = Image.open(io.BytesIO(img_bytes))
+        img.thumbnail(size, Image.Resampling.LANCZOS)
+        
+        # Convert to JPEG for smaller size
+        buffer = io.BytesIO()
+        if img.mode in ('RGBA', 'P'):
+            img = img.convert('RGB')
+        img.save(buffer, format="JPEG", quality=70, optimize=True)
+        
+        # Create new data URL
+        thumb_b64 = base64.b64encode(buffer.getvalue()).decode()
+        thumb_url = f"data:image/jpeg;base64,{thumb_b64}"
+        
+        # Cache it
+        _THUMB_CACHE[cache_key] = thumb_url
+        return thumb_url
+        
+    except Exception as e:
+        logger.warning(f"Thumbnail generation failed: {e}")
+        return None
 
 
 def create_talent_routes(db):
@@ -221,16 +268,24 @@ def create_talent_routes(db):
             query["category"] = category
         
         # Always exclude large portfolio fields from list view for faster loading
-        # Individual talent details can be fetched separately
-        projection = {"_id": 0, "portfolio_images": 0, "portfolio_video": 0}
+        projection = {"_id": 0, "portfolio_images": 0, "portfolio_video": 0, "password_hash": 0, "password_plain": 0}
+        
+        # Lightweight mode: Also exclude profile_image, email, phone for faster public grid loading
+        if lightweight:
+            projection["profile_image"] = 0
+            projection["email"] = 0
+            projection["phone"] = 0
         
         talents = await db.talents.find(query, projection).sort([("rank", 1), ("votes", -1)]).to_list(1000)
         
         return [
             TalentResponse(
-                id=t["id"], name=t["name"], email=t["email"], phone=t["phone"],
+                id=t["id"], name=t["name"], 
+                email=t.get("email", ""),  # Will be empty in lightweight mode
+                phone=t.get("phone", ""),  # Will be empty in lightweight mode
                 instagram_id=t.get("instagram_id", ""), category=t["category"],
-                bio=t.get("bio", ""), profile_image=t.get("profile_image", ""),
+                bio=t.get("bio", ""), 
+                profile_image=t.get("profile_image", ""),  # Will be empty in lightweight mode
                 portfolio_images=[],  # Empty for list view - load on detail view
                 portfolio_video="",   # Empty for list view
                 is_approved=t.get("is_approved", False),
@@ -239,5 +294,40 @@ def create_talent_routes(db):
                 store_subcategories=t.get("store_subcategories", [])
             ) for t in talents
         ]
+
+    @router.get("/talent/{talent_id}/thumb")
+    async def get_talent_thumbnail(talent_id: str):
+        """
+        Returns a small JPEG thumbnail for the talent's profile image.
+        Falls back to original image URL if it's not base64 or thumbnail fails.
+        """
+        talent = await db.talents.find_one({"id": talent_id}, {"_id": 0, "profile_image": 1})
+        if not talent:
+            raise HTTPException(status_code=404, detail="Talent not found")
+        
+        profile_image = talent.get("profile_image", "")
+        
+        # If it's a URL (not base64), redirect to it
+        if profile_image.startswith("http"):
+            return Response(
+                status_code=302,
+                headers={"Location": profile_image}
+            )
+        
+        # If it's base64, generate thumbnail
+        if profile_image.startswith("data:"):
+            thumb = _make_thumb(profile_image)
+            if thumb:
+                # Extract the actual image bytes from thumbnail data URL
+                _, b64_data = thumb.split(",", 1)
+                img_bytes = base64.b64decode(b64_data)
+                return Response(
+                    content=img_bytes,
+                    media_type="image/jpeg",
+                    headers={"Cache-Control": "public, max-age=86400"}  # Cache for 24 hours
+                )
+        
+        # Fallback: return a placeholder
+        raise HTTPException(status_code=404, detail="No valid image")
     
     return router

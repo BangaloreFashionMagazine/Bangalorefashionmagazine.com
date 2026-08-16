@@ -97,23 +97,42 @@ Build a comprehensive fashion talent platform for Bangalore Fashion Magazine (BF
 1. **520 Error on Production** - Platform infrastructure issue, not code-related
 2. **Monolithic files** - MagazineBuilder.jsx (~2481 lines) and AdminDashboard.jsx (~2257 lines) need refactoring
 
+### August 2026 - Performance Optimization
+- **CRITICAL FIX**: `/api/talents` payload optimization
+  - Added `lightweight=true` parameter to exclude `profile_image`, `email`, `phone`
+  - Reduces payload from ~51.8 MB (with base64 images) to ~1-2 KB
+  - New `/api/talent/{id}/thumb` endpoint returns JPEG thumbnails (150x200px)
+  - Pillow-based thumbnail generation with 24-hour caching
+  - Frontend TalentCard components now use thumb endpoint with fallback
+  - **Data Privacy**: Public API no longer exposes talent email/phone
+
+## API Endpoints
+- `POST /api/magazine-builder/save` - Save magazine state
+- `GET /api/magazine-builder/list` - List all magazines
+- `DELETE /api/magazine-builder/{id}` - Delete magazine
+- `GET /api/talents?lightweight=true` - Lightweight talent list (no images/email/phone)
+- `GET /api/talent/{id}/thumb` - Talent profile thumbnail (150x200 JPEG)
+- `POST /api/analytics/track` - Track views/clicks
+- `POST /api/auth/login` - Admin authentication
+
 ## Prioritized Backlog
 
 ### P0 (Critical)
-- None currently
+- ✅ COMPLETED: /api/talents payload optimization (51.8MB → ~1KB)
 
 ### P1 (High Priority)
 - Refactor MagazineBuilder.jsx into modular components
 - Refactor AdminDashboard.jsx into separate tab components
+- Review 56-point Magazine Builder checklist (Save as Template, Mobile Preview)
 
 ### P2 (Medium Priority)
 - Add real payment gateways (Stripe/Razorpay) for Designer Store
 - Cafe/Sponsor ad page templates
 - Multi-talent magazine support
+- 520 Production Error - Platform infrastructure issue
 
 ### P3 (Future Enhancements)
 - Template preview thumbnails
-- Magazine duplication feature
 - Real-time collaboration
 
 ## Test Credentials
