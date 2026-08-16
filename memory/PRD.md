@@ -106,6 +106,15 @@ Build a comprehensive fashion talent platform for Bangalore Fashion Magazine (BF
   - Frontend TalentCard components now use thumb endpoint with fallback
   - **Data Privacy**: Public API no longer exposes talent email/phone
 
+### August 2026 - Magazine Builder UX Enhancements
+- **Quick Add Panel**: One-click preset text/image boxes
+  - Text presets: Heading, Subheading, Body Text, Quote, Caption
+  - Image presets: Full Page, Half Top, Half Bottom, Square, Portrait, Sidebar
+- **Save as Template**: Save any magazine layout as reusable template (localStorage)
+- **Mobile Preview**: Phone-frame preview (iPhone/Android/Tablet) with page navigation
+- **Keyboard Shortcuts**: Ctrl+Z/Y (undo/redo), Ctrl+C/V (copy/paste), Ctrl+D (duplicate), Ctrl+S (save), T (add text), Delete (remove)
+- **Clean PDF Export**: Preview mode during export for clean rendering
+
 ## API Endpoints
 - `POST /api/magazine-builder/save` - Save magazine state
 - `GET /api/magazine-builder/list` - List all magazines
@@ -121,9 +130,10 @@ Build a comprehensive fashion talent platform for Bangalore Fashion Magazine (BF
 - ✅ COMPLETED: /api/talents payload optimization (51.8MB → ~1KB)
 
 ### P1 (High Priority)
-- Refactor MagazineBuilder.jsx into modular components
-- Refactor AdminDashboard.jsx into separate tab components
-- Review 56-point Magazine Builder checklist (Save as Template, Mobile Preview)
+- ✅ COMPLETED: Quick Add Panel (text/image presets in toolbar)
+- ✅ COMPLETED: Save as Template feature
+- ✅ COMPLETED: Mobile Preview (iPhone/Android/Tablet)
+- Refactor MagazineBuilder.jsx into smaller modular components (4400+ lines)
 
 ### P2 (Medium Priority)
 - Add real payment gateways (Stripe/Razorpay) for Designer Store

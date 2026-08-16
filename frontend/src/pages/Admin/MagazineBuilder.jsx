@@ -163,6 +163,23 @@ const MagazineBuilder = () => {
   const [showButtonDropdown, setShowButtonDropdown] = useState(false);
   const [showSocialDropdown, setShowSocialDropdown] = useState(false);
   
+  // New User-Friendly Features
+  const [showMobilePreview, setShowMobilePreview] = useState(false);
+  const [mobilePreviewDevice, setMobilePreviewDevice] = useState('iphone'); // iphone, android, tablet
+  const [showSaveTemplateModal, setShowSaveTemplateModal] = useState(false);
+  const [templateName, setTemplateName] = useState('');
+  const [savedTemplates, setSavedTemplates] = useState([]);
+  const [showQuickAddPanel, setShowQuickAddPanel] = useState(false);
+  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
+  
+  // Load saved templates from localStorage
+  useEffect(() => {
+    const templates = localStorage.getItem('bfm_saved_templates');
+    if (templates) {
+      setSavedTemplates(JSON.parse(templates));
+    }
+  }, []);
+  
   // Page Size Presets
   const PAGE_SIZES = {
     bfm_standard: { name: "BFM Standard", width: 816, height: 1056, ratio: "3:4" },
@@ -1247,6 +1264,204 @@ const MagazineBuilder = () => {
     saveToHistory(newPages);
   };
   
+  // ============================================
+  // NEW USER-FRIENDLY FEATURES
+  // ============================================
+  
+  // Save current magazine as a reusable template
+  const saveAsTemplate = () => {
+    if (!templateName.trim()) {
+      toast({ title: "Please enter a template name", variant: "destructive" });
+      return;
+    }
+    
+    const newTemplate = {
+      id: `template_${Date.now()}`,
+      name: templateName.trim(),
+      pages: JSON.parse(JSON.stringify(pages)),
+      createdAt: new Date().toISOString(),
+      pageCount: pages.length
+    };
+    
+    const updatedTemplates = [...savedTemplates, newTemplate];
+    setSavedTemplates(updatedTemplates);
+    localStorage.setItem('bfm_saved_templates', JSON.stringify(updatedTemplates));
+    
+    setTemplateName('');
+    setShowSaveTemplateModal(false);
+    toast({ title: "Template saved!", description: `"${newTemplate.name}" is now available for new magazines` });
+  };
+  
+  // Load a saved template
+  const loadTemplate = (template) => {
+    setPages(JSON.parse(JSON.stringify(template.pages)));
+    setCurrentPageIndex(0);
+    saveToHistory(template.pages);
+    toast({ title: "Template loaded", description: `Loaded "${template.name}"` });
+  };
+  
+  // Delete a saved template
+  const deleteTemplate = (templateId) => {
+    const updatedTemplates = savedTemplates.filter(t => t.id !== templateId);
+    setSavedTemplates(updatedTemplates);
+    localStorage.setItem('bfm_saved_templates', JSON.stringify(updatedTemplates));
+    toast({ title: "Template deleted" });
+  };
+  
+  // Add a quick text box with preset styles
+  const addQuickTextBox = (preset) => {
+    const presets = {
+      heading: { 
+        content: "Add Heading", 
+        style: { fontSize: "36px", fontWeight: "700", color: "#FFFFFF", fontFamily: "'Playfair Display', serif", textAlign: "center", lineHeight: "1.2" },
+        position: { x: 10, y: 10, width: 80, height: 8 }
+      },
+      subheading: { 
+        content: "Add Subheading", 
+        style: { fontSize: "20px", fontWeight: "500", color: "#D4AF37", fontFamily: "'Montserrat', sans-serif", textAlign: "center", lineHeight: "1.4" },
+        position: { x: 15, y: 20, width: 70, height: 6 }
+      },
+      body: { 
+        content: "Add your body text here. This is a paragraph that can contain multiple lines of text. Edit this content to match your needs.", 
+        style: { fontSize: "14px", fontWeight: "400", color: "#F5F5F0", fontFamily: "'Lato', sans-serif", textAlign: "left", lineHeight: "1.7" },
+        position: { x: 10, y: 30, width: 80, height: 15 }
+      },
+      quote: { 
+        content: "\"Add an inspiring quote here\"", 
+        style: { fontSize: "24px", fontWeight: "300", color: "#D4AF37", fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", textAlign: "center", lineHeight: "1.5" },
+        position: { x: 10, y: 40, width: 80, height: 10 }
+      },
+      caption: { 
+        content: "Photo caption or credit", 
+        style: { fontSize: "11px", fontWeight: "400", color: "#A0A5B0", fontFamily: "'Montserrat', sans-serif", textAlign: "center", lineHeight: "1.3" },
+        position: { x: 20, y: 85, width: 60, height: 4 }
+      }
+    };
+    
+    const p = presets[preset];
+    const newElement = {
+      id: `el_${Date.now()}`,
+      type: 'text',
+      content: p.content,
+      style: { ...p.style, opacity: 1, wordWrap: 'break-word', overflowWrap: 'break-word', whiteSpace: 'pre-wrap' },
+      position: p.position,
+      layer: pages[currentPageIndex]?.elements?.length || 0,
+      locked: false,
+      visible: true,
+      name: `${preset.charAt(0).toUpperCase() + preset.slice(1)} Text`
+    };
+    
+    const newPages = pages.map((page, pIdx) => {
+      if (pIdx !== currentPageIndex) return page;
+      return { ...page, elements: [...page.elements, newElement] };
+    });
+    setPages(newPages);
+    setSelectedElement(newElement.id);
+    saveToHistory(newPages);
+    setShowQuickAddPanel(false);
+  };
+  
+  // Add a quick image placeholder box
+  const addQuickImageBox = (preset) => {
+    const presets = {
+      full: { position: { x: 0, y: 0, width: 100, height: 100 }, name: "Full Page Image" },
+      half_top: { position: { x: 0, y: 0, width: 100, height: 50 }, name: "Half Page Top" },
+      half_bottom: { position: { x: 0, y: 50, width: 100, height: 50 }, name: "Half Page Bottom" },
+      square: { position: { x: 25, y: 20, width: 50, height: 40 }, name: "Square Image" },
+      portrait: { position: { x: 30, y: 10, width: 40, height: 60 }, name: "Portrait Image" },
+      sidebar: { position: { x: 70, y: 10, width: 25, height: 80 }, name: "Sidebar Image" }
+    };
+    
+    const p = presets[preset];
+    const newElement = {
+      id: `el_${Date.now()}`,
+      type: 'image',
+      content: '',
+      style: { opacity: 1, objectFit: 'cover', borderRadius: '0px' },
+      position: p.position,
+      layer: pages[currentPageIndex]?.elements?.length || 0,
+      locked: false,
+      visible: true,
+      name: p.name
+    };
+    
+    const newPages = pages.map((page, pIdx) => {
+      if (pIdx !== currentPageIndex) return page;
+      return { ...page, elements: [...page.elements, newElement] };
+    });
+    setPages(newPages);
+    setSelectedElement(newElement.id);
+    saveToHistory(newPages);
+    setShowQuickAddPanel(false);
+  };
+  
+  // Keyboard shortcuts handler
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Only handle shortcuts when in editor (step 5)
+      if (step !== 5) return;
+      
+      // Don't handle if typing in an input
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+      
+      if (e.ctrlKey || e.metaKey) {
+        switch (e.key.toLowerCase()) {
+          case 'z':
+            e.preventDefault();
+            if (e.shiftKey) redo();
+            else undo();
+            break;
+          case 'c':
+            e.preventDefault();
+            copyElement();
+            break;
+          case 'v':
+            e.preventDefault();
+            pasteElement();
+            break;
+          case 'd':
+            e.preventDefault();
+            duplicateElement();
+            break;
+          case 's':
+            e.preventDefault();
+            saveMagazine(false);
+            break;
+          default:
+            break;
+        }
+      } else {
+        switch (e.key) {
+          case 'Delete':
+          case 'Backspace':
+            if (selectedElement) {
+              e.preventDefault();
+              deleteElement(selectedElement);
+            }
+            break;
+          case 't':
+          case 'T':
+            e.preventDefault();
+            addElement('text');
+            break;
+          case 'Escape':
+            setSelectedElement(null);
+            setShowQuickAddPanel(false);
+            break;
+          default:
+            break;
+        }
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [step, selectedElement, historyIndex, history, clipboard]);
+  
+  // ============================================
+  // END NEW FEATURES
+  // ============================================
+
   const saveMagazine = async (isAutoSave = false) => {
     if (!currentMagazine?.id) return;
     
@@ -1279,7 +1494,7 @@ const MagazineBuilder = () => {
   };
   
   const exportToPDF = async () => {
-    toast({ title: "Preparing PDF...", description: "This may take a moment" });
+    toast({ title: "Preparing PDF...", description: "Optimizing for clean export. This may take a moment." });
     
     try {
       const { default: html2canvas } = await import('html2canvas');
@@ -1292,6 +1507,11 @@ const MagazineBuilder = () => {
       });
       
       const originalPage = currentPageIndex;
+      const originalPreview = previewMode;
+      
+      // Enter preview mode for clean export (hides selection handles)
+      setPreviewMode(true);
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       for (let i = 0; i < pages.length; i++) {
         setCurrentPageIndex(i);
@@ -1314,10 +1534,12 @@ const MagazineBuilder = () => {
       }
       
       setCurrentPageIndex(originalPage);
+      setPreviewMode(originalPreview);
       pdf.save(`${talentDetails.name || 'Magazine'}_BFM.pdf`);
       toast({ title: "PDF exported successfully!" });
     } catch (err) {
       console.error("PDF export error:", err);
+      setPreviewMode(false);
       toast({ title: "Export failed", description: err.message, variant: "destructive" });
     }
   };
@@ -2502,6 +2724,49 @@ const MagazineBuilder = () => {
                 
                 {/* Add Elements */}
                 <div className="flex items-center gap-0.5 border-r border-[#D4AF37]/20 pr-2 mr-1">
+                  {/* Quick Add Dropdown */}
+                  <div className="relative">
+                    <button 
+                      onClick={() => setShowQuickAddPanel(!showQuickAddPanel)} 
+                      className={`p-1.5 rounded flex items-center gap-1 ${showQuickAddPanel ? 'bg-[#D4AF37] text-[#050A14]' : 'hover:bg-[#D4AF37]/20'}`}
+                      title="Quick Add (Presets)"
+                      data-testid="quick-add-btn"
+                    >
+                      <Plus size={14} className={showQuickAddPanel ? 'text-[#050A14]' : 'text-[#D4AF37]'} />
+                      <ChevronDown size={10} className={showQuickAddPanel ? 'text-[#050A14]' : 'text-[#A0A5B0]'} />
+                    </button>
+                    {showQuickAddPanel && (
+                      <div className="absolute top-8 left-0 bg-[#0A1628] border border-[#D4AF37]/30 rounded-lg shadow-xl z-50 w-56 py-2">
+                        <p className="px-3 py-1 text-[10px] text-[#D4AF37] uppercase font-bold">📝 Text Boxes</p>
+                        <button onClick={() => addQuickTextBox('heading')} className="w-full text-left px-3 py-2 text-xs text-[#F5F5F0] hover:bg-[#D4AF37]/20 flex items-center gap-2">
+                          <span className="text-lg font-bold">H</span> Heading
+                        </button>
+                        <button onClick={() => addQuickTextBox('subheading')} className="w-full text-left px-3 py-2 text-xs text-[#F5F5F0] hover:bg-[#D4AF37]/20 flex items-center gap-2">
+                          <span className="text-base font-medium">H2</span> Subheading
+                        </button>
+                        <button onClick={() => addQuickTextBox('body')} className="w-full text-left px-3 py-2 text-xs text-[#F5F5F0] hover:bg-[#D4AF37]/20 flex items-center gap-2">
+                          <span className="text-sm">¶</span> Body Text
+                        </button>
+                        <button onClick={() => addQuickTextBox('quote')} className="w-full text-left px-3 py-2 text-xs text-[#F5F5F0] hover:bg-[#D4AF37]/20 flex items-center gap-2">
+                          <span className="text-lg italic">&quot;</span> Quote
+                        </button>
+                        <button onClick={() => addQuickTextBox('caption')} className="w-full text-left px-3 py-2 text-xs text-[#F5F5F0] hover:bg-[#D4AF37]/20 flex items-center gap-2">
+                          <span className="text-[10px]">Aa</span> Caption
+                        </button>
+                        
+                        <div className="border-t border-[#D4AF37]/20 my-2" />
+                        
+                        <p className="px-3 py-1 text-[10px] text-[#D4AF37] uppercase font-bold">🖼️ Image Boxes</p>
+                        <button onClick={() => addQuickImageBox('full')} className="w-full text-left px-3 py-2 text-xs text-[#F5F5F0] hover:bg-[#D4AF37]/20">▣ Full Page</button>
+                        <button onClick={() => addQuickImageBox('half_top')} className="w-full text-left px-3 py-2 text-xs text-[#F5F5F0] hover:bg-[#D4AF37]/20">▤ Half Top</button>
+                        <button onClick={() => addQuickImageBox('half_bottom')} className="w-full text-left px-3 py-2 text-xs text-[#F5F5F0] hover:bg-[#D4AF37]/20">▥ Half Bottom</button>
+                        <button onClick={() => addQuickImageBox('square')} className="w-full text-left px-3 py-2 text-xs text-[#F5F5F0] hover:bg-[#D4AF37]/20">◻ Square Center</button>
+                        <button onClick={() => addQuickImageBox('portrait')} className="w-full text-left px-3 py-2 text-xs text-[#F5F5F0] hover:bg-[#D4AF37]/20">▯ Portrait</button>
+                        <button onClick={() => addQuickImageBox('sidebar')} className="w-full text-left px-3 py-2 text-xs text-[#F5F5F0] hover:bg-[#D4AF37]/20">▐ Sidebar</button>
+                      </div>
+                    )}
+                  </div>
+                  
                   <button onClick={() => addElement('text')} className="p-1.5 hover:bg-[#D4AF37]/20 rounded" title="Add Text (T)" data-testid="add-text-btn">
                     <Type size={14} className="text-[#A0A5B0]" />
                   </button>
@@ -2575,6 +2840,9 @@ const MagazineBuilder = () => {
                   </button>
                   <button onClick={() => setPreviewMode(!previewMode)} className={`p-1.5 rounded ${previewMode ? 'bg-[#D4AF37]/20' : 'hover:bg-[#D4AF37]/20'}`} title="Preview Mode" data-testid="preview-mode-btn">
                     <Eye size={14} className="text-[#A0A5B0]" />
+                  </button>
+                  <button onClick={() => setShowMobilePreview(!showMobilePreview)} className={`p-1.5 rounded ${showMobilePreview ? 'bg-[#D4AF37]/20' : 'hover:bg-[#D4AF37]/20'}`} title="Mobile Preview" data-testid="mobile-preview-btn">
+                    <Phone size={14} className="text-[#A0A5B0]" />
                   </button>
                 </div>
                 
@@ -2722,6 +2990,9 @@ const MagazineBuilder = () => {
                 {/* Export Buttons */}
                 <Button onClick={() => saveMagazine(false)} disabled={loading} size="sm" className="bg-[#0A1628] border border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#050A14] h-8 px-3" data-testid="save-magazine-btn">
                   <Save size={12} className="mr-1" /> Save
+                </Button>
+                <Button onClick={() => setShowSaveTemplateModal(true)} size="sm" className="bg-[#0A1628] border border-[#D4AF37]/50 text-[#D4AF37]/80 hover:bg-[#D4AF37]/20 h-8 px-2" title="Save as Template" data-testid="save-template-btn">
+                  <BookOpen size={12} />
                 </Button>
                 <Button onClick={exportToPDF} size="sm" className="bg-[#D4AF37] text-[#050A14] h-8 px-3" data-testid="export-pdf-btn">
                   <FileDown size={12} className="mr-1" /> PDF
@@ -3987,6 +4258,186 @@ const MagazineBuilder = () => {
           <Button variant="outline" onClick={() => setStep(1)} className="border-[#D4AF37]/30 text-[#F5F5F0]">
             <ChevronLeft size={16} /> Back to Magazines
           </Button>
+        </div>
+      )}
+      
+      {/* Save as Template Modal */}
+      {showSaveTemplateModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50" onClick={() => setShowSaveTemplateModal(false)}>
+          <div className="bg-[#0A1628] rounded-lg p-6 max-w-md w-full mx-4" onClick={e => e.stopPropagation()}>
+            <h3 className="text-xl font-bold text-[#D4AF37] mb-4">Save as Template</h3>
+            <p className="text-[#A0A5B0] text-sm mb-4">Save this magazine layout as a reusable template for future magazines.</p>
+            <Input
+              value={templateName}
+              onChange={(e) => setTemplateName(e.target.value)}
+              placeholder="Template name (e.g., 'Model Feature Layout')"
+              className="bg-[#050A14] border-[#D4AF37]/30 text-[#F5F5F0] mb-4"
+            />
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowSaveTemplateModal(false)} className="border-[#D4AF37]/30 text-[#F5F5F0]">
+                Cancel
+              </Button>
+              <Button onClick={saveAsTemplate} className="bg-[#D4AF37] text-[#050A14]">
+                Save Template
+              </Button>
+            </div>
+            
+            {/* Show existing templates */}
+            {savedTemplates.length > 0 && (
+              <div className="mt-6 pt-4 border-t border-[#D4AF37]/20">
+                <h4 className="text-[#F5F5F0] font-medium mb-3">Your Saved Templates</h4>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {savedTemplates.map(t => (
+                    <div key={t.id} className="flex items-center justify-between p-2 bg-[#050A14] rounded">
+                      <div>
+                        <p className="text-[#F5F5F0] text-sm">{t.name}</p>
+                        <p className="text-[#A0A5B0] text-xs">{t.pageCount} pages</p>
+                      </div>
+                      <div className="flex gap-1">
+                        <button onClick={() => { loadTemplate(t); setShowSaveTemplateModal(false); }} className="px-2 py-1 bg-[#D4AF37]/20 text-[#D4AF37] rounded text-xs hover:bg-[#D4AF37]/30">
+                          Load
+                        </button>
+                        <button onClick={() => deleteTemplate(t.id)} className="px-2 py-1 bg-red-500/20 text-red-400 rounded text-xs hover:bg-red-500/30">
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      
+      {/* Mobile Preview Modal */}
+      {showMobilePreview && (
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50" onClick={() => setShowMobilePreview(false)}>
+          <div className="relative" onClick={e => e.stopPropagation()}>
+            {/* Device selector */}
+            <div className="absolute -top-12 left-1/2 -translate-x-1/2 flex gap-2 bg-[#0A1628] rounded-full p-1">
+              <button 
+                onClick={() => setMobilePreviewDevice('iphone')}
+                className={`px-3 py-1 rounded-full text-xs ${mobilePreviewDevice === 'iphone' ? 'bg-[#D4AF37] text-[#050A14]' : 'text-[#A0A5B0]'}`}
+              >
+                iPhone
+              </button>
+              <button 
+                onClick={() => setMobilePreviewDevice('android')}
+                className={`px-3 py-1 rounded-full text-xs ${mobilePreviewDevice === 'android' ? 'bg-[#D4AF37] text-[#050A14]' : 'text-[#A0A5B0]'}`}
+              >
+                Android
+              </button>
+              <button 
+                onClick={() => setMobilePreviewDevice('tablet')}
+                className={`px-3 py-1 rounded-full text-xs ${mobilePreviewDevice === 'tablet' ? 'bg-[#D4AF37] text-[#050A14]' : 'text-[#A0A5B0]'}`}
+              >
+                Tablet
+              </button>
+            </div>
+            
+            {/* Phone frame */}
+            <div 
+              className={`bg-[#1a1a1a] rounded-[40px] p-3 shadow-2xl ${
+                mobilePreviewDevice === 'tablet' ? 'w-[500px]' : 'w-[320px]'
+              }`}
+              style={{
+                border: '4px solid #333',
+                boxShadow: '0 0 0 2px #555, 0 10px 40px rgba(0,0,0,0.5)'
+              }}
+            >
+              {/* Notch */}
+              {mobilePreviewDevice !== 'tablet' && (
+                <div className="w-20 h-5 bg-[#1a1a1a] rounded-b-xl mx-auto mb-2" />
+              )}
+              
+              {/* Screen */}
+              <div 
+                className={`bg-white rounded-[30px] overflow-hidden ${
+                  mobilePreviewDevice === 'tablet' ? 'h-[700px]' : 'h-[600px]'
+                }`}
+              >
+                <div 
+                  className="w-full h-full overflow-y-auto"
+                  style={{
+                    transform: mobilePreviewDevice === 'tablet' ? 'scale(0.5)' : 'scale(0.35)',
+                    transformOrigin: 'top left',
+                    width: mobilePreviewDevice === 'tablet' ? '200%' : '285%',
+                    height: mobilePreviewDevice === 'tablet' ? '200%' : '285%'
+                  }}
+                >
+                  {/* Render current page content */}
+                  {currentPage && (
+                    <div
+                      style={{
+                        width: pageSize.width,
+                        height: pageSize.height,
+                        backgroundColor: currentPage.background?.color || '#000',
+                        position: 'relative',
+                        overflow: 'hidden'
+                      }}
+                    >
+                      {currentElements
+                        .filter(el => el.visible !== false)
+                        .sort((a, b) => a.layer - b.layer)
+                        .map(el => (
+                          <div
+                            key={el.id}
+                            style={{
+                              position: 'absolute',
+                              left: `${el.position.x}%`,
+                              top: `${el.position.y}%`,
+                              width: `${el.position.width}%`,
+                              height: `${el.position.height}%`,
+                              ...el.style,
+                              wordWrap: 'break-word',
+                              overflowWrap: 'break-word',
+                              whiteSpace: 'pre-wrap'
+                            }}
+                          >
+                            {el.type === 'text' && el.content}
+                            {el.type === 'image' && el.content && (
+                              <img src={el.content} alt="" style={{ width: '100%', height: '100%', objectFit: el.style?.objectFit || 'cover' }} />
+                            )}
+                          </div>
+                        ))
+                      }
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Home indicator */}
+              <div className="w-32 h-1 bg-white/30 rounded-full mx-auto mt-2" />
+            </div>
+            
+            {/* Close button */}
+            <button 
+              onClick={() => setShowMobilePreview(false)}
+              className="absolute -top-12 right-0 text-white hover:text-[#D4AF37]"
+            >
+              ✕ Close
+            </button>
+            
+            {/* Page navigation */}
+            <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-4">
+              <button 
+                onClick={() => setCurrentPageIndex(Math.max(0, currentPageIndex - 1))}
+                disabled={currentPageIndex === 0}
+                className="p-2 bg-[#0A1628] rounded-full text-[#D4AF37] disabled:opacity-30"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <span className="text-white text-sm">Page {currentPageIndex + 1} of {pages.length}</span>
+              <button 
+                onClick={() => setCurrentPageIndex(Math.min(pages.length - 1, currentPageIndex + 1))}
+                disabled={currentPageIndex === pages.length - 1}
+                className="p-2 bg-[#0A1628] rounded-full text-[#D4AF37] disabled:opacity-30"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          </div>
         </div>
       )}
       
