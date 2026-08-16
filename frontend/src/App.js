@@ -732,11 +732,11 @@ const TalentCard = ({ talent, onVote, onClick }) => {
 
   return (
     <div 
-      className="group relative overflow-hidden rounded-xl bg-[#0A1628] border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all cursor-pointer"
+      className="group relative overflow-hidden rounded-xl bg-[#0A1628] border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all cursor-pointer w-full"
       onClick={() => onClick(talent)}
       data-testid={`talent-card-${talent.id}`}
     >
-      <div className="aspect-[3/4] overflow-hidden relative">
+      <div className="aspect-[3/4] w-full overflow-hidden relative">
         <img 
           src={getImageSrc()} 
           alt={talent.name} 
@@ -747,17 +747,17 @@ const TalentCard = ({ talent, onVote, onClick }) => {
         <LogoWatermark size="small" position="bottom-right" />
       </div>
       {/* Reduced overlay darkness */}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#050A14]/70 via-[#050A14]/20 to-transparent" />
-      <div className="absolute bottom-0 left-0 right-0 p-4">
-        <span className="inline-block px-2 py-0.5 bg-[#D4AF37]/20 text-[#D4AF37] text-[10px] uppercase tracking-wider mb-1">{getCategoryDisplay(talent.category)}</span>
+      <div className="absolute inset-0 bg-gradient-to-t from-[#050A14]/70 via-[#050A14]/20 to-transparent pointer-events-none" />
+      <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4">
+        <span className="inline-block px-2 py-0.5 bg-[#D4AF37]/20 text-[#D4AF37] text-[8px] sm:text-[10px] uppercase tracking-wider mb-1">{getCategoryDisplay(talent.category)}</span>
         {/* Increased font weight for name */}
-        <h3 className="font-serif text-xl font-bold text-[#F5F5F0] tracking-wide">{talent.name}</h3>
+        <h3 className="font-serif text-base sm:text-lg md:text-xl font-bold text-[#F5F5F0] tracking-wide truncate">{talent.name}</h3>
         {/* Gold divider line under name */}
-        <div className="w-12 h-[1px] bg-[#D4AF37]/60 mt-1.5 mb-2"></div>
+        <div className="w-10 sm:w-12 h-[1px] bg-[#D4AF37]/60 mt-1 mb-1.5 sm:mt-1.5 sm:mb-2"></div>
         {/* Smaller, more subtle votes section */}
         <div className="flex items-center justify-between">
-          <span className="text-[#F5F5F0]/60 text-xs">{talent.votes || 0} votes</span>
-          <button onClick={handleVote} disabled={voting} className="px-2 py-0.5 bg-[#D4AF37]/10 text-[#D4AF37]/80 text-[10px] rounded hover:bg-[#D4AF37]/30 hover:text-[#D4AF37] disabled:opacity-50 transition-colors">
+          <span className="text-[#F5F5F0]/60 text-[10px] sm:text-xs">{talent.votes || 0} votes</span>
+          <button onClick={handleVote} disabled={voting} className="px-2 py-0.5 bg-[#D4AF37]/10 text-[#D4AF37]/80 text-[8px] sm:text-[10px] rounded hover:bg-[#D4AF37]/30 hover:text-[#D4AF37] disabled:opacity-50 transition-colors">
             {voting ? "..." : "Vote"}
           </button>
         </div>
@@ -791,11 +791,11 @@ const TalentCardSmall = ({ talent, onVote, onClick }) => {
 
   return (
     <div 
-      className="group relative overflow-hidden rounded-lg bg-[#0A1628] border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all cursor-pointer"
+      className="group relative overflow-hidden rounded-lg bg-[#0A1628] border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all cursor-pointer w-full"
       onClick={() => onClick(talent)}
       data-testid={`talent-card-small-${talent.id}`}
     >
-      <div className="aspect-[3/4] overflow-hidden relative">
+      <div className="aspect-[3/4] w-full overflow-hidden relative">
         <img 
           src={getImageSrc()} 
           alt={talent.name} 
@@ -804,12 +804,12 @@ const TalentCardSmall = ({ talent, onVote, onClick }) => {
           onError={() => setImgError(true)}
         />
       </div>
-      <div className="absolute inset-0 bg-gradient-to-t from-[#050A14]/80 via-transparent to-transparent" />
-      <div className="absolute bottom-0 left-0 right-0 p-2">
-        <h3 className="font-serif text-xs sm:text-sm font-bold text-[#F5F5F0] truncate">{talent.name}</h3>
-        <div className="flex items-center justify-between mt-1">
-          <span className="text-[#F5F5F0]/60 text-[10px]">{talent.votes || 0}</span>
-          <button onClick={handleVote} disabled={voting} className="px-1.5 py-0.5 bg-[#D4AF37]/20 text-[#D4AF37] text-[8px] rounded hover:bg-[#D4AF37]/40 disabled:opacity-50 transition-colors">
+      <div className="absolute inset-0 bg-gradient-to-t from-[#050A14]/80 via-transparent to-transparent pointer-events-none" />
+      <div className="absolute bottom-0 left-0 right-0 p-1.5 sm:p-2">
+        <h3 className="font-serif text-[10px] sm:text-xs md:text-sm font-bold text-[#F5F5F0] truncate">{talent.name}</h3>
+        <div className="flex items-center justify-between mt-0.5 sm:mt-1">
+          <span className="text-[#F5F5F0]/60 text-[8px] sm:text-[10px]">{talent.votes || 0}</span>
+          <button onClick={handleVote} disabled={voting} className="px-1 sm:px-1.5 py-0.5 bg-[#D4AF37]/20 text-[#D4AF37] text-[6px] sm:text-[8px] rounded hover:bg-[#D4AF37]/40 disabled:opacity-50 transition-colors">
             {voting ? ".." : "Vote"}
           </button>
         </div>
@@ -855,17 +855,17 @@ const TalentsPage = ({ ads }) => {
     }
   };
 
-  // Grid classes: 7 per row with ads, 10 without ads on large screens
+  // Grid classes: responsive grid that adjusts properly
   const gridClass = hasAds 
-    ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-3"
-    : "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-10 gap-3";
+    ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3"
+    : "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2 sm:gap-3";
 
   return (
-    <div className="min-h-screen bg-[#050A14] pt-20 pb-12">
-      <div className="container mx-auto px-4">
+    <div className="min-h-screen bg-[#050A14] pt-16 sm:pt-20 pb-8 sm:pb-12">
+      <div className="container mx-auto px-3 sm:px-4">
         <div className="flex gap-4">
-          <div className="flex-1">
-            <h1 className="font-serif text-2xl font-bold text-[#F5F5F0] mb-6">{decodedCategory || "All Talents"}</h1>
+          <div className="flex-1 min-w-0">
+            <h1 className="font-serif text-xl sm:text-2xl font-bold text-[#F5F5F0] mb-4 sm:mb-6">{decodedCategory || "All Talents"}</h1>
             {loading ? (
               <p className="text-[#A0A5B0]">Loading...</p>
             ) : talents.length === 0 ? (
@@ -878,7 +878,7 @@ const TalentsPage = ({ ads }) => {
           </div>
           {/* Ads sidebar - smaller on category pages */}
           {hasAds && (
-            <div className="hidden lg:block w-48 flex-shrink-0">
+            <div className="hidden lg:block w-40 xl:w-48 flex-shrink-0">
               <p className="text-[#A0A5B0] text-xs uppercase tracking-wider text-center mb-3">Sponsored</p>
               <div className="flex flex-col gap-3">
                 {ads.map((ad, i) => (
@@ -886,7 +886,7 @@ const TalentsPage = ({ ads }) => {
                     key={i} 
                     ad={ad} 
                     className="block"
-                    imgClassName="w-full rounded-lg border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all"
+                    imgClassName="w-full aspect-[4/5] object-cover rounded-lg border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all"
                   />
                 ))}
               </div>
@@ -1593,12 +1593,11 @@ const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine, v
               <p className="text-[#A0A5B0] text-[10px] uppercase tracking-wider text-center mb-2">Sponsored</p>
               <div className="flex gap-2 overflow-x-auto pb-2 justify-center">
                 {ads.map((ad, i) => (
-                  <ClickableAdImage 
-                    key={i} 
-                    ad={ad} 
-                    className="flex-shrink-0 w-20"
-                    imgClassName="w-full rounded border border-[#D4AF37]/10"
-                  />
+                  <a key={i} href={ad.link || "#"} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
+                    <div className="w-16 h-16 overflow-hidden rounded border border-[#D4AF37]/10">
+                      <img src={ad.image_data} alt={ad.title || "Ad"} className="w-full h-full object-cover" />
+                    </div>
+                  </a>
                 ))}
               </div>
             </div>
@@ -1677,17 +1676,16 @@ const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine, v
       
       {/* Sticky Ads Sidebar - Desktop Only */}
       {ads && ads.length > 0 && (
-        <div className="hidden lg:block w-[220px] bg-[#0A1628] border-l border-[#D4AF37]/20">
+        <div className="hidden lg:block w-[220px] flex-shrink-0 bg-[#0A1628] border-l border-[#D4AF37]/20">
           <div className="sticky top-16 p-3 max-h-[calc(100vh-64px)] overflow-y-auto">
             <p className="text-[#A0A5B0] text-[10px] uppercase tracking-wider text-center mb-3">Sponsored</p>
             <div className="flex flex-col gap-3">
               {ads.map((ad, i) => (
-                <ClickableAdImage 
-                  key={i} 
-                  ad={ad} 
-                  className="block"
-                  imgClassName="w-full rounded-lg border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all"
-                />
+                <a key={i} href={ad.link || "#"} target="_blank" rel="noopener noreferrer" className="block">
+                  <div className="aspect-[4/5] w-full overflow-hidden rounded-lg border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all">
+                    <img src={ad.image_data} alt={ad.title || "Ad"} className="w-full h-full object-cover" />
+                  </div>
+                </a>
               ))}
             </div>
           </div>
@@ -1697,17 +1695,16 @@ const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine, v
 
     {/* Bottom Ads Section - Horizontal with spacing (shown when there are many ads) */}
     {ads && ads.length > 3 && (
-      <div className="bg-[#050A14] py-12 mt-8">
+      <div className="bg-[#050A14] py-8 sm:py-12 mt-6 sm:mt-8">
         <div className="container mx-auto px-4">
-          <p className="text-[#A0A5B0] text-xs uppercase tracking-wider text-center mb-6">Our Sponsors</p>
-          <div className="flex flex-wrap justify-center gap-8">
+          <p className="text-[#A0A5B0] text-xs uppercase tracking-wider text-center mb-4 sm:mb-6">Our Sponsors</p>
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-6 md:gap-8">
             {ads.map((ad, i) => (
-              <ClickableAdImage 
-                key={i} 
-                ad={ad} 
-                className="w-40 md:w-48"
-                imgClassName="w-full rounded-lg border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all"
-              />
+              <a key={i} href={ad.link || "#"} target="_blank" rel="noopener noreferrer" className="w-24 sm:w-32 md:w-40">
+                <div className="aspect-[4/5] w-full overflow-hidden rounded-lg border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all">
+                  <img src={ad.image_data} alt={ad.title || "Ad"} className="w-full h-full object-cover" />
+                </div>
+              </a>
             ))}
           </div>
         </div>

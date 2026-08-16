@@ -16,13 +16,15 @@ const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine, v
       
       {/* Ads Sidebar - right next to hero */}
       {ads && ads.length > 0 && (
-        <div className="hidden lg:block w-64 bg-[#0A1628] border-l border-[#D4AF37]/20">
+        <div className="hidden lg:block w-64 xl:w-72 flex-shrink-0 bg-[#0A1628] border-l border-[#D4AF37]/20">
           <div className="p-4 h-[70vh] overflow-y-auto">
             <p className="text-[#A0A5B0] text-xs uppercase tracking-wider text-center mb-4">Sponsored</p>
             <div className="flex flex-col gap-4">
               {ads.map((ad, i) => (
                 <a key={i} href={ad.link || "#"} target="_blank" rel="noopener noreferrer" className="block">
-                  <img src={ad.image_data} alt={ad.title || "Advertisement"} className="w-full rounded-lg border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all" />
+                  <div className="aspect-[4/5] w-full overflow-hidden rounded-lg border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all">
+                    <img src={ad.image_data} alt={ad.title || "Advertisement"} className="w-full h-full object-cover" />
+                  </div>
                 </a>
               ))}
             </div>
@@ -36,10 +38,15 @@ const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine, v
       <div className="lg:hidden bg-[#0A1628] py-4 border-y border-[#D4AF37]/20">
         <div className="container mx-auto px-4">
           <p className="text-[#A0A5B0] text-xs uppercase tracking-wider text-center mb-3">Sponsored</p>
-          <div className="flex gap-3 overflow-x-auto pb-2">
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide justify-center">
             {ads.map((ad, i) => (
-              <a key={i} href={ad.link || "#"} target="_blank" rel="noopener noreferrer" className="flex-shrink-0 w-32">
-                <img src={ad.image_data} alt={ad.title || "Advertisement"} className="w-full rounded-lg border border-[#D4AF37]/10" />
+              <a key={i} href={ad.link || "#"} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
+                <div 
+                  className="overflow-hidden rounded-lg border border-[#D4AF37]/10"
+                  style={{ width: '64px', height: '64px' }}
+                >
+                  <img src={ad.image_data} alt={ad.title || "Advertisement"} className="w-full h-full object-cover" />
+                </div>
               </a>
             ))}
           </div>
