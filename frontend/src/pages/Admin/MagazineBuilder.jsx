@@ -3173,7 +3173,8 @@ const MagazineBuilder = () => {
                   <div 
                     id={`magazine-page-${currentPageIndex}`}
                     ref={pageRef}
-                    className="relative shadow-2xl flex-shrink-0"
+                    className="relative shadow-2xl flex-shrink-0 select-none"
+                    onContextMenu={(e) => e.preventDefault()}
                     style={{ 
                       width: `min(${400 * (zoom / 100)}px, calc(100vw - 600px))`, 
                       height: `min(${566 * (zoom / 100)}px, calc((100vw - 600px) * 1.414))`,
@@ -3182,7 +3183,10 @@ const MagazineBuilder = () => {
                       backgroundColor: currentPage?.background?.color || '#000',
                       backgroundImage: currentPage?.background?.image ? `url(${currentPage.background.image})` : 'none',
                       backgroundSize: 'cover',
-                      backgroundPosition: 'center'
+                      backgroundPosition: 'center',
+                      WebkitTouchCallout: 'none',
+                      WebkitUserSelect: 'none',
+                      userSelect: 'none'
                     }}
                     onClick={(e) => {
                       if (e.target === e.currentTarget) setSelectedElement(null);
@@ -3209,16 +3213,26 @@ const MagazineBuilder = () => {
                         <div
                           key={el.id}
                           onMouseDown={(e) => !previewMode && handleMouseDown(e, el.id)}
+                          onTouchStart={(e) => {
+                            if (!previewMode) {
+                              e.preventDefault();
+                              handleMouseDown(e, el.id);
+                            }
+                          }}
+                          onContextMenu={(e) => e.preventDefault()}
                           className={`absolute ${previewMode ? '' : 'cursor-move'} ${
                             selectedElement === el.id && !previewMode ? 'ring-2 ring-[#D4AF37]' : ''
-                          } ${el.locked ? 'cursor-not-allowed' : ''}`}
+                          } ${el.locked ? 'cursor-not-allowed' : ''} select-none`}
                           style={{
                             left: `${el.position.x}%`,
                             top: `${el.position.y}%`,
                             width: `${el.position.width}%`,
                             height: `${el.position.height}%`,
                             opacity: el.style?.opacity ?? 1,
-                            pointerEvents: previewMode ? 'none' : 'auto'
+                            pointerEvents: previewMode ? 'none' : 'auto',
+                            WebkitTouchCallout: 'none',
+                            WebkitUserSelect: 'none',
+                            userSelect: 'none'
                           }}
                         >
                           {el.type === 'text' && (
@@ -3963,7 +3977,15 @@ const MagazineBuilder = () => {
                             <div>
                               <div className="flex justify-between text-[10px] text-[#A0A5B0] mb-1">
                                 <span>X Position</span>
-                                <span>{Math.round(selectedEl.position.x)}%</span>
+                                <input 
+                                  type="number"
+                                  min="0"
+                                  max="100"
+                                  value={Math.round(selectedEl.position.x)}
+                                  onChange={(e) => updateElementPosition(selectedEl.id, { x: parseFloat(e.target.value) || 0 })}
+                                  onFocus={(e) => e.target.select()}
+                                  className="w-12 bg-[#050A14] border border-[#D4AF37]/30 rounded px-1 text-[#F5F5F0] text-[10px] text-right"
+                                />
                               </div>
                               <input 
                                 type="range"
@@ -3977,7 +3999,15 @@ const MagazineBuilder = () => {
                             <div>
                               <div className="flex justify-between text-[10px] text-[#A0A5B0] mb-1">
                                 <span>Y Position</span>
-                                <span>{Math.round(selectedEl.position.y)}%</span>
+                                <input 
+                                  type="number"
+                                  min="0"
+                                  max="100"
+                                  value={Math.round(selectedEl.position.y)}
+                                  onChange={(e) => updateElementPosition(selectedEl.id, { y: parseFloat(e.target.value) || 0 })}
+                                  onFocus={(e) => e.target.select()}
+                                  className="w-12 bg-[#050A14] border border-[#D4AF37]/30 rounded px-1 text-[#F5F5F0] text-[10px] text-right"
+                                />
                               </div>
                               <input 
                                 type="range"
@@ -3991,7 +4021,15 @@ const MagazineBuilder = () => {
                             <div>
                               <div className="flex justify-between text-[10px] text-[#A0A5B0] mb-1">
                                 <span>Width</span>
-                                <span>{Math.round(selectedEl.position.width)}%</span>
+                                <input 
+                                  type="number"
+                                  min="5"
+                                  max="100"
+                                  value={Math.round(selectedEl.position.width)}
+                                  onChange={(e) => updateElementPosition(selectedEl.id, { width: parseFloat(e.target.value) || 10 })}
+                                  onFocus={(e) => e.target.select()}
+                                  className="w-12 bg-[#050A14] border border-[#D4AF37]/30 rounded px-1 text-[#F5F5F0] text-[10px] text-right"
+                                />
                               </div>
                               <input 
                                 type="range"
@@ -4005,7 +4043,15 @@ const MagazineBuilder = () => {
                             <div>
                               <div className="flex justify-between text-[10px] text-[#A0A5B0] mb-1">
                                 <span>Height</span>
-                                <span>{Math.round(selectedEl.position.height)}%</span>
+                                <input 
+                                  type="number"
+                                  min="2"
+                                  max="100"
+                                  value={Math.round(selectedEl.position.height)}
+                                  onChange={(e) => updateElementPosition(selectedEl.id, { height: parseFloat(e.target.value) || 10 })}
+                                  onFocus={(e) => e.target.select()}
+                                  className="w-12 bg-[#050A14] border border-[#D4AF37]/30 rounded px-1 text-[#F5F5F0] text-[10px] text-right"
+                                />
                               </div>
                               <input 
                                 type="range"
