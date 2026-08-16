@@ -3168,15 +3168,17 @@ const MagazineBuilder = () => {
               )}
               
               {/* Editor Canvas */}
-              <div className="flex-1 flex gap-2 overflow-hidden">
-                <div ref={editorRef} className="flex-1 overflow-auto bg-[#1A1A2E] rounded-lg p-4 flex items-center justify-center">
+              <div className="flex-1 flex gap-2 overflow-hidden min-w-0">
+                <div ref={editorRef} className="flex-1 overflow-auto bg-[#1A1A2E] rounded-lg p-2 sm:p-4 flex items-center justify-center min-w-0">
                   <div 
                     id={`magazine-page-${currentPageIndex}`}
                     ref={pageRef}
-                    className="relative shadow-2xl"
+                    className="relative shadow-2xl flex-shrink-0"
                     style={{ 
-                      width: `${400 * (zoom / 100)}px`, 
-                      height: `${566 * (zoom / 100)}px`,
+                      width: `min(${400 * (zoom / 100)}px, calc(100vw - 600px))`, 
+                      height: `min(${566 * (zoom / 100)}px, calc((100vw - 600px) * 1.414))`,
+                      maxWidth: '100%',
+                      aspectRatio: '1 / 1.414',
                       backgroundColor: currentPage?.background?.color || '#000',
                       backgroundImage: currentPage?.background?.image ? `url(${currentPage.background.image})` : 'none',
                       backgroundSize: 'cover',
@@ -3239,7 +3241,7 @@ const MagazineBuilder = () => {
                                 fontFamily: el.style.fontFamily || "'Lato', sans-serif",
                                 fontStyle: el.style.fontStyle || 'normal',
                                 textDecoration: el.style.textDecoration || 'none',
-                                lineHeight: el.style.lineHeight || '1.5',
+                                lineHeight: el.style.lineHeight || '1.4',
                                 letterSpacing: el.style.letterSpacing || '0px',
                                 textShadow: el.style.textShadow || 'none',
                                 textTransform: el.style.textTransform || 'none',
@@ -3249,7 +3251,15 @@ const MagazineBuilder = () => {
                                 wordBreak: 'break-word',
                                 whiteSpace: 'pre-wrap',
                                 overflow: 'hidden',
-                                hyphens: 'auto'
+                                hyphens: 'auto',
+                                // Better text rendering
+                                WebkitFontSmoothing: 'antialiased',
+                                MozOsxFontSmoothing: 'grayscale',
+                                display: 'flex',
+                                alignItems: el.style.verticalAlign || 'flex-start',
+                                justifyContent: el.style.textAlign === 'center' ? 'center' : el.style.textAlign === 'right' ? 'flex-end' : 'flex-start',
+                                flexDirection: 'column',
+                                padding: '2px'
                               }}
                             >
                               {el.content}
