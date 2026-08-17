@@ -1,6 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import axios from "axios";
-import { Users, Star, Award, Image, Download, Check, X, Phone, Mail, Trash2, ExternalLink, Music, Video, Upload, BarChart3, TrendingUp, Eye, MousePointer, ShoppingBag, Package, MapPin, Calendar, BookOpen } from "lucide-react";
+import { Users, Star, Award, Image, Download, Check, X, Phone, Mail, Trash2, ExternalLink, Music, Video, Upload, BarChart3, TrendingUp, Eye, MousePointer, ShoppingBag, Package, MapPin, Calendar, BookOpen, Settings, IndianRupee } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ImageUploadWithCrop from "@/components/ImageUploadWithCrop";
 import { API, BFM_LOGO, TALENT_CATEGORIES, STORE_CATEGORIES } from "@/lib/config";
@@ -66,6 +66,15 @@ const AdminDashboard = () => {
   const [talentSearch, setTalentSearch] = useState("");
   const [customImages, setCustomImages] = useState([]);  // Custom uploaded images for Instagram
   const [useCustomImages, setUseCustomImages] = useState(false);  // Toggle to use custom images
+
+  // Payment Settings state
+  const [paymentSettings, setPaymentSettings] = useState({
+    payment_enabled: false,
+    registration_fee: 499,
+    razorpay_configured: false
+  });
+  const [paymentHistory, setPaymentHistory] = useState([]);
+  const [savingPaymentSettings, setSavingPaymentSettings] = useState(false);
 
   // Tab-specific data fetchers
   const fetchPending = async () => {
@@ -214,6 +223,7 @@ const AdminDashboard = () => {
       case 'store': await fetchStoreOrders(); await fetchStoreProducts(); await fetchStoreSettings(); break;
       case 'export': await fetchStoreOrders(); break;
       case 'instagram': await fetchAllTalents(); break;  // Always fetch fresh talent data
+      case 'settings': await fetchPaymentSettings(); await fetchPaymentHistory(); break;
       default: break;
     }
     setLoadedTabs(prev => ({...prev, [tabName]: true}));
@@ -571,6 +581,35 @@ const AdminDashboard = () => {
     }
   };
 
+  // Payment Settings
+  const fetchPaymentSettings = async () => {
+    try {
+      const res = await axios.get(`${API}/payment-settings`);
+      setPaymentSettings(res.data);
+    } catch (err) { console.error("Failed to fetch payment settings:", err); }
+  };
+  
+  const fetchPaymentHistory = async () => {
+    try {
+      const res = await axios.get(`${API}/payment-history`);
+      setPaymentHistory(res.data);
+    } catch (err) { console.error("Failed to fetch payment history:", err); }
+  };
+  
+  const updatePaymentSettings = async () => {
+    setSavingPaymentSettings(true);
+    try {
+      await axios.post(`${API}/payment-settings`, {
+        payment_enabled: paymentSettings.payment_enabled,
+        registration_fee: parseInt(paymentSettings.registration_fee) || 499
+      });
+      toast({ title: "Payment settings updated!" });
+    } catch (err) {
+      toast({ title: "Failed to update settings", variant: "destructive" });
+    }
+    setSavingPaymentSettings(false);
+  };
+
   const tabs = [
     { id: "pending", label: "Pending", icon: Users },
     { id: "talents", label: "All Talents", icon: Star },
@@ -585,7 +624,8 @@ const AdminDashboard = () => {
     { id: "magazine", label: "Magazine PDF", icon: Download },
     { id: "music", label: "Background Music", icon: Music },
     { id: "export", label: "Export", icon: Download },
-    { id: "store", label: "Designer Store", icon: ShoppingBag }
+    { id: "store", label: "Designer Store", icon: ShoppingBag },
+    { id: "settings", label: "Settings", icon: Settings }
   ];
 
   return (
@@ -2013,6 +2053,127 @@ const AdminDashboard = () => {
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Settings Tab */}
+        {tab === "settings" && (
+          <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20">
+            <h2 className="text-lg font-bold text-[#F5F5F0] mb-6">Settings</h2>
+            
+            {/* Payment Settings Section */}
+            <div className="mb-8">
+              <div className="flex items-center gap-3 mb-4">
+                <IndianRupee className="text-[#D4AF37]" size={24} />
+                <h3 className="text-[#F5F5F0] font-bold text-lg">Payment Settings</h3>
+              </div>
+              
+              <div className="bg-[#050A14] rounded-lg p-4 border border-[#D4AF37]/10 space-y-4">
+                {/* Razorpay Status */}
+                <div className="flex items-center justify-between p-3 bg-[#0A1628] rounded-lg">
+                  <div>
+                    <p className="text-[#F5F5F0] font-medium">Razorpay Integration</p>
+                    <p className="text-[#A0A5B0] text-sm">API keys configuration status</p>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${paymentSettings.razorpay_configured ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
+                    {paymentSettings.razorpay_configured ? 'Configured' : 'Not Configured'}
+                  </span>
+                </div>
+                
+                {!paymentSettings.razorpay_configured && (
+                  <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                    <p className="text-yellow-500 text-sm">
+                      <strong>Note:</strong> Add your Razorpay API keys to backend/.env file:
+                    </p>
+                    <code className="block mt-2 p-2 bg-[#050A14] rounded text-[#A0A5B0] text-xs">
+                      RAZORPAY_KEY_ID=rzp_test_xxxxxxxxxxxx<br/>
+                      RAZORPAY_KEY_SECRET=your_secret_key
+                    </code>
+                  </div>
+                )}
+                
+                {/* Payment Toggle */}
+                <div className="flex items-center justify-between p-3 bg-[#0A1628] rounded-lg">
+                  <div>
+                    <p className="text-[#F5F5F0] font-medium">Paid Registration</p>
+                    <p className="text-[#A0A5B0] text-sm">Require payment for talent registration</p>
+                  </div>
+                  <button
+                    onClick={() => setPaymentSettings({...paymentSettings, payment_enabled: !paymentSettings.payment_enabled})}
+                    className={`relative w-14 h-7 rounded-full transition-colors ${paymentSettings.payment_enabled ? 'bg-[#D4AF37]' : 'bg-[#A0A5B0]/30'}`}
+                  >
+                    <span className={`absolute top-1 w-5 h-5 rounded-full bg-white transition-transform ${paymentSettings.payment_enabled ? 'translate-x-8' : 'translate-x-1'}`} />
+                  </button>
+                </div>
+                
+                {/* Registration Fee */}
+                <div className="p-3 bg-[#0A1628] rounded-lg">
+                  <label className="text-[#F5F5F0] font-medium block mb-2">Registration Fee (₹)</label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="number"
+                      value={paymentSettings.registration_fee}
+                      onChange={(e) => setPaymentSettings({...paymentSettings, registration_fee: parseInt(e.target.value) || 0})}
+                      className="w-32 px-3 py-2 bg-[#050A14] border border-[#D4AF37]/30 rounded text-[#F5F5F0] text-lg font-bold"
+                      min="1"
+                    />
+                    <span className="text-[#A0A5B0]">INR</span>
+                  </div>
+                  <p className="text-[#A0A5B0] text-sm mt-2">Amount talents will pay to register</p>
+                </div>
+                
+                {/* Save Button */}
+                <button
+                  onClick={updatePaymentSettings}
+                  disabled={savingPaymentSettings}
+                  className="w-full py-3 bg-[#D4AF37] text-[#050A14] rounded-lg font-bold disabled:opacity-50"
+                >
+                  {savingPaymentSettings ? 'Saving...' : 'Save Payment Settings'}
+                </button>
+              </div>
+            </div>
+            
+            {/* Payment History */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-[#F5F5F0] font-bold text-lg">Payment History</h3>
+                <button onClick={fetchPaymentHistory} className="text-[#D4AF37] text-sm hover:underline">Refresh</button>
+              </div>
+              
+              {paymentHistory.total_count > 0 ? (
+                <div className="bg-[#050A14] rounded-lg border border-[#D4AF37]/10">
+                  <div className="p-4 border-b border-[#D4AF37]/10">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#A0A5B0]">Total Revenue</span>
+                      <span className="text-[#D4AF37] font-bold text-xl">₹{paymentHistory.total_revenue?.toLocaleString()}</span>
+                    </div>
+                    <p className="text-[#A0A5B0] text-sm mt-1">{paymentHistory.total_count} successful payments</p>
+                  </div>
+                  <div className="max-h-64 overflow-y-auto">
+                    {paymentHistory.payments?.map((p, i) => (
+                      <div key={i} className="p-3 border-b border-[#D4AF37]/5 last:border-0">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="text-[#F5F5F0] font-medium">{p.talent_name}</p>
+                            <p className="text-[#A0A5B0] text-xs">{p.talent_email}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-[#D4AF37] font-bold">₹{(p.amount / 100).toLocaleString()}</p>
+                            <p className="text-[#A0A5B0] text-xs">{new Date(p.paid_at).toLocaleDateString()}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-[#050A14] rounded-lg p-8 text-center border border-[#D4AF37]/10">
+                  <IndianRupee className="text-[#A0A5B0]/30 mx-auto mb-3" size={48} />
+                  <p className="text-[#A0A5B0]">No payments yet</p>
+                  <p className="text-[#A0A5B0]/60 text-sm">Payments will appear here once talents start registering</p>
                 </div>
               )}
             </div>

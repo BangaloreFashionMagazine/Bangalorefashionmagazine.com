@@ -504,14 +504,14 @@ const AdvertisementSidebar = ({ ads }) => {
   };
   
   const handleAdClick = (e, ad) => {
+    e.preventDefault();
+    e.stopPropagation();
     trackAdClick(ad.id);
     if (ad.link) {
-      // Has link - let it navigate
-      return;
+      window.open(ad.link, '_blank', 'noopener,noreferrer');
+    } else {
+      setEnlargedAd(ad);
     }
-    // No link - prevent default and show enlarged image
-    e.preventDefault();
-    setEnlargedAd(ad);
   };
   
   return (
@@ -519,16 +519,13 @@ const AdvertisementSidebar = ({ ads }) => {
       <div className="w-full lg:w-64 space-y-4">
         <p className="text-[#A0A5B0] text-xs uppercase tracking-wider text-center">Sponsored</p>
         {ads.map((ad, i) => (
-          <a 
+          <div 
             key={i} 
-            href={ad.link || "#"} 
-            target={ad.link ? "_blank" : undefined}
-            rel={ad.link ? "noopener noreferrer" : undefined}
             className="block cursor-pointer"
             onClick={(e) => handleAdClick(e, ad)}
           >
             <img src={ad.image_data} alt={ad.title} className="w-full rounded-lg border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all" />
-          </a>
+          </div>
         ))}
       </div>
       
@@ -1310,6 +1307,94 @@ const JoinPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   
+  // Payment state
+  const [paymentSettings, setPaymentSettings] = useState({ payment_enabled: false, registration_fee: 499 });
+  const [paymentStep, setPaymentStep] = useState('form'); // 'form', 'payment', 'success'
+  const [talentId, setTalentId] = useState(null);
+  
+  // Fetch payment settings on mount
+  useEffect(() => {
+    axios.get(`${API}/payment-settings`).then(res => setPaymentSettings(res.data)).catch(() => {});
+  }, []);
+  
+  // Load Razorpay script
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (document.getElementById('razorpay-script')) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement('script');
+      script.id = 'razorpay-script';
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+  
+  // Handle payment
+  const initiatePayment = async (talentIdParam) => {
+    const scriptLoaded = await loadRazorpayScript();
+    if (!scriptLoaded) {
+      toast({ title: "Error", description: "Could not load payment gateway", variant: "destructive" });
+      return;
+    }
+    
+    try {
+      // Create order
+      const orderRes = await axios.post(`${API}/create-order`, {
+        amount: paymentSettings.registration_fee * 100, // Convert to paise
+        talent_id: talentIdParam,
+        talent_name: formData.name,
+        talent_email: formData.email,
+        talent_phone: formData.phone
+      });
+      
+      const options = {
+        key: orderRes.data.key_id,
+        amount: orderRes.data.amount,
+        currency: orderRes.data.currency,
+        name: "Bangalore Fashion Magazine",
+        description: "Talent Registration Fee",
+        order_id: orderRes.data.order_id,
+        handler: async function(response) {
+          // Verify payment
+          try {
+            await axios.post(`${API}/verify-payment`, {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              talent_id: talentIdParam
+            });
+            setPaymentStep('success');
+            toast({ title: "Payment Successful!", description: "Your registration is pending admin approval." });
+          } catch (err) {
+            toast({ title: "Payment verification failed", description: "Please contact support", variant: "destructive" });
+          }
+        },
+        prefill: {
+          name: formData.name,
+          email: formData.email,
+          contact: formData.phone
+        },
+        theme: {
+          color: "#D4AF37"
+        },
+        modal: {
+          ondismiss: function() {
+            toast({ title: "Payment cancelled", description: "You can complete payment later", variant: "destructive" });
+          }
+        }
+      };
+      
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+    } catch (err) {
+      toast({ title: "Error", description: err.response?.data?.detail || "Could not initiate payment", variant: "destructive" });
+    }
+  };
+  
   const toggleStoreCategory = (catId) => {
     setFormData(prev => ({
       ...prev,
@@ -1454,16 +1539,28 @@ I confirm that I have read, understood, and voluntarily accepted this declaratio
     }
     setLoading(true);
     try {
-      await axios.post(`${API}/talent/register`, { 
+      const response = await axios.post(`${API}/talent/register`, { 
         ...formData, 
         profile_image: profileImage, 
         portfolio_images: portfolio, 
         portfolio_video: portfolioVideo,
         agreed_to_terms: true, 
-        agreed_at: new Date().toISOString() 
+        agreed_at: new Date().toISOString(),
+        payment_status: paymentSettings.payment_enabled ? 'pending' : 'not_required'
       });
-      toast({ title: "Registration Successful!", description: "Please wait for admin approval." });
-      navigate("/talent-login");
+      
+      const newTalentId = response.data.id;
+      setTalentId(newTalentId);
+      
+      // If payment is enabled, initiate payment
+      if (paymentSettings.payment_enabled) {
+        setPaymentStep('payment');
+        await initiatePayment(newTalentId);
+      } else {
+        // No payment required
+        toast({ title: "Registration Successful!", description: "Please wait for admin approval." });
+        navigate("/talent-login");
+      }
     } catch (err) {
       toast({ title: "Error", description: err.response?.data?.detail || "Registration failed", variant: "destructive" });
     } finally {
@@ -1685,9 +1782,48 @@ const AboutPage = () => (
 );
 
 // Home Page
-const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine, video, partyEvents }) => (
+const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine, video, partyEvents }) => {
+  const [enlargedAd, setEnlargedAd] = useState(null);
+  
+  const handleAdClick = (e, ad) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (ad.link) {
+      window.open(ad.link, '_blank', 'noopener,noreferrer');
+    } else {
+      setEnlargedAd(ad);
+    }
+  };
+  
+  return (
   <div className="min-h-screen bg-[#050A14]">
     <Navbar user={user} talent={talent} onLogout={onLogout} />
+    
+    {/* Enlarged Ad Modal */}
+    {enlargedAd && (
+      <div 
+        className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4"
+        onClick={() => setEnlargedAd(null)}
+      >
+        <div className="relative max-w-4xl max-h-[90vh]">
+          <button 
+            onClick={() => setEnlargedAd(null)}
+            className="absolute -top-10 right-0 text-white hover:text-[#D4AF37] text-xl"
+          >
+            ✕ Close
+          </button>
+          <img 
+            src={enlargedAd.image_data} 
+            alt={enlargedAd.title || "Sponsored"} 
+            className="max-w-full max-h-[85vh] object-contain rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          />
+          {enlargedAd.title && (
+            <p className="text-white text-center mt-2">{enlargedAd.title}</p>
+          )}
+        </div>
+      </div>
+    )}
     
     {/* Main Content with Sticky Ads Sidebar */}
     <div className="flex">
@@ -1707,12 +1843,7 @@ const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine, v
                   <div 
                     key={i} 
                     className="flex-shrink-0 cursor-pointer"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (ad.link) {
-                        window.open(ad.link, '_blank', 'noopener,noreferrer');
-                      }
-                    }}
+                    onClick={(e) => handleAdClick(e, ad)}
                   >
                     <div className="w-16 h-16 overflow-hidden rounded border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all">
                       <img src={ad.image_data} alt={ad.title || "Ad"} className="w-full h-full object-cover" />
@@ -1804,12 +1935,7 @@ const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine, v
                 <div 
                   key={i} 
                   className="block cursor-pointer"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    if (ad.link) {
-                      window.open(ad.link, '_blank', 'noopener,noreferrer');
-                    }
-                  }}
+                  onClick={(e) => handleAdClick(e, ad)}
                 >
                   <div className="aspect-[4/5] w-full overflow-hidden rounded-lg border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all">
                     <img src={ad.image_data} alt={ad.title || "Ad"} className="w-full h-full object-cover" />
@@ -1832,12 +1958,7 @@ const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine, v
               <div 
                 key={i} 
                 className="w-24 sm:w-32 md:w-40 cursor-pointer"
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (ad.link) {
-                    window.open(ad.link, '_blank', 'noopener,noreferrer');
-                  }
-                }}
+                onClick={(e) => handleAdClick(e, ad)}
               >
                 <div className="aspect-[4/5] w-full overflow-hidden rounded-lg border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all">
                   <img src={ad.image_data} alt={ad.title || "Ad"} className="w-full h-full object-cover" />
@@ -1849,7 +1970,8 @@ const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine, v
       </div>
     )}
   </div>
-);
+  );
+};
 
 // Main App
 function App() {

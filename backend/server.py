@@ -113,6 +113,9 @@ magazine_builder_routes = create_magazine_builder_router(db)
 from routes.password_reset import create_password_reset_routes
 password_reset_routes = create_password_reset_routes(db)
 
+from routes.payments import create_payments_router
+payments_routes = create_payments_router(db)
+
 # Include all routes in the API router
 api_router.include_router(auth_routes)
 api_router.include_router(talent_routes)
@@ -123,6 +126,7 @@ api_router.include_router(store_routes)
 api_router.include_router(instagram_routes)
 api_router.include_router(magazine_builder_routes)
 api_router.include_router(password_reset_routes)
+api_router.include_router(payments_routes)
 
 # Include the API router in the main app
 app.include_router(api_router)
