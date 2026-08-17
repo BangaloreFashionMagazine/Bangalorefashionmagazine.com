@@ -211,6 +211,8 @@ const HeroSlider = ({ customSlides }) => {
 
 // Party Updates Section (only shows if there are active party events)
 const PartyUpdatesSection = ({ partyEvents }) => {
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  
   if (!partyEvents || partyEvents.length === 0) return null;
   
   // Track party view when user hovers/clicks
@@ -233,10 +235,16 @@ const PartyUpdatesSection = ({ partyEvents }) => {
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {partyEvents.map((event, i) => (
-            <div key={i} className="bg-[#0A1628] border border-[#D4AF37]/20 rounded-xl overflow-hidden hover:border-[#D4AF37]/50 transition-all"
-              onClick={() => trackPartyView(event.id)}>
+            <div 
+              key={i} 
+              className="bg-[#0A1628] border border-[#D4AF37]/20 rounded-xl overflow-hidden hover:border-[#D4AF37]/50 transition-all cursor-pointer"
+              onClick={() => {
+                trackPartyView(event.id);
+                setSelectedEvent(event);
+              }}
+            >
               {event.image && (
-                <img src={event.image} alt={event.title} className="w-full h-48 object-cover" />
+                <img src={event.image} alt={event.title} className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300" />
               )}
               <div className="p-5">
                 <div className="flex items-center justify-between mb-3">
@@ -247,25 +255,73 @@ const PartyUpdatesSection = ({ partyEvents }) => {
                     </span>
                   )}
                 </div>
-                <h3 className="text-[#F5F5F0] font-bold text-xl mb-2">{event.title}</h3>
-                <p className="text-[#A0A5B0] text-sm mb-3">{event.venue}</p>
+                <h3 className="text-[#F5F5F0] font-bold text-xl mb-2 line-clamp-2">{event.title}</h3>
+                <p className="text-[#A0A5B0] text-sm mb-3 line-clamp-1">{event.venue}</p>
                 {event.description && (
-                  <p className="text-[#A0A5B0] text-sm mb-4">{event.description}</p>
+                  <p className="text-[#A0A5B0] text-sm mb-4 line-clamp-2">{event.description}</p>
                 )}
-                {event.booking_info && (
-                  <div className="p-3 bg-[#050A14] rounded-lg border border-[#D4AF37]/10">
-                    <p className="text-[#D4AF37] text-xs uppercase tracking-wider mb-1">Booking Info</p>
-                    <p className="text-[#F5F5F0] text-sm">{event.booking_info}</p>
-                  </div>
-                )}
-                {event.contact && (
-                  <p className="text-[#A0A5B0] text-xs mt-3">Contact: {event.contact}</p>
-                )}
+                <p className="text-[#D4AF37]/60 text-xs">Click for full details</p>
               </div>
             </div>
           ))}
         </div>
       </div>
+      
+      {/* Full Detail Modal */}
+      {selectedEvent && (
+        <div 
+          className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4"
+          onClick={() => setSelectedEvent(null)}
+        >
+          <div 
+            className="bg-[#0A1628] rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="relative">
+              {selectedEvent.image && (
+                <img 
+                  src={selectedEvent.image} 
+                  alt={selectedEvent.title} 
+                  className="w-full h-64 sm:h-80 object-cover"
+                />
+              )}
+              <button 
+                onClick={() => setSelectedEvent(null)}
+                className="absolute top-3 right-3 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center text-white hover:bg-black/70"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-[#D4AF37] text-sm font-bold">{selectedEvent.event_date}</span>
+                {selectedEvent.entry_code && (
+                  <span className="px-4 py-1.5 bg-[#D4AF37] text-[#050A14] text-sm font-bold rounded-full">
+                    Entry Code: {selectedEvent.entry_code}
+                  </span>
+                )}
+              </div>
+              <h2 className="text-[#F5F5F0] font-serif text-2xl sm:text-3xl font-bold mb-3">{selectedEvent.title}</h2>
+              <p className="text-[#D4AF37]/80 text-lg mb-4">{selectedEvent.venue}</p>
+              {selectedEvent.description && (
+                <p className="text-[#A0A5B0] leading-relaxed mb-6">{selectedEvent.description}</p>
+              )}
+              {selectedEvent.booking_info && (
+                <div className="p-4 bg-[#050A14] rounded-lg border border-[#D4AF37]/20 mb-4">
+                  <p className="text-[#D4AF37] text-xs uppercase tracking-wider mb-2">Booking Information</p>
+                  <p className="text-[#F5F5F0]">{selectedEvent.booking_info}</p>
+                </div>
+              )}
+              {selectedEvent.contact && (
+                <div className="p-4 bg-[#050A14] rounded-lg border border-[#D4AF37]/20">
+                  <p className="text-[#D4AF37] text-xs uppercase tracking-wider mb-2">Contact</p>
+                  <p className="text-[#F5F5F0]">{selectedEvent.contact}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };
@@ -273,6 +329,7 @@ const PartyUpdatesSection = ({ partyEvents }) => {
 // Contest Winners Section (only shows if contests exist)
 const ContestWinnersSection = ({ awards }) => {
   const [activeImages, setActiveImages] = useState({});
+  const [selectedAward, setSelectedAward] = useState(null);
   const navigate = useNavigate();
   
   if (!awards || awards.length === 0) return null;
@@ -297,6 +354,9 @@ const ContestWinnersSection = ({ awards }) => {
     if (award.talent_id) {
       // Navigate to the talent's category page and open their profile
       navigate(`/talent/${award.talent_id}`);
+    } else {
+      // Show full details modal
+      setSelectedAward(award);
     }
   };
   
@@ -315,7 +375,7 @@ const ContestWinnersSection = ({ awards }) => {
             return (
               <div 
                 key={i} 
-                className={`bg-[#050A14] border border-[#D4AF37]/20 rounded-xl overflow-hidden ${award.talent_id ? 'cursor-pointer hover:border-[#D4AF37]/60 transition-all' : ''}`}
+                className="bg-[#050A14] border border-[#D4AF37]/20 rounded-xl overflow-hidden cursor-pointer hover:border-[#D4AF37]/60 transition-all"
                 onClick={() => handleWinnerClick(award)}
               >
                 {images.length > 0 && (
@@ -323,13 +383,13 @@ const ContestWinnersSection = ({ awards }) => {
                     <img 
                       src={images[activeIdx]} 
                       alt={`${award.winner_name} - ${activeIdx + 1}`} 
-                      className="w-full h-64 object-cover transition-opacity duration-300" 
+                      className="w-full h-64 object-cover transition-opacity duration-300 hover:scale-105 transition-transform" 
                     />
-                    {award.talent_id && (
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all flex items-center justify-center">
-                        <span className="text-white text-sm opacity-0 group-hover:opacity-100 transition-opacity bg-[#D4AF37] px-3 py-1 rounded-full">View Profile</span>
-                      </div>
-                    )}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all flex items-center justify-center">
+                      <span className="text-white text-sm opacity-0 group-hover:opacity-100 transition-opacity bg-[#D4AF37] px-3 py-1 rounded-full">
+                        {award.talent_id ? 'View Profile' : 'View Details'}
+                      </span>
+                    </div>
                     {images.length > 1 && (
                       <>
                         <button 
@@ -363,13 +423,65 @@ const ContestWinnersSection = ({ awards }) => {
                   </div>
                   <h3 className="text-[#F5F5F0] font-bold text-xl">{award.winner_name}</h3>
                   {award.category && <p className="text-[#A0A5B0] text-xs mt-1">{award.category}</p>}
-                  {award.description && <p className="text-[#A0A5B0] text-sm mt-2">{award.description}</p>}
+                  {award.description && <p className="text-[#A0A5B0] text-sm mt-2 line-clamp-2">{award.description}</p>}
                 </div>
               </div>
             );
           })}
         </div>
       </div>
+      
+      {/* Full Detail Modal for non-talent awards */}
+      {selectedAward && (
+        <div 
+          className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4"
+          onClick={() => setSelectedAward(null)}
+        >
+          <div 
+            className="bg-[#0A1628] rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="relative">
+              {(selectedAward.winner_images?.[0] || selectedAward.winner_image) && (
+                <img 
+                  src={selectedAward.winner_images?.[0] || selectedAward.winner_image} 
+                  alt={selectedAward.winner_name} 
+                  className="w-full h-64 sm:h-80 object-cover"
+                />
+              )}
+              <button 
+                onClick={() => setSelectedAward(null)}
+                className="absolute top-3 right-3 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center text-white hover:bg-black/70"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <Award className="text-[#D4AF37]" size={24} />
+                <span className="text-[#D4AF37] text-sm uppercase tracking-wider">{selectedAward.title}</span>
+              </div>
+              <h2 className="text-[#F5F5F0] font-serif text-2xl sm:text-3xl font-bold mb-2">{selectedAward.winner_name}</h2>
+              {selectedAward.category && (
+                <p className="text-[#D4AF37]/80 text-sm mb-4">{selectedAward.category}</p>
+              )}
+              {selectedAward.description && (
+                <p className="text-[#A0A5B0] leading-relaxed">{selectedAward.description}</p>
+              )}
+              {selectedAward.winner_images?.length > 1 && (
+                <div className="mt-6">
+                  <p className="text-[#A0A5B0] text-sm mb-3">All Photos</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {selectedAward.winner_images.map((img, idx) => (
+                      <img key={idx} src={img} alt={`${selectedAward.winner_name} ${idx + 1}`} className="w-full aspect-square object-cover rounded" />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };
@@ -464,24 +576,23 @@ const ClickableAdImage = ({ ad, className = "", imgClassName = "" }) => {
   };
   
   const handleClick = (e) => {
+    e.preventDefault();
     trackAdClick(ad.id);
-    if (!ad.link) {
-      e.preventDefault();
+    if (ad.link) {
+      window.open(ad.link, '_blank', 'noopener,noreferrer');
+    } else {
       setShowEnlarged(true);
     }
   };
   
   return (
     <>
-      <a 
-        href={ad.link || "#"} 
-        target={ad.link ? "_blank" : undefined}
-        rel={ad.link ? "noopener noreferrer" : undefined}
-        className={className}
+      <div 
+        className={`${className} cursor-pointer`}
         onClick={handleClick}
       >
         <img src={ad.image_data} alt={ad.title || "Sponsored"} className={imgClassName} />
-      </a>
+      </div>
       
       {showEnlarged && (
         <div 
@@ -1593,11 +1704,20 @@ const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine, v
               <p className="text-[#A0A5B0] text-[10px] uppercase tracking-wider text-center mb-2">Sponsored</p>
               <div className="flex gap-2 overflow-x-auto pb-2 justify-center">
                 {ads.map((ad, i) => (
-                  <a key={i} href={ad.link || "#"} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
-                    <div className="w-16 h-16 overflow-hidden rounded border border-[#D4AF37]/10">
+                  <div 
+                    key={i} 
+                    className="flex-shrink-0 cursor-pointer"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (ad.link) {
+                        window.open(ad.link, '_blank', 'noopener,noreferrer');
+                      }
+                    }}
+                  >
+                    <div className="w-16 h-16 overflow-hidden rounded border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all">
                       <img src={ad.image_data} alt={ad.title || "Ad"} className="w-full h-full object-cover" />
                     </div>
-                  </a>
+                  </div>
                 ))}
               </div>
             </div>
@@ -1681,11 +1801,20 @@ const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine, v
             <p className="text-[#A0A5B0] text-[10px] uppercase tracking-wider text-center mb-3">Sponsored</p>
             <div className="flex flex-col gap-3">
               {ads.map((ad, i) => (
-                <a key={i} href={ad.link || "#"} target="_blank" rel="noopener noreferrer" className="block">
+                <div 
+                  key={i} 
+                  className="block cursor-pointer"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (ad.link) {
+                      window.open(ad.link, '_blank', 'noopener,noreferrer');
+                    }
+                  }}
+                >
                   <div className="aspect-[4/5] w-full overflow-hidden rounded-lg border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all">
                     <img src={ad.image_data} alt={ad.title || "Ad"} className="w-full h-full object-cover" />
                   </div>
-                </a>
+                </div>
               ))}
             </div>
           </div>
@@ -1700,11 +1829,20 @@ const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine, v
           <p className="text-[#A0A5B0] text-xs uppercase tracking-wider text-center mb-4 sm:mb-6">Our Sponsors</p>
           <div className="flex flex-wrap justify-center gap-4 sm:gap-6 md:gap-8">
             {ads.map((ad, i) => (
-              <a key={i} href={ad.link || "#"} target="_blank" rel="noopener noreferrer" className="w-24 sm:w-32 md:w-40">
+              <div 
+                key={i} 
+                className="w-24 sm:w-32 md:w-40 cursor-pointer"
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (ad.link) {
+                    window.open(ad.link, '_blank', 'noopener,noreferrer');
+                  }
+                }}
+              >
                 <div className="aspect-[4/5] w-full overflow-hidden rounded-lg border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all">
                   <img src={ad.image_data} alt={ad.title || "Ad"} className="w-full h-full object-cover" />
                 </div>
-              </a>
+              </div>
             ))}
           </div>
         </div>
