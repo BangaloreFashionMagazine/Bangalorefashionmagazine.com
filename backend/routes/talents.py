@@ -260,7 +260,14 @@ def create_talent_routes(db):
 
 
     @router.get("/talents", response_model=List[TalentResponse])
-    async def get_talents(approved_only: bool = True, category: Optional[str] = None, lightweight: bool = False, featured: bool = False):
+    async def get_talents(
+        approved_only: bool = True, 
+        category: Optional[str] = None, 
+        lightweight: bool = False, 
+        featured: bool = False,
+        search: Optional[str] = None,
+        location: Optional[str] = None
+    ):
         query = {}
         if approved_only:
             query["is_approved"] = True
@@ -268,6 +275,14 @@ def create_talent_routes(db):
             query["is_featured"] = True
         if category and category not in ["All", "All Talents"]:
             query["category"] = category
+        
+        # Search by name (case-insensitive)
+        if search and search.strip():
+            query["name"] = {"$regex": search.strip(), "$options": "i"}
+        
+        # Filter by location if provided
+        if location and location.strip():
+            query["location"] = {"$regex": location.strip(), "$options": "i"}
         
         # Always exclude large portfolio fields from list view for faster loading
         projection = {"_id": 0, "portfolio_images": 0, "portfolio_video": 0, "password_hash": 0, "password_plain": 0}
@@ -296,7 +311,8 @@ def create_talent_routes(db):
                 hero_images=t.get("hero_images", []),
                 rank=t.get("rank", 999), votes=t.get("votes", 0), created_at=t.get("created_at", ""),
                 agreed_to_terms=t.get("agreed_to_terms", False), agreed_at=t.get("agreed_at", ""),
-                store_subcategories=t.get("store_subcategories", [])
+                store_subcategories=t.get("store_subcategories", []),
+                location=t.get("location", "")
             ) for t in talents
         ]
 

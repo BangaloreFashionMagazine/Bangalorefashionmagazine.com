@@ -68,6 +68,12 @@ const AdminDashboard = () => {
   const [talentSearch, setTalentSearch] = useState("");
   const [customImages, setCustomImages] = useState([]);  // Custom uploaded images for Instagram
   const [useCustomImages, setUseCustomImages] = useState(false);  // Toggle to use custom images
+  const [instaSettings, setInstaSettings] = useState({
+    showTalentInsta: false,  // Default OFF - don't show talent's Instagram
+    showWebsite: true,       // Default ON - show BFM website
+    showQR: true,            // Default ON - show QR code to BFM profile
+    promotionFormat: 'both'  // 'feed', 'story', or 'both'
+  });
 
   // Payment Settings state
   const [paymentSettings, setPaymentSettings] = useState({
@@ -766,8 +772,45 @@ const AdminDashboard = () => {
         {tab === "instagram" && (
           <div className="bg-[#0A1628] rounded-xl p-4 md:p-6 border border-[#D4AF37]/20">
             <h2 className="text-lg font-bold text-[#F5F5F0] mb-4">Instagram Promotion</h2>
-            <p className="text-[#A0A5B0] text-sm mb-6">Search and select an approved talent to generate professional Instagram posts.</p>
+            <p className="text-[#A0A5B0] text-sm mb-6">Generate professional Instagram promotional images to drive traffic to the BFM website.</p>
             
+            {/* Promotion Settings */}
+            <div className="mb-6 p-4 bg-[#050A14] rounded-lg border border-[#D4AF37]/10">
+              <h3 className="text-[#D4AF37] font-bold text-sm mb-3">Promotion Settings</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="flex items-center justify-between">
+                  <label className="text-[#F5F5F0] text-sm">Show Talent Instagram</label>
+                  <button 
+                    onClick={() => setInstaSettings(s => ({ ...s, showTalentInsta: !s.showTalentInsta }))}
+                    className={`w-12 h-6 rounded-full transition-colors ${instaSettings.showTalentInsta ? "bg-[#D4AF37]" : "bg-[#050A14] border border-[#D4AF37]/30"}`}
+                  >
+                    <div className={`w-5 h-5 bg-white rounded-full transition-transform ${instaSettings.showTalentInsta ? "translate-x-6" : "translate-x-0.5"}`} />
+                  </button>
+                </div>
+                <div className="flex items-center justify-between">
+                  <label className="text-[#F5F5F0] text-sm">Show BFM Website</label>
+                  <button 
+                    onClick={() => setInstaSettings(s => ({ ...s, showWebsite: !s.showWebsite }))}
+                    className={`w-12 h-6 rounded-full transition-colors ${instaSettings.showWebsite ? "bg-[#D4AF37]" : "bg-[#050A14] border border-[#D4AF37]/30"}`}
+                  >
+                    <div className={`w-5 h-5 bg-white rounded-full transition-transform ${instaSettings.showWebsite ? "translate-x-6" : "translate-x-0.5"}`} />
+                  </button>
+                </div>
+                <div className="flex items-center justify-between">
+                  <label className="text-[#F5F5F0] text-sm">Show QR Code</label>
+                  <button 
+                    onClick={() => setInstaSettings(s => ({ ...s, showQR: !s.showQR }))}
+                    className={`w-12 h-6 rounded-full transition-colors ${instaSettings.showQR ? "bg-[#D4AF37]" : "bg-[#050A14] border border-[#D4AF37]/30"}`}
+                  >
+                    <div className={`w-5 h-5 bg-white rounded-full transition-transform ${instaSettings.showQR ? "translate-x-6" : "translate-x-0.5"}`} />
+                  </button>
+                </div>
+              </div>
+              <p className="text-[#A0A5B0] text-xs mt-3">
+                Default: Hide talent's personal Instagram to drive traffic to BFM website instead.
+              </p>
+            </div>
+
             {/* Talent Search and Selection */}
             <div className="mb-6">
               <label className="text-[#A0A5B0] text-sm mb-2 block">Search Talent by Name</label>
@@ -816,13 +859,13 @@ const AdminDashboard = () => {
             
             {instagramTalent && (
               <div className="space-y-6">
-                {/* Talent Info */}
+                {/* Talent Info - No Instagram ID by default */}
                 <div className="bg-[#050A14] rounded-lg p-4 flex items-center gap-4">
                   <img src={instagramTalent.profile_image} alt={instagramTalent.name} className="w-20 h-20 rounded-full object-cover border-2 border-[#D4AF37]" />
                   <div>
                     <h3 className="text-[#F5F5F0] font-bold text-lg">{instagramTalent.name}</h3>
                     <p className="text-[#D4AF37]">{instagramTalent.category}</p>
-                    <p className="text-[#A0A5B0] text-sm">@{instagramTalent.instagram_id || "instagram"} • Bangalore, India</p>
+                    <p className="text-[#A0A5B0] text-sm">Bangalore Fashion Magazine • Bangalore, India</p>
                   </div>
                 </div>
                 
@@ -1030,124 +1073,178 @@ const AdminDashboard = () => {
                   <div className="mt-8 border-t border-[#D4AF37]/20 pt-6">
                     <h3 className="text-[#D4AF37] font-bold text-lg mb-4">Generated Designs</h3>
                     
-                    {/* Feed Posts */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                      {[0, 1].map(idx => {
-                        const imageSource = useCustomImages 
-                          ? customImages[idx === 0 ? selectedImage1 : selectedImage2]
-                          : instagramTalent.portfolio_images?.[idx === 0 ? selectedImage1 : selectedImage2];
-                        return (
-                        <div key={idx} className="bg-[#050A14] rounded-lg p-4">
-                          <h4 className="text-[#F5F5F0] font-bold mb-3">Feed Design {idx + 1}</h4>
-                          {/* Instagram Feed Preview */}
-                          <div 
-                            id={`feed-design-${idx}`}
-                            className="relative bg-black rounded-lg overflow-hidden"
-                            style={{ aspectRatio: '4/5', maxWidth: '400px' }}
-                          >
-                            <img 
-                              src={imageSource} 
-                              alt="Design" 
-                              className="w-full h-full object-cover"
-                            />
-                            {/* Overlay */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40">
-                              {/* Top branding */}
-                              <div className="absolute top-4 left-4 right-4 flex justify-end items-start">
-                                <div className="text-white text-right text-xs">
-                                  <div className="font-bold">BANGALORE</div>
-                                  <div>FASHION MAGAZINE</div>
+                    {/* Instagram Feed Posts - 1080x1350 (4:5 ratio) */}
+                    <div className="mb-8">
+                      <h4 className="text-[#F5F5F0] font-semibold mb-2 flex items-center gap-2">
+                        <span className="w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-md"></span>
+                        Instagram Feed (1080 × 1350 px)
+                      </h4>
+                      <p className="text-[#A0A5B0] text-xs mb-4">Optimized for Instagram feed posts with 4:5 portrait aspect ratio</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {[0, 1].map(idx => {
+                          const imageSource = useCustomImages 
+                            ? customImages[idx === 0 ? selectedImage1 : selectedImage2]
+                            : instagramTalent.portfolio_images?.[idx === 0 ? selectedImage1 : selectedImage2];
+                          return (
+                          <div key={idx} className="bg-[#050A14] rounded-lg p-4">
+                            <h4 className="text-[#F5F5F0] font-bold mb-3">Feed Design {idx + 1}</h4>
+                            {/* Instagram Feed Preview - 4:5 ratio */}
+                            <div 
+                              id={`feed-design-${idx}`}
+                              className="relative bg-black rounded-lg overflow-hidden mx-auto"
+                              style={{ aspectRatio: '4/5', maxWidth: '350px', width: '100%' }}
+                            >
+                              <img 
+                                src={imageSource} 
+                                alt="Design" 
+                                className="w-full h-full object-cover"
+                                style={{ objectPosition: 'center 20%' }}
+                              />
+                              {/* Overlay */}
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-black/50">
+                                {/* Top branding */}
+                                <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
+                                  <img src={BFM_LOGO} alt="BFM" className="w-12 h-12 rounded-full object-cover border-2 border-[#D4AF37]" />
+                                  <div className="text-white text-right">
+                                    <div className="text-xs font-bold tracking-wider">BANGALORE</div>
+                                    <div className="text-xs">FASHION MAGAZINE</div>
+                                  </div>
                                 </div>
-                              </div>
-                              {/* Bottom info */}
-                              <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
-                                {/* BFM Logo - Bottom Left */}
-                                <img src={BFM_LOGO} alt="BFM" className="w-14 h-14 rounded-full object-cover border-2 border-[#D4AF37]" />
-                                <div className="text-right">
-                                  <div className="text-[#D4AF37] text-xs uppercase tracking-widest mb-1">{instagramTalent.category}</div>
+                                {/* Bottom info */}
+                                <div className="absolute bottom-4 left-4 right-4">
+                                  <div className="text-[#D4AF37] text-xs uppercase tracking-widest mb-1">Featured Talent</div>
                                   <div className="text-white text-2xl font-bold mb-1">{instagramTalent.name}</div>
-                                  <div className="text-white/80 text-sm">@{instagramTalent.instagram_id || "instagram"}</div>
-                                  <div className="text-white/60 text-xs mt-2">www.bangalorefashionmagazine.com</div>
+                                  <div className="text-[#D4AF37] text-sm uppercase tracking-wide">{instagramTalent.category}</div>
+                                  {instaSettings.showTalentInsta && instagramTalent.instagram_id && (
+                                    <div className="text-white/70 text-sm mt-1">@{instagramTalent.instagram_id}</div>
+                                  )}
+                                  {instaSettings.showWebsite && (
+                                    <div className="mt-3 pt-3 border-t border-white/20">
+                                      <div className="text-white/90 text-xs">Discover this talent on</div>
+                                      <div className="text-[#D4AF37] text-sm font-bold">bangalorefashionmagazine.com</div>
+                                    </div>
+                                  )}
                                 </div>
+                                {/* QR Code placeholder */}
+                                {instaSettings.showQR && (
+                                  <div className="absolute bottom-4 right-4 w-16 h-16 bg-white rounded-md flex items-center justify-center">
+                                    <div className="text-[#050A14] text-[6px] text-center">
+                                      <div className="font-bold">SCAN</div>
+                                      <div>for profile</div>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             </div>
-                          </div>
-                          <button 
-                            onClick={() => {
-                              const el = document.getElementById(`feed-design-${idx}`);
-                              import('html2canvas').then(({ default: html2canvas }) => {
-                                html2canvas(el, { scale: 2, useCORS: true }).then(canvas => {
-                                  const link = document.createElement('a');
-                                  link.download = `${instagramTalent.name.replace(/\s+/g, '_')}_feed_${idx + 1}.png`;
-                                  link.href = canvas.toDataURL('image/png');
-                                  link.click();
+                            <button 
+                              onClick={() => {
+                                const el = document.getElementById(`feed-design-${idx}`);
+                                import('html2canvas').then(({ default: html2canvas }) => {
+                                  // Export at exact Instagram dimensions: 1080x1350
+                                  html2canvas(el, { 
+                                    scale: 1080 / el.offsetWidth, 
+                                    useCORS: true,
+                                    width: el.offsetWidth,
+                                    height: el.offsetHeight
+                                  }).then(canvas => {
+                                    const link = document.createElement('a');
+                                    link.download = `BFM_${instagramTalent.name.replace(/\s+/g, '_')}_Feed_${idx + 1}.png`;
+                                    link.href = canvas.toDataURL('image/png');
+                                    link.click();
+                                  });
                                 });
-                              });
-                            }}
-                            className="mt-3 w-full px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold text-sm"
-                          >
-                            Download Feed Image {idx + 1}
-                          </button>
-                        </div>
-                      )})}
+                              }}
+                              className="mt-3 w-full px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold text-sm"
+                            >
+                              Download Feed (1080×1350)
+                            </button>
+                          </div>
+                        )})}
+                      </div>
                     </div>
                     
-                    {/* Story Posts */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                      {[0, 1].map(idx => {
-                        const imageSource = useCustomImages 
-                          ? customImages[idx === 0 ? selectedImage1 : selectedImage2]
-                          : instagramTalent.portfolio_images?.[idx === 0 ? selectedImage1 : selectedImage2];
-                        return (
-                        <div key={idx} className="bg-[#050A14] rounded-lg p-4">
-                          <h4 className="text-[#F5F5F0] font-bold mb-3">Story Design {idx + 1}</h4>
-                          {/* Instagram Story Preview */}
-                          <div 
-                            id={`story-design-${idx}`}
-                            className="relative bg-black rounded-lg overflow-hidden mx-auto"
-                            style={{ aspectRatio: '9/16', maxWidth: '250px' }}
-                          >
-                            <img 
-                              src={imageSource} 
-                              alt="Story Design" 
-                              className="w-full h-full object-cover"
-                            />
-                            {/* Story Overlay */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/60">
-                              {/* Top branding */}
-                              <div className="absolute top-6 left-0 right-0 text-center">
-                                <div className="text-[#D4AF37] text-xs font-bold tracking-widest">BANGALORE FASHION MAGAZINE</div>
-                                <div className="text-white/60 text-[10px] mt-1">www.bangalorefashionmagazine.com</div>
+                    {/* Instagram Story Posts - 1080x1920 (9:16 ratio) */}
+                    <div>
+                      <h4 className="text-[#F5F5F0] font-semibold mb-2 flex items-center gap-2">
+                        <span className="w-6 h-6 bg-gradient-to-br from-orange-500 to-red-500 rounded-md"></span>
+                        Instagram Story (1080 × 1920 px)
+                      </h4>
+                      <p className="text-[#A0A5B0] text-xs mb-4">Optimized for Instagram stories with 9:16 full-screen aspect ratio</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {[0, 1].map(idx => {
+                          const imageSource = useCustomImages 
+                            ? customImages[idx === 0 ? selectedImage1 : selectedImage2]
+                            : instagramTalent.portfolio_images?.[idx === 0 ? selectedImage1 : selectedImage2];
+                          return (
+                          <div key={idx} className="bg-[#050A14] rounded-lg p-4">
+                            <h4 className="text-[#F5F5F0] font-bold mb-3">Story Design {idx + 1}</h4>
+                            {/* Instagram Story Preview - 9:16 ratio */}
+                            <div 
+                              id={`story-design-${idx}`}
+                              className="relative bg-black rounded-lg overflow-hidden mx-auto"
+                              style={{ aspectRatio: '9/16', maxWidth: '220px', width: '100%' }}
+                            >
+                              <img 
+                                src={imageSource} 
+                                alt="Story Design" 
+                                className="w-full h-full object-cover"
+                                style={{ objectPosition: 'center 15%' }}
+                              />
+                              {/* Story Overlay - Safe areas for Instagram UI */}
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-transparent to-black/70">
+                                {/* Top branding - below Instagram safe area */}
+                                <div className="absolute top-12 left-0 right-0 text-center">
+                                  <img src={BFM_LOGO} alt="BFM" className="w-10 h-10 mx-auto rounded-full border-2 border-[#D4AF37] mb-2" />
+                                  <div className="text-[#D4AF37] text-[10px] font-bold tracking-widest">BANGALORE FASHION MAGAZINE</div>
+                                </div>
+                                {/* Bottom info - above Instagram safe area */}
+                                <div className="absolute bottom-16 left-4 right-4 text-center">
+                                  <div className="text-[#D4AF37] text-[10px] uppercase tracking-widest mb-1">Featured Talent</div>
+                                  <div className="text-white text-lg font-bold mb-1">{instagramTalent.name}</div>
+                                  <div className="text-[#D4AF37] text-xs uppercase">{instagramTalent.category}</div>
+                                  {instaSettings.showTalentInsta && instagramTalent.instagram_id && (
+                                    <div className="text-white/70 text-xs mt-1">@{instagramTalent.instagram_id}</div>
+                                  )}
+                                  {instaSettings.showWebsite && (
+                                    <div className="mt-3 pt-2 border-t border-white/20">
+                                      <div className="text-white/80 text-[10px]">Discover on BFM</div>
+                                      <div className="text-[#D4AF37] text-xs font-bold">↑ Swipe Up</div>
+                                    </div>
+                                  )}
+                                  {/* QR Code for Story */}
+                                  {instaSettings.showQR && (
+                                    <div className="mt-2 mx-auto w-12 h-12 bg-white rounded flex items-center justify-center">
+                                      <div className="text-[#050A14] text-[5px] text-center font-bold">SCAN</div>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
-                              {/* Bottom info */}
-                              <div className="absolute bottom-8 left-4 right-4 text-center">
-                                <div className="text-[#D4AF37] text-xs uppercase tracking-widest mb-2">{instagramTalent.category}</div>
-                                <div className="text-white text-xl font-bold mb-1">{instagramTalent.name}</div>
-                                <div className="text-white/80 text-sm">@{instagramTalent.instagram_id || "instagram"}</div>
-                                <div className="text-white/60 text-xs mt-2">📍 Bangalore, India</div>
-                              </div>
-                              {/* BFM Logo - Bottom Left */}
-                              <img src={BFM_LOGO} alt="BFM" className="absolute bottom-3 left-3 w-10 h-10 rounded-full object-cover border-2 border-[#D4AF37]" />
                             </div>
-                          </div>
-                          <button 
-                            onClick={() => {
-                              const el = document.getElementById(`story-design-${idx}`);
-                              import('html2canvas').then(({ default: html2canvas }) => {
-                                html2canvas(el, { scale: 2, useCORS: true }).then(canvas => {
-                                  const link = document.createElement('a');
-                                  link.download = `${instagramTalent.name.replace(/\s+/g, '_')}_story_${idx + 1}.png`;
-                                  link.href = canvas.toDataURL('image/png');
-                                  link.click();
+                            <button 
+                              onClick={() => {
+                                const el = document.getElementById(`story-design-${idx}`);
+                                import('html2canvas').then(({ default: html2canvas }) => {
+                                  // Export at exact Instagram Story dimensions: 1080x1920
+                                  html2canvas(el, { 
+                                    scale: 1080 / el.offsetWidth, 
+                                    useCORS: true,
+                                    width: el.offsetWidth,
+                                    height: el.offsetHeight
+                                  }).then(canvas => {
+                                    const link = document.createElement('a');
+                                    link.download = `BFM_${instagramTalent.name.replace(/\s+/g, '_')}_Story_${idx + 1}.png`;
+                                    link.href = canvas.toDataURL('image/png');
+                                    link.click();
+                                  });
                                 });
-                              });
-                            }}
-                            className="mt-3 w-full px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold text-sm"
-                          >
-                            Download Story {idx + 1}
-                          </button>
-                        </div>
-                      )})}
+                              }}
+                              className="mt-3 w-full px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold text-sm"
+                            >
+                              Download Story (1080×1920)
+                            </button>
+                          </div>
+                        )})}
+                      </div>
                     </div>
                     
                     {/* Caption and Hashtags */}

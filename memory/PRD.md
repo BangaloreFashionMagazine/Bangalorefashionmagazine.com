@@ -139,6 +139,41 @@ Build a comprehensive fashion talent platform for Bangalore Fashion Magazine (BF
   - Now properly shows enlarged modal view
   - Works for both ads with and without links
 
+### August 2026 - Talents Search & Filter (NEW)
+- **Search Box**: Real-time search by talent name with debounced input
+- **Category Filter**: Dropdown with all 12 categories
+- **URL State Preservation**: `/talents/Models%20%E2%80%93%20Female?search=ananya`
+- **Clear Filters**: Button to reset search and category
+- **Active Filters Display**: Shows current filters and result count
+- **Enhanced Talent Cards**: 
+  - Profile photo with lazy loading
+  - Name, category, location display
+  - Featured badge for featured talents
+  - Vote button and vote count
+  - "VIEW PROFILE" button
+
+### August 2026 - Instagram Promotion Updates (NEW)
+- **Talent Instagram Hidden by Default**: Promotes BFM website instead
+- **Admin Settings Panel**:
+  - Show Talent Instagram: ON/OFF (default OFF)
+  - Show BFM Website: ON/OFF (default ON)
+  - Show QR Code: ON/OFF (default ON)
+- **Feed Format**: 1080×1350 px (4:5 ratio) - proper Instagram feed dimensions
+- **Story Format**: 1080×1920 px (9:16 ratio) - proper Instagram story dimensions
+- **Smart Cropping**: Object position set to preserve faces (center 20% for feed, 15% for story)
+- **BFM Branding**: "Discover this talent on bangalorefashionmagazine.com"
+- **QR Code**: Links to talent's BFM profile, not their personal Instagram
+
+### August 2026 - SEO Foundation (NEW)
+- **sitemap.xml**: Auto-generated with all public pages and approved talent profiles
+- **robots.txt**: Properly configured (allow public, block admin/api)
+- **SEO Metadata API**: `/api/seo/page/{path}` returns title, description, keywords, OG tags
+- **Category SEO**: Unique metadata for each talent category page
+- **Talent Profile SEO**: Auto-generated titles like "Alexandra Singh | Female Model in Bangalore | BFM"
+- **Structured Data API**: Organization, Person (talent), BreadcrumbList schemas
+- **SEO Components**: React components for dynamic meta tag updates
+- **Image Alt Text**: Descriptive alt text generation for talent images
+
 ### August 2026 - Performance Optimization
 - **CRITICAL FIX**: `/api/talents` payload optimization
   - Added `lightweight=true` parameter to exclude `profile_image`, `email`, `phone`

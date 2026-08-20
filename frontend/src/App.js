@@ -920,7 +920,7 @@ const TalentCard = ({ talent, onVote, onClick }) => {
 };
 
 // Small Talent Card for category pages (7-10 per row)
-const TalentCardSmall = ({ talent, onVote, onClick }) => {
+const TalentCardSmall = ({ talent, onVote, onClick, showViewProfile = false }) => {
   const [voting, setVoting] = useState(false);
   const [imgError, setImgError] = useState(false);
   
@@ -944,58 +944,107 @@ const TalentCardSmall = ({ talent, onVote, onClick }) => {
 
   return (
     <div 
-      className="group relative overflow-hidden rounded-lg bg-[#0A1628] border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all cursor-pointer w-full"
+      className="group relative overflow-hidden rounded-xl bg-[#0A1628] border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 transition-all cursor-pointer w-full"
       onClick={() => onClick(talent)}
       data-testid={`talent-card-small-${talent.id}`}
     >
       <div className="aspect-[3/4] w-full overflow-hidden relative">
         <img 
           src={getImageSrc()} 
-          alt={talent.name} 
+          alt={`${talent.name} - ${talent.category} in Bangalore`} 
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
           loading="lazy"
           onError={() => setImgError(true)}
         />
+        {/* Featured Badge */}
+        {talent.is_featured && (
+          <div className="absolute top-2 right-2 px-2 py-0.5 bg-[#D4AF37] text-[#050A14] text-[8px] font-bold rounded flex items-center gap-1">
+            <Star size={8} /> Featured
+          </div>
+        )}
       </div>
-      <div className="absolute inset-0 bg-gradient-to-t from-[#050A14]/80 via-transparent to-transparent pointer-events-none" />
-      <div className="absolute bottom-0 left-0 right-0 p-1.5 sm:p-2">
-        <h3 className="font-serif text-[10px] sm:text-xs md:text-sm font-bold text-[#F5F5F0] truncate">{talent.name}</h3>
-        <div className="flex items-center justify-between mt-0.5 sm:mt-1">
-          <span className="text-[#F5F5F0]/60 text-[8px] sm:text-[10px]">{talent.votes || 0}</span>
-          <button onClick={handleVote} disabled={voting} className="px-1 sm:px-1.5 py-0.5 bg-[#D4AF37]/20 text-[#D4AF37] text-[6px] sm:text-[8px] rounded hover:bg-[#D4AF37]/40 disabled:opacity-50 transition-colors">
+      <div className="absolute inset-0 bg-gradient-to-t from-[#050A14]/90 via-[#050A14]/20 to-transparent pointer-events-none" />
+      <div className="absolute bottom-0 left-0 right-0 p-2 sm:p-3">
+        <h3 className="font-serif text-xs sm:text-sm font-bold text-[#F5F5F0] truncate">{talent.name}</h3>
+        <p className="text-[#D4AF37] text-[9px] sm:text-[10px] uppercase tracking-wide truncate">{talent.category}</p>
+        {talent.location && (
+          <p className="text-[#A0A5B0] text-[8px] mt-0.5 flex items-center gap-0.5">
+            <MapPin size={8} /> {talent.location}
+          </p>
+        )}
+        <div className="flex items-center justify-between mt-1.5">
+          <span className="text-[#F5F5F0]/60 text-[8px]">{talent.votes || 0} votes</span>
+          <button onClick={handleVote} disabled={voting} className="px-2 py-0.5 bg-[#D4AF37]/20 text-[#D4AF37] text-[8px] rounded hover:bg-[#D4AF37]/40 disabled:opacity-50 transition-colors">
             {voting ? ".." : "Vote"}
           </button>
         </div>
+        {showViewProfile && (
+          <Link 
+            to={`/talent/${talent.id}`}
+            onClick={(e) => e.stopPropagation()}
+            className="mt-2 block w-full text-center px-2 py-1.5 bg-[#050A14] border border-[#D4AF37]/30 text-[#D4AF37] text-[9px] uppercase tracking-wider rounded hover:bg-[#D4AF37] hover:text-[#050A14] transition-colors"
+          >
+            View Profile
+          </Link>
+        )}
       </div>
     </div>
   );
 };
 
-// Talents Page by Category
+// Talents Page by Category with Search and Filter
 const TalentsPage = ({ ads }) => {
   const { category } = useParams();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useState(new URLSearchParams(window.location.search));
   const [talents, setTalents] = useState([]);
   const [selectedTalent, setSelectedTalent] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
+  const [selectedCategory, setSelectedCategory] = useState(category ? decodeURIComponent(category) : 'All Talents');
   const { toast } = useToast();
-  const decodedCategory = decodeURIComponent(category || "");
   
-  // Handle special categories
-  const isAllTalents = decodedCategory === "All Talents";
-  const isFeatured = decodedCategory === "Featured Talents";
-  
-  // Convert URL category (new name) to database category (old name)
-  const dbCategory = getCategoryForDB(decodedCategory);
   const hasAds = ads && ads.length > 0;
+  
+  // Category options for filter
+  const categoryOptions = [
+    "All Talents",
+    "Models – Male",
+    "Models – Female",
+    "Designers",
+    "Photographers",
+    "Makeup Artists",
+    "Hair Stylists",
+    "Stylists",
+    "DJs",
+    "Choreographers",
+    "Casting Coordinators",
+    "Featured Talents"
+  ];
 
+  // Debounce search
+  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Fetch talents based on filters
   useEffect(() => {
     setLoading(true);
     let url = `${API}/talents?approved_only=true&lightweight=true`;
     
-    if (isFeatured) {
+    // Category filter
+    if (selectedCategory === "Featured Talents") {
       url += `&featured=true`;
-    } else if (!isAllTalents) {
+    } else if (selectedCategory && selectedCategory !== "All Talents") {
+      const dbCategory = getCategoryForDB(selectedCategory);
       url += `&category=${encodeURIComponent(dbCategory)}`;
+    }
+    
+    // Search filter
+    if (debouncedSearch && debouncedSearch.trim()) {
+      url += `&search=${encodeURIComponent(debouncedSearch.trim())}`;
     }
     
     axios.get(url)
@@ -1007,55 +1056,167 @@ const TalentsPage = ({ ads }) => {
         console.error(err);
         setLoading(false);
       });
-  }, [dbCategory, isAllTalents, isFeatured]);
+      
+    // Update URL params
+    const params = new URLSearchParams();
+    if (debouncedSearch) params.set('search', debouncedSearch);
+    const newUrl = selectedCategory !== 'All Talents' 
+      ? `/talents/${encodeURIComponent(selectedCategory)}${params.toString() ? '?' + params.toString() : ''}`
+      : `/talents/All%20Talents${params.toString() ? '?' + params.toString() : ''}`;
+    window.history.replaceState({}, '', newUrl);
+    
+  }, [selectedCategory, debouncedSearch]);
+
+  // Update category from URL params
+  useEffect(() => {
+    if (category) {
+      setSelectedCategory(decodeURIComponent(category));
+    }
+  }, [category]);
 
   const handleVote = async (talentId) => {
     try {
       await axios.post(`${API}/vote`, { talent_id: talentId });
       toast({ title: "Vote recorded!" });
-      // Refresh
-      let url = `${API}/talents?approved_only=true&lightweight=true`;
-      if (isFeatured) {
-        url += `&featured=true`;
-      } else if (!isAllTalents) {
-        url += `&category=${encodeURIComponent(dbCategory)}`;
-      }
-      const res = await axios.get(url);
-      setTalents(res.data);
     } catch (err) {
       toast({ title: "Error", description: err.response?.data?.detail || "Failed to vote", variant: "destructive" });
     }
   };
 
-  // Grid classes: responsive grid that adjusts properly
+  const clearFilters = () => {
+    setSearchQuery('');
+    setSelectedCategory('All Talents');
+    navigate('/talents/All%20Talents');
+  };
+
+  const handleCategoryChange = (cat) => {
+    setSelectedCategory(cat);
+    navigate(`/talents/${encodeURIComponent(cat)}${searchQuery ? '?search=' + encodeURIComponent(searchQuery) : ''}`);
+  };
+
+  // Grid classes
   const gridClass = hasAds 
-    ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3"
-    : "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2 sm:gap-3";
+    ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4"
+    : "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4";
+
+  const hasFilters = searchQuery || selectedCategory !== 'All Talents';
 
   return (
     <div className="min-h-screen bg-[#050A14] pt-16 sm:pt-20 pb-8 sm:pb-12">
       <div className="container mx-auto px-3 sm:px-4">
-        <div className="flex gap-4">
-          <div className="flex-1 min-w-0">
-            <h1 className="font-serif text-xl sm:text-2xl font-bold text-[#F5F5F0] mb-4 sm:mb-6">
-              {isFeatured && <Star className="inline-block w-6 h-6 text-[#D4AF37] mr-2" />}
-              {decodedCategory || "All Talents"}
-            </h1>
-            {loading ? (
-              <p className="text-[#A0A5B0]">Loading...</p>
-            ) : talents.length === 0 ? (
-              <p className="text-[#A0A5B0]">No approved talents in this category yet.</p>
-            ) : (
-              <div className={gridClass}>
-                {talents.map(t => <TalentCardSmall key={t.id} talent={t} onVote={handleVote} onClick={setSelectedTalent} />)}
+        
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#F5F5F0] mb-2">
+            {selectedCategory === "Featured Talents" && <Star className="inline-block w-6 h-6 text-[#D4AF37] mr-2" />}
+            Discover BFM Talents
+          </h1>
+          <p className="text-[#A0A5B0] text-sm">Find professional fashion talents in Bangalore</p>
+        </div>
+
+        {/* Search and Filter Section */}
+        <div className="bg-[#0A1628] rounded-xl p-4 mb-6 border border-[#D4AF37]/20">
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Search Box */}
+            <div className="flex-1">
+              <label className="block text-[#D4AF37] text-xs uppercase tracking-wider mb-2">Search Talents</label>
+              <div className="relative">
+                <input 
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search by talent name..."
+                  className="w-full px-4 py-3 pl-10 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0] placeholder-[#A0A5B0]/50 focus:border-[#D4AF37] focus:outline-none transition-colors"
+                />
+                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#A0A5B0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+            </div>
+            
+            {/* Category Filter */}
+            <div className="md:w-64">
+              <label className="block text-[#D4AF37] text-xs uppercase tracking-wider mb-2">Category</label>
+              <select 
+                value={selectedCategory}
+                onChange={(e) => handleCategoryChange(e.target.value)}
+                className="w-full px-4 py-3 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0] focus:border-[#D4AF37] focus:outline-none transition-colors appearance-none cursor-pointer"
+                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23D4AF37'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '20px' }}
+              >
+                {categoryOptions.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+            
+            {/* Clear Filters */}
+            {hasFilters && (
+              <div className="flex items-end">
+                <button 
+                  onClick={clearFilters}
+                  className="px-4 py-3 text-[#A0A5B0] hover:text-[#D4AF37] text-sm flex items-center gap-2 transition-colors"
+                >
+                  <X size={16} /> Clear Filters
+                </button>
               </div>
             )}
           </div>
-          {/* Ads sidebar - smaller on category pages */}
+          
+          {/* Active Filters Display */}
+          {hasFilters && (
+            <div className="mt-4 pt-4 border-t border-[#D4AF37]/10 flex flex-wrap items-center gap-2">
+              <span className="text-[#A0A5B0] text-xs">Active filters:</span>
+              {selectedCategory !== 'All Talents' && (
+                <span className="px-3 py-1 bg-[#D4AF37]/10 text-[#D4AF37] rounded-full text-xs font-medium">
+                  {selectedCategory}
+                </span>
+              )}
+              {searchQuery && (
+                <span className="px-3 py-1 bg-[#D4AF37]/10 text-[#D4AF37] rounded-full text-xs font-medium">
+                  "{searchQuery}"
+                </span>
+              )}
+              <span className="text-[#A0A5B0] text-xs ml-2">
+                {talents.length} talent{talents.length !== 1 ? 's' : ''} found
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Talents Grid with Ads Sidebar */}
+        <div className="flex gap-6">
+          <div className="flex-1 min-w-0">
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin w-8 h-8 border-2 border-[#D4AF37] border-t-transparent rounded-full"></div>
+              </div>
+            ) : talents.length === 0 ? (
+              <div className="text-center py-12">
+                <User className="w-16 h-16 mx-auto text-[#A0A5B0]/30 mb-4" />
+                <p className="text-[#A0A5B0] text-lg mb-2">No talents found</p>
+                <p className="text-[#A0A5B0]/60 text-sm">
+                  {hasFilters ? "Try adjusting your search or filters" : "No approved talents in this category yet"}
+                </p>
+                {hasFilters && (
+                  <button onClick={clearFilters} className="mt-4 px-4 py-2 text-[#D4AF37] border border-[#D4AF37] rounded-lg hover:bg-[#D4AF37] hover:text-[#050A14] transition-colors">
+                    Clear All Filters
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className={gridClass}>
+                {talents.map(t => (
+                  <TalentCardSmall key={t.id} talent={t} onVote={handleVote} onClick={setSelectedTalent} showViewProfile={true} />
+                ))}
+              </div>
+            )}
+          </div>
+          
+          {/* Ads sidebar */}
           {hasAds && (
-            <div className="hidden lg:block w-40 xl:w-48 flex-shrink-0">
+            <div className="hidden lg:block w-48 flex-shrink-0">
               <p className="text-[#A0A5B0] text-xs uppercase tracking-wider text-center mb-3">Sponsored</p>
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-3 sticky top-24">
                 {ads.map((ad, i) => (
                   <ClickableAdImage 
                     key={i} 

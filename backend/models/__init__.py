@@ -75,6 +75,7 @@ class TalentResponse(BaseModel):
     agreed_to_terms: bool = False
     agreed_at: str = ""
     store_subcategories: List[str] = []
+    location: str = ""  # City/location for SEO and filtering
 
 class TalentLoginResponse(BaseModel):
     token: str
