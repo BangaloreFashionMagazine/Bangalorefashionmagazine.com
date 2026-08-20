@@ -27,8 +27,12 @@ def generate_token(user_id: str) -> str:
 
 # Talent Categories - Old names (stored in database)
 TALENT_CATEGORIES = [
+    "female model",
+    "male model", 
+    "designers",
+    "photographers",
     "Model - Female",
-    "Model - Male", 
+    "Model - Male",
     "Designers",
     "Designer Store",
     "Makeup & Hair",
@@ -58,13 +62,13 @@ NEW_TALENT_CATEGORIES = [
     "Featured Talents"
 ]
 
-# Map new names to old database names
+# Map new names to old database names (supports multiple variations)
 CATEGORY_TO_DB = {
     "All Talents": "All",
-    "Models – Male": "Model - Male",
-    "Models – Female": "Model - Female",
-    "Designers": "Designers",
-    "Photographers": "Photography",
+    "Models – Male": "male model",
+    "Models – Female": "female model",
+    "Designers": "designers",
+    "Photographers": "photographers",
     "Makeup Artists": "Makeup & Hair",
     "Hair Stylists": "Hair Stylists",
     "Stylists": "Stylists",

@@ -46,10 +46,10 @@ export const CATEGORY_DISPLAY = {
 // Reverse map: new category names to old database names
 export const CATEGORY_DB = {
   "All Talents": "All",
-  "Models – Male": "Model - Male",
-  "Models – Female": "Model - Female",
-  "Designers": "Designers",
-  "Photographers": "Photography",
+  "Models – Male": "male model",
+  "Models – Female": "female model",
+  "Designers": "designers",
+  "Photographers": "photographers",
   "Makeup Artists": "Makeup & Hair",
   "Hair Stylists": "Hair Stylists",
   "Stylists": "Stylists",
@@ -59,7 +59,27 @@ export const CATEGORY_DB = {
   "Featured Talents": "Featured"
 };
 
-export const getCategoryDisplay = (cat) => CATEGORY_DISPLAY[cat] || cat;
+// Also support lowercase variations
+export const getCategoryDisplay = (cat) => {
+  const displayMap = {
+    "female model": "Models – Female",
+    "male model": "Models – Male",
+    "designers": "Designers",
+    "photographers": "Photographers",
+    "Model - Female": "Models – Female",
+    "Model - Male": "Models – Male",
+    "Makeup & Hair": "Makeup Artists",
+    "Photography": "Photographers",
+    "Event Management": "Choreographers",
+    "Other": "Stylists",
+    "Designers": "Designers",
+    "Hair Stylists": "Hair Stylists",
+    "DJs": "DJs",
+    "Casting Coordinators": "Casting Coordinators"
+  };
+  return displayMap[cat] || cat;
+};
+
 export const getCategoryForDB = (cat) => CATEGORY_DB[cat] || cat;
 
 // Designer Store Categories
