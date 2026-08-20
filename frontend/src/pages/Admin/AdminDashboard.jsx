@@ -1897,12 +1897,20 @@ const AdminDashboard = () => {
                     </li>
                   </ul>
                   <div className="mt-4 p-3 bg-[#050A14] rounded border border-[#D4AF37]/20">
-                    <h4 className="text-[#D4AF37] font-semibold text-xs mb-2">📖 MAGAZINE PAGE SECTIONS:</h4>
+                    <h4 className="text-[#D4AF37] font-semibold text-xs mb-2">📖 WHERE THIS APPEARS:</h4>
                     <ul className="text-[#A0A5B0] text-xs space-y-1">
-                      <li>• <strong className="text-[#F5F5F0]">Latest Issues</strong> → Managed here (Magazine PDF uploads)</li>
-                      <li>• <strong className="text-[#F5F5F0]">Talent Spotlight</strong> → Go to <span className="text-[#D4AF37]">All Talents</span> tab → Click "☆ Feature" button on talents</li>
-                      <li>• <strong className="text-[#F5F5F0]">Editorials</strong> → Go to <span className="text-[#D4AF37]">Hero Management</span> tab → Add hero slides</li>
+                      <li>• <strong className="text-[#F5F5F0]">Homepage</strong> → Magazine download bar appears below hero slider</li>
+                      <li>• <strong className="text-[#F5F5F0]">Magazine Page → Latest Issues</strong> → Downloadable PDF section</li>
                     </ul>
+                    <div className="mt-3 pt-2 border-t border-[#D4AF37]/10">
+                      <h4 className="text-[#D4AF37] font-semibold text-xs mb-2">🎯 OTHER HOMEPAGE SECTIONS:</h4>
+                      <ul className="text-[#A0A5B0] text-xs space-y-1">
+                        <li>• <strong className="text-[#F5F5F0]">Hero Slider</strong> → Go to <span className="text-[#D4AF37]">Hero Management</span> tab</li>
+                        <li>• <strong className="text-[#F5F5F0]">Featured Video</strong> → Go to <span className="text-[#D4AF37]">Featured Video</span> tab</li>
+                        <li>• <strong className="text-[#F5F5F0]">Party Updates</strong> → Go to <span className="text-[#D4AF37]">Party Updates</span> tab</li>
+                        <li>• <strong className="text-[#F5F5F0]">Ads/Sponsored</strong> → Go to <span className="text-[#D4AF37]">Advertisements</span> tab</li>
+                      </ul>
+                    </div>
                   </div>
                 </div>
               </div>

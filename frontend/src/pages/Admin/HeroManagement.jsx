@@ -237,18 +237,54 @@ const HeroManagement = () => {
       onChange(Math.round(newX), Math.round(newY));
     };
 
+    // Preset positions for common cropping needs
+    const presets = [
+      { name: "Face (Top)", x: 50, y: 15 },
+      { name: "Head & Shoulders", x: 50, y: 25 },
+      { name: "Upper Body", x: 50, y: 35 },
+      { name: "Center", x: 50, y: 50 },
+      { name: "Lower Body", x: 50, y: 70 },
+    ];
+
     return (
-      <div className="relative cursor-crosshair border border-[#D4AF37]/40 rounded-lg overflow-hidden" onClick={handleClick}>
-        <img src={image} alt="Focal point" className="w-full h-64 object-cover" />
-        <div 
-          className="absolute w-8 h-8 border-2 border-[#D4AF37] rounded-full bg-[#D4AF37]/30 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-          style={{ left: `${x}%`, top: `${y}%` }}
-        >
-          <Crosshair className="w-full h-full text-[#D4AF37]" />
+      <div className="space-y-3">
+        {/* Preset Buttons */}
+        <div className="flex flex-wrap gap-2">
+          <span className="text-[#A0A5B0] text-xs mr-2">Quick presets:</span>
+          {presets.map(p => (
+            <button
+              key={p.name}
+              onClick={() => onChange(p.x, p.y)}
+              className={`px-2 py-1 text-xs rounded border ${
+                x === p.x && y === p.y 
+                  ? "bg-[#D4AF37] text-[#050A14] border-[#D4AF37]" 
+                  : "bg-[#050A14] text-[#A0A5B0] border-[#D4AF37]/20 hover:border-[#D4AF37]/50"
+              }`}
+            >
+              {p.name}
+            </button>
+          ))}
         </div>
-        <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-          Click to set focal point ({x}%, {y}%)
+        
+        {/* Click-to-position image */}
+        <div className="relative cursor-crosshair border border-[#D4AF37]/40 rounded-lg overflow-hidden" onClick={handleClick}>
+          <img src={image} alt="Focal point" className="w-full h-64 object-cover" />
+          <div 
+            className="absolute w-8 h-8 border-2 border-[#D4AF37] rounded-full bg-[#D4AF37]/30 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+            style={{ left: `${x}%`, top: `${y}%` }}
+          >
+            <Crosshair className="w-full h-full text-[#D4AF37]" />
+          </div>
+          <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+            Click image to set focal point ({x}%, {y}%)
+          </div>
+          {/* Visual crop guide */}
+          <div className="absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-red-500/20 to-transparent pointer-events-none" />
+          <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-red-500/20 to-transparent pointer-events-none" />
         </div>
+        <p className="text-[#A0A5B0] text-xs">
+          💡 <strong>Tip:</strong> For portrait photos, use "Face" or "Head & Shoulders" preset. The focal point determines which part of the image stays visible when cropped on different screen sizes.
+        </p>
       </div>
     );
   };
