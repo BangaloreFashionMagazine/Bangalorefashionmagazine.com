@@ -27,6 +27,7 @@ const AdminDashboard = () => {
   const [editData, setEditData] = useState({});
   const [loadedTabs, setLoadedTabs] = useState({});
   const [categoryFilter, setCategoryFilter] = useState(""); // Category filter for All Talents
+  const [talentSearchAdmin, setTalentSearchAdmin] = useState(""); // Search filter for All Talents
   
   // Analytics state
   const [analyticsSummary, setAnalyticsSummary] = useState(null);
@@ -711,7 +712,20 @@ const AdminDashboard = () => {
           <div className="bg-[#0A1628] rounded-xl p-4 md:p-6 border border-[#D4AF37]/20">
             <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 gap-3">
               <h2 className="text-lg font-bold text-[#F5F5F0]">All Registered Talents ({allTalents.length})</h2>
-              <div className="flex gap-2 items-center">
+              <div className="flex gap-2 items-center flex-wrap">
+                {/* Search Box */}
+                <div className="relative">
+                  <input 
+                    type="text"
+                    placeholder="Search by name..."
+                    value={talentSearchAdmin}
+                    onChange={(e) => setTalentSearchAdmin(e.target.value)}
+                    className="px-3 py-2 pl-8 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-sm w-48"
+                  />
+                  <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0A5B0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
                 <select 
                   value={categoryFilter} 
                   onChange={(e) => setCategoryFilter(e.target.value)}
@@ -722,22 +736,49 @@ const AdminDashboard = () => {
                     <option key={cat} value={cat}>{cat}</option>
                   ))}
                 </select>
+                {(talentSearchAdmin || categoryFilter) && (
+                  <button 
+                    onClick={() => { setTalentSearchAdmin(''); setCategoryFilter(''); }}
+                    className="px-3 py-2 text-[#A0A5B0] hover:text-[#D4AF37] text-sm"
+                  >
+                    Clear
+                  </button>
+                )}
                 <a href={`${API}/admin/talents/export`} download 
                   className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded text-sm font-bold flex items-center gap-2">
                   <Download size={16} /> Export
                 </a>
               </div>
             </div>
+            {/* Filter Results Info */}
+            {(talentSearchAdmin || categoryFilter) && (
+              <div className="mb-4 text-[#A0A5B0] text-sm">
+                Showing {allTalents.filter(t => 
+                  (!categoryFilter || t.category === categoryFilter) &&
+                  (!talentSearchAdmin || t.name.toLowerCase().includes(talentSearchAdmin.toLowerCase()))
+                ).length} of {allTalents.length} talents
+                {talentSearchAdmin && <span className="text-[#D4AF37]"> matching "{talentSearchAdmin}"</span>}
+                {categoryFilter && <span className="text-[#D4AF37]"> in {categoryFilter}</span>}
+              </div>
+            )}
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#D4AF37] border-t-transparent mr-3"></div>
                 <span className="ml-3 text-[#A0A5B0]">Loading talents...</span>
               </div>
-            ) : allTalents.filter(t => !categoryFilter || t.category === categoryFilter).length === 0 ? (
-              <p className="text-[#A0A5B0] text-center py-8">{categoryFilter ? `No talents found in "${categoryFilter}" category.` : "No talents found."}</p>
+            ) : allTalents.filter(t => 
+                (!categoryFilter || t.category === categoryFilter) &&
+                (!talentSearchAdmin || t.name.toLowerCase().includes(talentSearchAdmin.toLowerCase()))
+              ).length === 0 ? (
+              <p className="text-[#A0A5B0] text-center py-8">
+                {(categoryFilter || talentSearchAdmin) ? `No talents found matching your filters.` : "No talents found."}
+              </p>
             ) : (
               <div className="space-y-3">
-                {allTalents.filter(t => !categoryFilter || t.category === categoryFilter).map(t => (
+                {allTalents.filter(t => 
+                  (!categoryFilter || t.category === categoryFilter) &&
+                  (!talentSearchAdmin || t.name.toLowerCase().includes(talentSearchAdmin.toLowerCase()))
+                ).map(t => (
                   <div key={t.id} className="bg-[#050A14] rounded-lg p-3 md:p-4 flex flex-col md:flex-row md:items-center gap-3 cursor-pointer hover:bg-[#0D1B2A] transition-colors" onClick={() => openTalentDetail(t)}>
                     <img src={t.profile_image || "https://via.placeholder.com/60"} className="w-14 h-14 rounded-full object-cover border-2 border-[#D4AF37]/30 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
@@ -1820,6 +1861,32 @@ const AdminDashboard = () => {
           <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20">
             <h2 className="text-lg font-bold text-[#F5F5F0] mb-4">Monthly Magazine</h2>
             <p className="text-[#A0A5B0] text-sm mb-4">Upload your monthly magazine PDF. This will be available for download on the homepage.</p>
+            
+            {/* Admin Hint Box */}
+            <div className="mb-6 p-4 bg-[#050A14]/80 rounded-lg border border-[#D4AF37]/30">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#D4AF37]/20 flex items-center justify-center flex-shrink-0">
+                  <BookOpen size={16} className="text-[#D4AF37]" />
+                </div>
+                <div>
+                  <h3 className="text-[#D4AF37] font-semibold text-sm mb-2">What you can manage here:</h3>
+                  <ul className="text-[#A0A5B0] text-sm space-y-1.5">
+                    <li className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 bg-[#D4AF37] rounded-full"></span>
+                      <span><strong className="text-[#F5F5F0]">Upload Magazine PDFs</strong> — Monthly editions available for download on public site</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 bg-[#D4AF37] rounded-full"></span>
+                      <span><strong className="text-[#F5F5F0]">Replace Editions</strong> — Delete old and upload new magazine files</span>
+                    </li>
+                  </ul>
+                  <p className="text-[#A0A5B0]/70 text-xs mt-3 border-t border-[#D4AF37]/10 pt-3">
+                    💡 <strong className="text-[#D4AF37]">Tip:</strong> Use the <span className="text-[#F5F5F0]">Magazine Builder</span> tab for creating visual magazines with the Canva-like editor, 
+                    or <span className="text-[#F5F5F0]">Featured Video</span> tab to add spotlight videos that appear on the Magazine page.
+                  </p>
+                </div>
+              </div>
+            </div>
             
             {magazine ? (
               <div className="mb-6 p-4 bg-[#050A14] rounded-lg">

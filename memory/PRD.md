@@ -139,18 +139,13 @@ Build a comprehensive fashion talent platform for Bangalore Fashion Magazine (BF
   - Now properly shows enlarged modal view
   - Works for both ads with and without links
 
-### August 2026 - Talents Search & Filter (NEW)
-- **Search Box**: Real-time search by talent name with debounced input
+### August 2026 - Admin Talents Search & Filter (COMPLETED)
+- **Admin-Only Search**: Search/filter moved exclusively to Admin Dashboard "All Talents" tab
+- **Search Box**: Real-time search by talent name
 - **Category Filter**: Dropdown with all 12 categories
-- **URL State Preservation**: `/talents/Models%20%E2%80%93%20Female?search=ananya`
 - **Clear Filters**: Button to reset search and category
-- **Active Filters Display**: Shows current filters and result count
-- **Enhanced Talent Cards**: 
-  - Profile photo with lazy loading
-  - Name, category, location display
-  - Featured badge for featured talents
-  - Vote button and vote count
-  - "VIEW PROFILE" button
+- **Results Counter**: Shows filtered count vs total talents
+- **Public Website**: Search removed from public-facing talent pages (per user request)
 
 ### August 2026 - Instagram Promotion Updates (NEW)
 - **Talent Instagram Hidden by Default**: Promotes BFM website instead
@@ -218,8 +213,26 @@ Build a comprehensive fashion talent platform for Bangalore Fashion Magazine (BF
   - `useTemplates.js` - Template management hook
   - `index.js` - Re-exports for easy importing
 
+### August 2026 - Admin Magazine Tab Hint (COMPLETED)
+- Added descriptive hint box in Admin "Magazine PDF" tab
+- Explains: Upload Magazine PDFs, Replace Editions
+- Tip: Links to Magazine Builder and Featured Video tabs
+
+### August 2026 - Razorpay Payment Integration (COMPLETED)
+- **Backend**: Full implementation in `/backend/routes/payments.py`
+  - Create order endpoint
+  - Verify payment endpoint  
+  - Webhook handler
+  - Payment settings (enable/disable, fee amount)
+  - Payment history tracking
+- **Frontend**: Razorpay checkout in JoinPage (`App.js`)
+  - Script loading
+  - Payment modal integration
+  - Success/failure handling
+- **Admin Settings**: Payment toggle, fee configuration, history view
+- **Status**: REQUIRES USER API KEYS - Add `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` to `backend/.env`
+
 ### P2 (Medium Priority)
-- Add real payment gateways (Stripe/Razorpay) for Designer Store
 - Cafe/Sponsor ad page templates
 - Multi-talent magazine support
 - 520 Production Error - Platform infrastructure issue
