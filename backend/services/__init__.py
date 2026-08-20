@@ -63,19 +63,21 @@ NEW_TALENT_CATEGORIES = [
 ]
 
 # Map new names to old database names (supports multiple variations)
+# IMPORTANT: Must match EXACTLY what's in the production database
 CATEGORY_TO_DB = {
     "All Talents": "All",
-    "Models – Male": "male model",
-    "Models – Female": "female model",
-    "Designers": "designers",
-    "Photographers": "photographers",
+    "Models – Male": "Model - Male",
+    "Models – Female": "Model - Female",
+    "Designers": "Designers",
+    "Photographers": "Photographers",
     "Makeup Artists": "Makeup & Hair",
     "Hair Stylists": "Hair Stylists",
     "Stylists": "Stylists",
     "DJs": "DJs",
     "Choreographers": "Choreographers",
     "Casting Coordinators": "Casting Coordinators",
-    "Featured Talents": "Featured"
+    "Featured Talents": "Featured",
+    "Designer Store": "Designer Store"
 }
 
 # All valid categories (both old and new)

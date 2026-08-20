@@ -44,35 +44,42 @@ export const CATEGORY_DISPLAY = {
 };
 
 // Reverse map: new category names to old database names
+// IMPORTANT: These must match EXACTLY what's stored in the production database
 export const CATEGORY_DB = {
   "All Talents": "All",
-  "Models – Male": "male model",
-  "Models – Female": "female model",
-  "Designers": "designers",
-  "Photographers": "photographers",
+  "Models – Male": "Model - Male",
+  "Models – Female": "Model - Female",
+  "Designers": "Designers",
+  "Photographers": "Photographers",
   "Makeup Artists": "Makeup & Hair",
   "Hair Stylists": "Hair Stylists",
   "Stylists": "Stylists",
   "DJs": "DJs",
   "Choreographers": "Choreographers",
   "Casting Coordinators": "Casting Coordinators",
-  "Featured Talents": "Featured"
+  "Featured Talents": "Featured",
+  "Designer Store": "Designer Store"
 };
 
-// Also support lowercase variations
+// Also support lowercase variations and actual DB formats
 export const getCategoryDisplay = (cat) => {
   const displayMap = {
+    // Actual production database formats
+    "Model - Female": "Models – Female",
+    "Model - Male": "Models – Male",
+    "Model": "Models – Male",  // Legacy fallback
+    "Designer Store": "Designer Store",
+    // Legacy lowercase formats
     "female model": "Models – Female",
     "male model": "Models – Male",
     "designers": "Designers",
     "photographers": "Photographers",
-    "Model - Female": "Models – Female",
-    "Model - Male": "Models – Male",
+    "Designers": "Designers",
+    "Photographers": "Photographers",
     "Makeup & Hair": "Makeup Artists",
     "Photography": "Photographers",
     "Event Management": "Choreographers",
     "Other": "Stylists",
-    "Designers": "Designers",
     "Hair Stylists": "Hair Stylists",
     "DJs": "DJs",
     "Casting Coordinators": "Casting Coordinators"
