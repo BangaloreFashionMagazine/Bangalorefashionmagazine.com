@@ -80,6 +80,15 @@ def create_admin_routes(db):
         return {"message": f"Rank updated to {rank}"}
 
 
+    @router.put("/admin/talent/{talent_id}/featured")
+    async def toggle_talent_featured(talent_id: str, featured: bool):
+        """Toggle talent's featured status for Magazine Talent Spotlight section"""
+        result = await db.talents.update_one({"id": talent_id}, {"$set": {"is_featured": featured}})
+        if result.modified_count == 0:
+            raise HTTPException(status_code=404, detail="Talent not found")
+        return {"message": f"Featured status set to {featured}", "is_featured": featured}
+
+
     @router.put("/admin/talent/{talent_id}/password")
     async def admin_reset_talent_password(talent_id: str, data: dict):
         password = data.get("password")

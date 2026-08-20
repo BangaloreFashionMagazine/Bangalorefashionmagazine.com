@@ -786,12 +786,27 @@ const AdminDashboard = () => {
                       <div className="flex items-center gap-2 flex-wrap">
                         <p className="text-[#F5F5F0] font-bold">{t.name}</p>
                         <span className={`text-xs px-2 py-0.5 rounded ${t.is_approved ? "bg-green-500/20 text-green-500" : "bg-yellow-500/20 text-yellow-500"}`}>{t.is_approved ? "Approved" : "Pending"}</span>
+                        {t.is_featured && <span className="text-xs px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded">⭐ Featured</span>}
                         {t.rank && <span className="text-xs px-2 py-0.5 bg-[#D4AF37]/20 text-[#D4AF37] rounded">Rank #{t.rank}</span>}
                       </div>
                       <p className="text-[#D4AF37] text-sm">{t.category}</p>
                       <p className="text-[#A0A5B0] text-xs truncate">{t.email} {t.phone ? `• ${t.phone}` : ""}</p>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap md:flex-nowrap">
+                      <button 
+                        onClick={async (e) => { 
+                          e.stopPropagation(); 
+                          try {
+                            await axios.put(`${API}/admin/talent/${t.id}/featured?featured=${!t.is_featured}`);
+                            toast({ title: t.is_featured ? "Removed from Featured" : "Added to Featured!" });
+                            fetchAllTalents();
+                          } catch (err) { toast({ title: "Failed to update", variant: "destructive" }); }
+                        }} 
+                        className={`px-2 py-1 rounded text-xs ${t.is_featured ? "bg-purple-500/30 text-purple-400" : "bg-[#0A1628] text-[#A0A5B0] hover:text-purple-400"}`}
+                        title={t.is_featured ? "Remove from Spotlight" : "Add to Talent Spotlight"}
+                      >
+                        {t.is_featured ? "★ Featured" : "☆ Feature"}
+                      </button>
                       <input type="number" min="1" max="9999" placeholder="Rank" onClick={(e) => e.stopPropagation()} value={t.rank || ""} onChange={(e) => updateRank(t.id, parseInt(e.target.value) || null)} className="px-2 py-1 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-sm w-20" />
                       <span className="text-[#A0A5B0] text-sm">{t.votes || 0} votes</span>
                       <button onClick={(e) => { e.stopPropagation(); deleteTalent(t.id); }} className="px-3 py-1 bg-red-500/20 text-red-500 rounded text-sm">Delete</button>
@@ -1874,17 +1889,21 @@ const AdminDashboard = () => {
                   <ul className="text-[#A0A5B0] text-sm space-y-1.5">
                     <li className="flex items-center gap-2">
                       <span className="w-1.5 h-1.5 bg-[#D4AF37] rounded-full"></span>
-                      <span><strong className="text-[#F5F5F0]">Upload Magazine PDFs</strong> — Monthly editions available for download on public site</span>
+                      <span><strong className="text-[#F5F5F0]">Upload Magazine PDFs</strong> — Appears in "Latest Issues" section</span>
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="w-1.5 h-1.5 bg-[#D4AF37] rounded-full"></span>
                       <span><strong className="text-[#F5F5F0]">Replace Editions</strong> — Delete old and upload new magazine files</span>
                     </li>
                   </ul>
-                  <p className="text-[#A0A5B0]/70 text-xs mt-3 border-t border-[#D4AF37]/10 pt-3">
-                    💡 <strong className="text-[#D4AF37]">Tip:</strong> Use the <span className="text-[#F5F5F0]">Magazine Builder</span> tab for creating visual magazines with the Canva-like editor, 
-                    or <span className="text-[#F5F5F0]">Featured Video</span> tab to add spotlight videos that appear on the Magazine page.
-                  </p>
+                  <div className="mt-4 p-3 bg-[#050A14] rounded border border-[#D4AF37]/20">
+                    <h4 className="text-[#D4AF37] font-semibold text-xs mb-2">📖 MAGAZINE PAGE SECTIONS:</h4>
+                    <ul className="text-[#A0A5B0] text-xs space-y-1">
+                      <li>• <strong className="text-[#F5F5F0]">Latest Issues</strong> → Managed here (Magazine PDF uploads)</li>
+                      <li>• <strong className="text-[#F5F5F0]">Talent Spotlight</strong> → Go to <span className="text-[#D4AF37]">All Talents</span> tab → Click "☆ Feature" button on talents</li>
+                      <li>• <strong className="text-[#F5F5F0]">Editorials</strong> → Go to <span className="text-[#D4AF37]">Hero Management</span> tab → Add hero slides</li>
+                    </ul>
+                  </div>
                 </div>
               </div>
             </div>
