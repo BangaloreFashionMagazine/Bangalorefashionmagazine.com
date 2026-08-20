@@ -12,6 +12,7 @@ import { ChevronLeft, ChevronRight, Users, Palette, Sparkles, Camera, Briefcase,
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
 import ImageUploadWithCrop from "@/components/ImageUploadWithCrop";
+import TalentHeroSlider from "@/components/TalentHeroSlider";
 import { API, BFM_LOGO, TALENT_CATEGORIES, MAGAZINE_CATEGORIES, CATEGORY_DISPLAY, CATEGORY_DB, getCategoryDisplay, getCategoryForDB, DEFAULT_SLIDES, STORE_SUBCATEGORIES } from "@/lib/config";
 import { autoCompressImage } from "@/lib/imageOptimization";
 import DesignerStorePageComponent from "@/pages/DesignerStorePage";
@@ -2068,8 +2069,8 @@ const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine, v
       {/* Main Content Area */}
       <div className={ads && ads.length > 0 ? "w-full lg:w-[calc(100%-220px)]" : "w-full"}>
         
-        {/* Hero Slider */}
-        <HeroSlider customSlides={heroImages} />
+        {/* New Talent Hero Slider */}
+        <TalentHeroSlider />
         
         {/* Mobile Ads - smaller, shown below hero on mobile only */}
         {ads && ads.length > 0 && (

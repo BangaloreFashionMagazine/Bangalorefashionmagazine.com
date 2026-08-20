@@ -66,11 +66,15 @@ class TalentResponse(BaseModel):
     portfolio_images: List[str] = []
     portfolio_video: str = ""  # Video URL/data
     is_approved: bool = False
+    is_featured: bool = False
+    hero_enabled: bool = False
+    hero_images: List[int] = []  # Indices of portfolio images allowed for hero
     rank: int = 999
     votes: int = 0
     created_at: str = ""
     agreed_to_terms: bool = False
     agreed_at: str = ""
+    store_subcategories: List[str] = []
 
 class TalentLoginResponse(BaseModel):
     token: str

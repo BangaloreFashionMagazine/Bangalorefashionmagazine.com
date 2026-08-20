@@ -116,6 +116,9 @@ password_reset_routes = create_password_reset_routes(db)
 from routes.payments import create_payments_router
 payments_routes = create_payments_router(db)
 
+from routes.hero import create_hero_routes
+hero_routes = create_hero_routes(db)
+
 # Include all routes in the API router
 api_router.include_router(auth_routes)
 api_router.include_router(talent_routes)
@@ -127,6 +130,7 @@ api_router.include_router(instagram_routes)
 api_router.include_router(magazine_builder_routes)
 api_router.include_router(password_reset_routes)
 api_router.include_router(payments_routes)
+api_router.include_router(hero_routes)
 
 # Include the API router in the main app
 app.include_router(api_router)

@@ -14,6 +14,21 @@ Build a comprehensive fashion talent platform for Bangalore Fashion Magazine (BF
 
 ## Core Requirements
 
+### Hero Management System (NEW - COMPLETED)
+- [x] Hero slides connected to approved BFM Talent profiles
+- [x] Admin can enable/disable talents for hero display
+- [x] Admin selects specific portfolio images per talent for hero
+- [x] Focal point system to preserve faces/important content
+- [x] Smart responsive cropping on desktop and mobile
+- [x] Premium animations: fade, slide, zoom (Ken Burns)
+- [x] Configurable: autoplay, duration (3/5/7/10s), arrows, dots
+- [x] Talent name and category display with each slide
+- [x] CTA buttons: View Profile, Join BFM
+- [x] Default BFM hero when no slides configured
+- [x] Drag-and-drop slide reordering
+- [x] Desktop and mobile preview in admin
+- [x] No random images - only admin-approved images displayed
+
 ### Magazine Builder (COMPLETED)
 - [x] Canva-like drag-and-drop visual editor
 - [x] 21 categorized templates (Luxury, Editorial, Minimalist, etc.)
@@ -29,7 +44,8 @@ Build a comprehensive fashion talent platform for Bangalore Fashion Magazine (BF
 ### Admin Dashboard (COMPLETED)
 - [x] Talent approval workflow
 - [x] Analytics tab with real tracking metrics
-- [x] Hero images management
+- [x] Hero Management - NEW talent-based hero system
+- [x] Hero Images (Legacy) - original static uploads
 - [x] Contest & Winners management
 - [x] Advertisements management
 - [x] Background music settings

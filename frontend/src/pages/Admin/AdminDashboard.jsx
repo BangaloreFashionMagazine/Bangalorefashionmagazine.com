@@ -1,6 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import axios from "axios";
-import { Users, Star, Award, Image, Download, Check, X, Phone, Mail, Trash2, ExternalLink, Music, Video, Upload, BarChart3, TrendingUp, Eye, MousePointer, ShoppingBag, Package, MapPin, Calendar, BookOpen, Settings, IndianRupee } from "lucide-react";
+import { Users, Star, Award, Image, Download, Check, X, Phone, Mail, Trash2, ExternalLink, Music, Video, Upload, BarChart3, TrendingUp, Eye, MousePointer, ShoppingBag, Package, MapPin, Calendar, BookOpen, Settings, IndianRupee, Layers } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ImageUploadWithCrop from "@/components/ImageUploadWithCrop";
 import { API, BFM_LOGO, TALENT_CATEGORIES, STORE_CATEGORIES } from "@/lib/config";
@@ -8,6 +8,8 @@ import { autoCompressImage } from "@/lib/imageOptimization";
 
 // Lazy load Magazine Builder for better performance
 const MagazineBuilder = lazy(() => import("./MagazineBuilder"));
+// Lazy load Hero Management
+const HeroManagement = lazy(() => import("./HeroManagement"));
 
 const AdminDashboard = () => {
   const [tab, setTab] = useState("pending");
@@ -613,10 +615,11 @@ const AdminDashboard = () => {
   const tabs = [
     { id: "pending", label: "Pending", icon: Users },
     { id: "talents", label: "All Talents", icon: Star },
+    { id: "hero-management", label: "Hero Management", icon: Layers },
     { id: "magazine-builder", label: "Magazine Builder", icon: BookOpen },
     { id: "instagram", label: "Instagram Promo", icon: Image },
     { id: "analytics", label: "Analytics", icon: BarChart3 },
-    { id: "hero", label: "Hero Images", icon: Image },
+    { id: "hero", label: "Hero Images (Legacy)", icon: Image },
     { id: "party", label: "Party Updates", icon: Calendar },
     { id: "video", label: "Featured Video", icon: Video },
     { id: "contests", label: "Contest & Winners", icon: Award },
@@ -1490,6 +1493,13 @@ const AdminDashboard = () => {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Hero Management (New) */}
+        {tab === "hero-management" && (
+          <Suspense fallback={<div className="text-[#A0A5B0] p-4">Loading Hero Management...</div>}>
+            <HeroManagement />
+          </Suspense>
         )}
 
         {/* Hero Images */}
