@@ -98,7 +98,8 @@ const AdminDashboard = () => {
   const fetchAllTalents = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API}/talents?approved_only=false&lightweight=true`);
+      // Admin needs full data including email and phone - don't use lightweight
+      const res = await axios.get(`${API}/talents?approved_only=false&lightweight=false`);
       setAllTalents(res.data);
     } catch (err) { console.error(err); }
     setLoading(false);
