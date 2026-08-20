@@ -50,12 +50,12 @@ export const CATEGORY_DB = {
   "Models – Male": "Model - Male",
   "Models – Female": "Model - Female",
   "Designers": "Designers",
-  "Photographers": "Photographers",
+  "Photographers": "Photography",
   "Makeup Artists": "Makeup & Hair",
   "Hair Stylists": "Hair Stylists",
   "Stylists": "Stylists",
   "DJs": "DJs",
-  "Choreographers": "Choreographers",
+  "Choreographers": "Event Management",
   "Casting Coordinators": "Casting Coordinators",
   "Featured Talents": "Featured",
   "Designer Store": "Designer Store"
@@ -64,25 +64,25 @@ export const CATEGORY_DB = {
 // Also support lowercase variations and actual DB formats
 export const getCategoryDisplay = (cat) => {
   const displayMap = {
-    // Actual production database formats
+    // Actual production database formats (EXACT matches)
     "Model - Female": "Models – Female",
     "Model - Male": "Models – Male",
-    "Model": "Models – Male",  // Legacy fallback
+    "Men | Models": "Models – Male",
+    "Photography": "Photographers",
+    "Makeup & Hair": "Makeup Artists",
+    "Event Management": "Choreographers",
+    "Designers": "Designers",
     "Designer Store": "Designer Store",
-    // Legacy lowercase formats
+    // Legacy formats (just in case)
+    "Model": "Models – Male",
     "female model": "Models – Female",
     "male model": "Models – Male",
     "designers": "Designers",
     "photographers": "Photographers",
-    "Designers": "Designers",
-    "Photographers": "Photographers",
-    "Makeup & Hair": "Makeup Artists",
-    "Photography": "Photographers",
-    "Event Management": "Choreographers",
-    "Other": "Stylists",
     "Hair Stylists": "Hair Stylists",
     "DJs": "DJs",
-    "Casting Coordinators": "Casting Coordinators"
+    "Casting Coordinators": "Casting Coordinators",
+    "Other": "Stylists"
   };
   return displayMap[cat] || cat;
 };
