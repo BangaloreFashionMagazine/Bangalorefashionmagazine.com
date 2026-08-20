@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import ImageUploadWithCrop from "@/components/ImageUploadWithCrop";
 import { API, BFM_LOGO, TALENT_CATEGORIES, STORE_CATEGORIES } from "@/lib/config";
 import { autoCompressImage } from "@/lib/imageOptimization";
+import { QRCodeSVG } from "qrcode.react";
 
 // Lazy load Magazine Builder for better performance
 const MagazineBuilder = lazy(() => import("./MagazineBuilder"));
@@ -854,7 +855,10 @@ const AdminDashboard = () => {
                   </button>
                 </div>
                 <div className="flex items-center justify-between">
-                  <label className="text-[#F5F5F0] text-sm">Show QR Code</label>
+                  <div>
+                    <label className="text-[#F5F5F0] text-sm">Show QR Code</label>
+                    <p className="text-[#A0A5B0] text-[10px]">Scan to view talent profile on BFM</p>
+                  </div>
                   <button 
                     onClick={() => setInstaSettings(s => ({ ...s, showQR: !s.showQR }))}
                     className={`w-12 h-6 rounded-full transition-colors ${instaSettings.showQR ? "bg-[#D4AF37]" : "bg-[#050A14] border border-[#D4AF37]/30"}`}
@@ -1182,13 +1186,15 @@ const AdminDashboard = () => {
                                     </div>
                                   )}
                                 </div>
-                                {/* QR Code placeholder */}
+                                {/* QR Code with real link to talent profile */}
                                 {instaSettings.showQR && (
-                                  <div className="absolute bottom-4 right-4 w-16 h-16 bg-white rounded-md flex items-center justify-center">
-                                    <div className="text-[#050A14] text-[6px] text-center">
-                                      <div className="font-bold">SCAN</div>
-                                      <div>for profile</div>
-                                    </div>
+                                  <div className="absolute bottom-4 right-4 w-16 h-16 bg-white rounded-md p-1 flex items-center justify-center">
+                                    <QRCodeSVG 
+                                      value={`https://bangalorefashionmagazine.com/talent/${instagramTalent.id}`}
+                                      size={56}
+                                      level="M"
+                                      includeMargin={false}
+                                    />
                                   </div>
                                 )}
                               </div>
@@ -1270,8 +1276,13 @@ const AdminDashboard = () => {
                                   )}
                                   {/* QR Code for Story */}
                                   {instaSettings.showQR && (
-                                    <div className="mt-2 mx-auto w-12 h-12 bg-white rounded flex items-center justify-center">
-                                      <div className="text-[#050A14] text-[5px] text-center font-bold">SCAN</div>
+                                    <div className="mt-2 mx-auto w-12 h-12 bg-white rounded p-0.5 flex items-center justify-center">
+                                      <QRCodeSVG 
+                                        value={`https://bangalorefashionmagazine.com/talent/${instagramTalent.id}`}
+                                        size={44}
+                                        level="M"
+                                        includeMargin={false}
+                                      />
                                     </div>
                                   )}
                                 </div>
