@@ -1257,39 +1257,38 @@ const AdminDashboard = () => {
                                 src={imageSource} 
                                 alt="Story Design" 
                                 className="w-full h-full object-cover"
-                                style={{ objectPosition: 'center 20%' }}
+                                style={{ objectPosition: 'center top' }}
                               />
-                              {/* Story Overlay - All details at bottom */}
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent">
-                                {/* All content at bottom */}
-                                <div className="absolute bottom-8 left-3 right-3 text-center">
-                                  {/* BFM Logo & Branding */}
-                                  <img src={BFM_LOGO} alt="BFM" className="w-8 h-8 mx-auto rounded-full border border-[#D4AF37] mb-1" />
-                                  <div className="text-[#D4AF37] text-[8px] font-bold tracking-wider mb-2">BANGALORE FASHION MAGAZINE</div>
+                              {/* Story Overlay - gradient from bottom only */}
+                              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.8) 35%, rgba(0,0,0,0.3) 50%, transparent 70%)' }}>
+                                {/* ALL content at VERY bottom */}
+                                <div className="absolute bottom-2 left-2 right-2 text-center">
+                                  {/* BFM Logo */}
+                                  <img src={BFM_LOGO} alt="BFM" className="w-6 h-6 mx-auto rounded-full border border-[#D4AF37] mb-0.5" />
+                                  <div className="text-[#D4AF37] text-[6px] font-bold tracking-wider">BANGALORE FASHION MAGAZINE</div>
                                   
                                   {/* Talent Info */}
-                                  <div className="text-[#D4AF37] text-[8px] uppercase tracking-widest mb-0.5">Featured Talent</div>
-                                  <div className="text-white text-base font-bold">{instagramTalent.name}</div>
-                                  <div className="text-[#D4AF37] text-[10px] uppercase">{instagramTalent.category}</div>
+                                  <div className="text-[#D4AF37] text-[6px] uppercase tracking-widest mt-1">Featured Talent</div>
+                                  <div className="text-white text-sm font-bold leading-tight">{instagramTalent.name}</div>
+                                  <div className="text-[#D4AF37] text-[8px] uppercase">{instagramTalent.category}</div>
                                   
                                   {instaSettings.showTalentInsta && instagramTalent.instagram_id && (
-                                    <div className="text-white/70 text-[10px] mt-0.5">@{instagramTalent.instagram_id}</div>
+                                    <div className="text-white/70 text-[8px]">@{instagramTalent.instagram_id}</div>
                                   )}
                                   
-                                  {/* Website CTA */}
+                                  {/* Website */}
                                   {instaSettings.showWebsite && (
-                                    <div className="mt-2 pt-1.5 border-t border-white/20">
-                                      <div className="text-white/80 text-[8px]">Discover on</div>
-                                      <div className="text-[#D4AF37] text-[10px] font-bold">bangalorefashionmagazine.com</div>
+                                    <div className="mt-1 pt-1 border-t border-white/20">
+                                      <div className="text-[#D4AF37] text-[7px] font-bold">bangalorefashionmagazine.com</div>
                                     </div>
                                   )}
                                   
                                   {/* QR Code */}
                                   {instaSettings.showQR && (
-                                    <div className="mt-2 mx-auto w-10 h-10 bg-white rounded p-0.5 flex items-center justify-center">
+                                    <div className="mt-1 mx-auto w-8 h-8 bg-white rounded p-0.5 flex items-center justify-center">
                                       <QRCodeSVG 
                                         value={`https://bangalorefashionmagazine.com/talent/${instagramTalent.id}`}
-                                        size={36}
+                                        size={28}
                                         level="M"
                                         includeMargin={false}
                                       />

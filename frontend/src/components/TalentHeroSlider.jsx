@@ -35,13 +35,13 @@ const TalentHeroSlider = () => {
     }
 
     autoplayRef.current = setInterval(() => {
-      goToNext();
+      setCurrentSlide(prev => (prev + 1) % slideCount);
     }, (settings.slide_duration || 5) * 1000);
 
     return () => {
       if (autoplayRef.current) clearInterval(autoplayRef.current);
     };
-  }, [settings.autoplay, settings.slide_duration, slideCount, isPaused, currentSlide]);
+  }, [settings.autoplay, settings.slide_duration, slideCount, isPaused]);
 
   const goToSlide = useCallback((index) => {
     if (isTransitioning || index === currentSlide) return;
