@@ -97,6 +97,32 @@ Build a comprehensive fashion talent platform for Bangalore Fashion Magazine (BF
 1. **520 Error on Production** - Platform infrastructure issue, not code-related
 2. **Monolithic files** - MagazineBuilder.jsx (~2481 lines) and AdminDashboard.jsx (~2257 lines) need refactoring
 
+### August 2026 - Navigation Restructure
+- **New TALENTS Navigation** with expanded categories:
+  - All Talents
+  - Models – Male
+  - Models – Female
+  - Designers
+  - Photographers
+  - Makeup Artists
+  - Hair Stylists
+  - Stylists
+  - DJs
+  - Choreographers
+  - Casting Coordinators
+  - Featured Talents
+- **New MAGAZINE Tab** with sections:
+  - Latest Issues (downloadable PDFs)
+  - Talent Spotlight (featured talents)
+  - Editorials (hero image showcases)
+- Both desktop hover dropdowns and mobile collapsible menus updated
+
+### August 2026 - Bug Fixes
+- **Ad/Party Click Expand**: Fixed click-to-expand functionality for ads and party images
+  - Removed anchor tags causing page navigation
+  - Now properly shows enlarged modal view
+  - Works for both ads with and without links
+
 ### August 2026 - Performance Optimization
 - **CRITICAL FIX**: `/api/talents` payload optimization
   - Added `lightweight=true` parameter to exclude `profile_image`, `email`, `phone`

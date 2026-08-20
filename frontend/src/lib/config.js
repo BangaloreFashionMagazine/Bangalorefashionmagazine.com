@@ -8,36 +8,55 @@ export const BFM_LOGO = "/bfm-logo.jpeg";
 
 // Talent Categories
 export const TALENT_CATEGORIES = [
-  "Women | Models",
-  "Men | Models",
+  "All Talents",
+  "Models – Male",
+  "Models – Female",
   "Designers",
-  "Designer Store",
-  "Beauty",
-  "Visual Stories",
-  "Experiences",
-  "Creative Collective"
+  "Photographers",
+  "Makeup Artists",
+  "Hair Stylists",
+  "Stylists",
+  "DJs",
+  "Choreographers",
+  "Casting Coordinators",
+  "Featured Talents"
+];
+
+// Magazine Categories
+export const MAGAZINE_CATEGORIES = [
+  "Latest Issues",
+  "Talent Spotlight",
+  "Editorials"
 ];
 
 // Map old categories to new for display
 export const CATEGORY_DISPLAY = {
-  "Model - Female": "Women | Models",
-  "Model - Male": "Men | Models",
-  "Makeup & Hair": "Beauty",
-  "Photography": "Visual Stories",
-  "Event Management": "Experiences",
-  "Other": "Creative Collective",
-  "Designers": "Designers"
+  "Model - Female": "Models – Female",
+  "Model - Male": "Models – Male",
+  "Makeup & Hair": "Makeup Artists",
+  "Photography": "Photographers",
+  "Event Management": "Choreographers",
+  "Other": "Stylists",
+  "Designers": "Designers",
+  "Hair Stylists": "Hair Stylists",
+  "DJs": "DJs",
+  "Casting Coordinators": "Casting Coordinators"
 };
 
 // Reverse map: new category names to old database names
 export const CATEGORY_DB = {
-  "Women | Models": "Model - Female",
-  "Men | Models": "Model - Male",
-  "Beauty": "Makeup & Hair",
-  "Visual Stories": "Photography",
-  "Experiences": "Event Management",
-  "Creative Collective": "Other",
-  "Designers": "Designers"
+  "All Talents": "All",
+  "Models – Male": "Model - Male",
+  "Models – Female": "Model - Female",
+  "Designers": "Designers",
+  "Photographers": "Photography",
+  "Makeup Artists": "Makeup & Hair",
+  "Hair Stylists": "Hair Stylists",
+  "Stylists": "Stylists",
+  "DJs": "DJs",
+  "Choreographers": "Choreographers",
+  "Casting Coordinators": "Casting Coordinators",
+  "Featured Talents": "Featured"
 };
 
 export const getCategoryDisplay = (cat) => CATEGORY_DISPLAY[cat] || cat;

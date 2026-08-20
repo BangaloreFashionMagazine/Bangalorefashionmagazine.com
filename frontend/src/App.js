@@ -12,7 +12,7 @@ import { ChevronLeft, ChevronRight, Users, Palette, Sparkles, Camera, Briefcase,
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
 import ImageUploadWithCrop from "@/components/ImageUploadWithCrop";
-import { API, BFM_LOGO, TALENT_CATEGORIES, CATEGORY_DISPLAY, CATEGORY_DB, getCategoryDisplay, getCategoryForDB, DEFAULT_SLIDES, STORE_SUBCATEGORIES } from "@/lib/config";
+import { API, BFM_LOGO, TALENT_CATEGORIES, MAGAZINE_CATEGORIES, CATEGORY_DISPLAY, CATEGORY_DB, getCategoryDisplay, getCategoryForDB, DEFAULT_SLIDES, STORE_SUBCATEGORIES } from "@/lib/config";
 import { autoCompressImage } from "@/lib/imageOptimization";
 import DesignerStorePageComponent from "@/pages/DesignerStorePage";
 import AdminDashboard from "@/pages/Admin/AdminDashboard";
@@ -67,6 +67,7 @@ const LogoWatermark = ({ size = "small", position = "bottom-right" }) => {
 // Navbar
 const Navbar = ({ user, talent, onLogout }) => {
   const [showTalentMenu, setShowTalentMenu] = useState(false);
+  const [showMagazineMenu, setShowMagazineMenu] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isAdmin = user && (user.is_admin || user.email === "admin@bangalorefashionmag.com");
 
@@ -90,21 +91,49 @@ const Navbar = ({ user, talent, onLogout }) => {
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-4">
             <Link to="/" className="text-xs uppercase tracking-wider text-[#F5F5F0] hover:text-[#D4AF37]">Home</Link>
-            <div className="relative">
-              <button onClick={() => setShowTalentMenu(!showTalentMenu)} className="text-xs uppercase tracking-wider text-[#A0A5B0] hover:text-[#D4AF37]">
-                Talents ▾
+            
+            {/* Talents Dropdown */}
+            <div className="relative" onMouseEnter={() => setShowTalentMenu(true)} onMouseLeave={() => setShowTalentMenu(false)}>
+              <button className="text-xs uppercase tracking-wider text-[#A0A5B0] hover:text-[#D4AF37] flex items-center gap-1">
+                Talents <span className="text-[10px]">▾</span>
               </button>
               {showTalentMenu && (
-                <div className="absolute top-full left-0 mt-2 w-48 bg-[#0A1628] border border-[#D4AF37]/20 rounded-lg shadow-xl z-50">
-                  {TALENT_CATEGORIES.filter(cat => cat !== "Designer Store").map(cat => (
-                    <Link key={cat} to={`/talents/${encodeURIComponent(cat)}`} onClick={() => setShowTalentMenu(false)}
-                      className="block px-4 py-2 text-sm text-[#A0A5B0] hover:text-[#D4AF37] hover:bg-[#050A14]">
+                <div className="absolute top-full left-0 mt-1 w-52 bg-[#0A1628] border border-[#D4AF37]/20 rounded-lg shadow-xl z-50 py-2">
+                  {TALENT_CATEGORIES.map(cat => (
+                    <Link 
+                      key={cat} 
+                      to={`/talents/${encodeURIComponent(cat)}`} 
+                      onClick={() => setShowTalentMenu(false)}
+                      className="block px-4 py-2 text-sm text-[#A0A5B0] hover:text-[#D4AF37] hover:bg-[#050A14] transition-colors"
+                    >
                       {cat}
                     </Link>
                   ))}
                 </div>
               )}
             </div>
+            
+            {/* Magazine Dropdown */}
+            <div className="relative" onMouseEnter={() => setShowMagazineMenu(true)} onMouseLeave={() => setShowMagazineMenu(false)}>
+              <button className="text-xs uppercase tracking-wider text-[#A0A5B0] hover:text-[#D4AF37] flex items-center gap-1">
+                Magazine <span className="text-[10px]">▾</span>
+              </button>
+              {showMagazineMenu && (
+                <div className="absolute top-full left-0 mt-1 w-48 bg-[#0A1628] border border-[#D4AF37]/20 rounded-lg shadow-xl z-50 py-2">
+                  {MAGAZINE_CATEGORIES.map(cat => (
+                    <Link 
+                      key={cat} 
+                      to={`/magazine/${encodeURIComponent(cat.toLowerCase().replace(/ /g, '-'))}`} 
+                      onClick={() => setShowMagazineMenu(false)}
+                      className="block px-4 py-2 text-sm text-[#A0A5B0] hover:text-[#D4AF37] hover:bg-[#050A14] transition-colors"
+                    >
+                      {cat}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+            
             <Link to="/designer-store" className="text-xs uppercase tracking-wider text-[#A0A5B0] hover:text-[#D4AF37]">Designer Store</Link>
             <Link to="/about" className="text-xs uppercase tracking-wider text-[#A0A5B0] hover:text-[#D4AF37]">About Us</Link>
             {user ? (
@@ -129,33 +158,48 @@ const Navbar = ({ user, talent, onLogout }) => {
         
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-[#0A1628] border-t border-[#D4AF37]/20 py-4 space-y-3">
+          <div className="md:hidden bg-[#0A1628] border-t border-[#D4AF37]/20 py-4 space-y-3 max-h-[80vh] overflow-y-auto">
             <Link to="/" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-2 text-[#F5F5F0]">Home</Link>
+            
+            {/* Talents Section */}
             <div className="px-4 py-2">
-              <p className="text-[#D4AF37] text-sm mb-2">Talents</p>
-              {TALENT_CATEGORIES.filter(cat => cat !== "Designer Store").map(cat => (
+              <p className="text-[#D4AF37] text-sm mb-2 font-semibold">Talents</p>
+              {TALENT_CATEGORIES.map(cat => (
                 <Link key={cat} to={`/talents/${encodeURIComponent(cat)}`} onClick={() => setMobileMenuOpen(false)}
-                  className="block py-1 pl-4 text-sm text-[#A0A5B0]">{cat}</Link>
+                  className="block py-1.5 pl-4 text-sm text-[#A0A5B0] hover:text-[#D4AF37]">{cat}</Link>
               ))}
             </div>
-            <Link to="/about" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-2 text-[#A0A5B0]">About Us</Link>
-            <Link to="/designer-store" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-2 text-[#A0A5B0]">Designer Store</Link>
+            
+            {/* Magazine Section */}
+            <div className="px-4 py-2 border-t border-[#D4AF37]/10">
+              <p className="text-[#D4AF37] text-sm mb-2 font-semibold">Magazine</p>
+              {MAGAZINE_CATEGORIES.map(cat => (
+                <Link key={cat} to={`/magazine/${encodeURIComponent(cat.toLowerCase().replace(/ /g, '-'))}`} onClick={() => setMobileMenuOpen(false)}
+                  className="block py-1.5 pl-4 text-sm text-[#A0A5B0] hover:text-[#D4AF37]">{cat}</Link>
+              ))}
+            </div>
+            
+            <div className="border-t border-[#D4AF37]/10 pt-2">
+              <Link to="/designer-store" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-2 text-[#A0A5B0]">Designer Store</Link>
+              <Link to="/about" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-2 text-[#A0A5B0]">About Us</Link>
+            </div>
+            
             {user ? (
-              <>
+              <div className="border-t border-[#D4AF37]/10 pt-2">
                 {/* Admin link hidden - access via /admin directly */}
                 <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-2 text-[#D4AF37]">{user.name}</Link>
                 <button onClick={() => { onLogout(); setMobileMenuOpen(false); }} className="block px-4 py-2 text-red-400">Logout</button>
-              </>
+              </div>
             ) : talent ? (
-              <>
+              <div className="border-t border-[#D4AF37]/10 pt-2">
                 <Link to="/talent-dashboard" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-2 text-[#D4AF37]">My Profile</Link>
                 <button onClick={() => { onLogout(); setMobileMenuOpen(false); }} className="block px-4 py-2 text-red-400">Logout</button>
-              </>
+              </div>
             ) : (
-              <>
+              <div className="border-t border-[#D4AF37]/10 pt-2">
                 <Link to="/talent-login" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-2 text-[#A0A5B0]">Talent Login</Link>
                 <Link to="/join" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-2 text-[#D4AF37] font-bold">Join Us</Link>
-              </>
+              </div>
             )}
           </div>
         )}
@@ -934,13 +978,26 @@ const TalentsPage = ({ ads }) => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const decodedCategory = decodeURIComponent(category || "");
+  
+  // Handle special categories
+  const isAllTalents = decodedCategory === "All Talents";
+  const isFeatured = decodedCategory === "Featured Talents";
+  
   // Convert URL category (new name) to database category (old name)
   const dbCategory = getCategoryForDB(decodedCategory);
   const hasAds = ads && ads.length > 0;
 
   useEffect(() => {
     setLoading(true);
-    axios.get(`${API}/talents?approved_only=true&category=${encodeURIComponent(dbCategory)}&lightweight=true`)
+    let url = `${API}/talents?approved_only=true&lightweight=true`;
+    
+    if (isFeatured) {
+      url += `&featured=true`;
+    } else if (!isAllTalents) {
+      url += `&category=${encodeURIComponent(dbCategory)}`;
+    }
+    
+    axios.get(url)
       .then(res => {
         setTalents(res.data);
         setLoading(false);
@@ -949,14 +1006,20 @@ const TalentsPage = ({ ads }) => {
         console.error(err);
         setLoading(false);
       });
-  }, [dbCategory]);
+  }, [dbCategory, isAllTalents, isFeatured]);
 
   const handleVote = async (talentId) => {
     try {
       await axios.post(`${API}/vote`, { talent_id: talentId });
       toast({ title: "Vote recorded!" });
       // Refresh
-      const res = await axios.get(`${API}/talents?approved_only=true&category=${encodeURIComponent(dbCategory)}&lightweight=true`);
+      let url = `${API}/talents?approved_only=true&lightweight=true`;
+      if (isFeatured) {
+        url += `&featured=true`;
+      } else if (!isAllTalents) {
+        url += `&category=${encodeURIComponent(dbCategory)}`;
+      }
+      const res = await axios.get(url);
       setTalents(res.data);
     } catch (err) {
       toast({ title: "Error", description: err.response?.data?.detail || "Failed to vote", variant: "destructive" });
@@ -973,7 +1036,10 @@ const TalentsPage = ({ ads }) => {
       <div className="container mx-auto px-3 sm:px-4">
         <div className="flex gap-4">
           <div className="flex-1 min-w-0">
-            <h1 className="font-serif text-xl sm:text-2xl font-bold text-[#F5F5F0] mb-4 sm:mb-6">{decodedCategory || "All Talents"}</h1>
+            <h1 className="font-serif text-xl sm:text-2xl font-bold text-[#F5F5F0] mb-4 sm:mb-6">
+              {isFeatured && <Star className="inline-block w-6 h-6 text-[#D4AF37] mr-2" />}
+              {decodedCategory || "All Talents"}
+            </h1>
             {loading ? (
               <p className="text-[#A0A5B0]">Loading...</p>
             ) : talents.length === 0 ? (
@@ -1757,6 +1823,178 @@ I confirm that I have read, understood, and voluntarily accepted this declaratio
   );
 };
 
+// Magazine Page
+const MagazinePage = () => {
+  const { section } = useParams();
+  const [magazines, setMagazines] = useState([]);
+  const [spotlightTalents, setSpotlightTalents] = useState([]);
+  const [editorials, setEditorials] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedTalent, setSelectedTalent] = useState(null);
+  const { toast } = useToast();
+  
+  const sectionTitle = {
+    'latest-issues': 'Latest Issues',
+    'talent-spotlight': 'Talent Spotlight',
+    'editorials': 'Editorials'
+  }[section] || 'Magazine';
+
+  useEffect(() => {
+    setLoading(true);
+    
+    if (section === 'latest-issues') {
+      // Fetch magazine issues
+      axios.get(`${API}/homepage-data`)
+        .then(res => {
+          if (res.data.magazine) {
+            setMagazines([res.data.magazine]);
+          }
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
+    } else if (section === 'talent-spotlight') {
+      // Fetch featured/spotlight talents
+      axios.get(`${API}/talents?approved_only=true&featured=true&lightweight=true`)
+        .then(res => {
+          setSpotlightTalents(res.data);
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
+    } else if (section === 'editorials') {
+      // Fetch hero images as editorials
+      axios.get(`${API}/homepage-data`)
+        .then(res => {
+          setEditorials(res.data.hero_images || []);
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
+    } else {
+      setLoading(false);
+    }
+  }, [section]);
+
+  const handleVote = async (talentId) => {
+    try {
+      await axios.post(`${API}/vote`, { talent_id: talentId });
+      toast({ title: "Vote recorded!" });
+    } catch (err) {
+      toast({ title: "Error", description: err.response?.data?.detail || "Failed to vote", variant: "destructive" });
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#050A14] pt-20 pb-12">
+      <div className="container mx-auto px-4">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <span className="text-[#D4AF37] text-xs uppercase tracking-widest">BFM Magazine</span>
+          <h1 className="font-serif text-4xl font-bold text-[#F5F5F0] mt-2">{sectionTitle}</h1>
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center">
+            <p className="text-[#A0A5B0]">Loading...</p>
+          </div>
+        ) : (
+          <>
+            {/* Latest Issues */}
+            {section === 'latest-issues' && (
+              <div className="max-w-4xl mx-auto">
+                {magazines.length === 0 ? (
+                  <p className="text-[#A0A5B0] text-center">No magazine issues available yet.</p>
+                ) : (
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {magazines.map((mag, i) => (
+                      <div key={i} className="bg-[#0A1628] rounded-xl overflow-hidden border border-[#D4AF37]/20 hover:border-[#D4AF37]/50 transition-all">
+                        <div className="aspect-[3/4] bg-gradient-to-br from-[#D4AF37]/20 to-[#0A1628] flex items-center justify-center">
+                          <div className="text-center p-6">
+                            <Image className="w-16 h-16 mx-auto text-[#D4AF37] mb-4" />
+                            <h3 className="text-[#F5F5F0] font-serif text-xl mb-2">{mag.title || "BFM Magazine"}</h3>
+                            <p className="text-[#A0A5B0] text-sm">{mag.file_name || "Latest Edition"}</p>
+                          </div>
+                        </div>
+                        <div className="p-4">
+                          {mag.file_data && (
+                            <a 
+                              href={mag.file_data} 
+                              download={mag.file_name || "magazine.pdf"}
+                              className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-[#D4AF37] text-[#050A14] rounded-lg font-bold hover:bg-[#F5F5F0] transition-colors"
+                            >
+                              <Download size={18} /> Download PDF
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Talent Spotlight */}
+            {section === 'talent-spotlight' && (
+              <div>
+                {spotlightTalents.length === 0 ? (
+                  <p className="text-[#A0A5B0] text-center">No spotlight talents featured yet.</p>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                    {spotlightTalents.map(t => (
+                      <TalentCardSmall key={t.id} talent={t} onVote={handleVote} onClick={setSelectedTalent} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Editorials */}
+            {section === 'editorials' && (
+              <div className="max-w-6xl mx-auto">
+                {editorials.length === 0 ? (
+                  <p className="text-[#A0A5B0] text-center">No editorials available yet.</p>
+                ) : (
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {editorials.map((editorial, i) => (
+                      <div key={i} className="group relative overflow-hidden rounded-xl border border-[#D4AF37]/20 hover:border-[#D4AF37]/50 transition-all">
+                        <div className="aspect-[4/5]">
+                          <img 
+                            src={editorial.image_data || editorial.image} 
+                            alt={editorial.title} 
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                        </div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent">
+                          <div className="absolute bottom-0 left-0 right-0 p-6">
+                            <span className="inline-block px-3 py-1 bg-[#D4AF37] text-[#050A14] text-xs font-bold rounded-full mb-2">
+                              {editorial.category || "Editorial"}
+                            </span>
+                            <h3 className="text-[#F5F5F0] font-serif text-xl font-bold">{editorial.title}</h3>
+                            {editorial.subtitle && (
+                              <p className="text-[#A0A5B0] text-sm mt-1">{editorial.subtitle}</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Talent Detail Modal */}
+      {selectedTalent && (
+        <TalentDetailModal 
+          talent={selectedTalent} 
+          onClose={() => setSelectedTalent(null)} 
+          onVote={handleVote} 
+        />
+      )}
+    </div>
+  );
+};
+
 // Talent Dashboard
 // About Page
 const AboutPage = () => (
@@ -2110,6 +2348,7 @@ function App() {
         <Route path="/about" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><AboutPage /></>} />
         <Route path="/designer-store" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><DesignerStorePageComponent /></>} />
         <Route path="/talents/:category" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><TalentsPage ads={ads} /></>} />
+        <Route path="/magazine/:section" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><MagazinePage /></>} />
         <Route path="/talent-dashboard" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><TalentDashboard talent={talent} onUpdate={setTalent} /></>} />
         <Route path="/admin" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><AdminDashboard /></>} />
       </Routes>

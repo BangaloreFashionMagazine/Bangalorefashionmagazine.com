@@ -32,32 +32,46 @@ TALENT_CATEGORIES = [
     "Designers",
     "Designer Store",
     "Makeup & Hair",
+    "Hair Stylists",
+    "Stylists",
     "Photography",
+    "DJs",
+    "Choreographers",
+    "Casting Coordinators",
     "Event Management",
     "Other"
 ]
 
 # New category names (displayed in UI)
 NEW_TALENT_CATEGORIES = [
-    "Women | Models",
-    "Men | Models",
+    "All Talents",
+    "Models – Male",
+    "Models – Female",
     "Designers",
-    "Designer Store",
-    "Beauty",
-    "Visual Stories",
-    "Experiences",
-    "Creative Collective"
+    "Photographers",
+    "Makeup Artists",
+    "Hair Stylists",
+    "Stylists",
+    "DJs",
+    "Choreographers",
+    "Casting Coordinators",
+    "Featured Talents"
 ]
 
 # Map new names to old database names
 CATEGORY_TO_DB = {
-    "Women | Models": "Model - Female",
-    "Men | Models": "Model - Male",
-    "Beauty": "Makeup & Hair",
-    "Visual Stories": "Photography",
-    "Experiences": "Event Management",
-    "Creative Collective": "Other",
-    "Designers": "Designers"
+    "All Talents": "All",
+    "Models – Male": "Model - Male",
+    "Models – Female": "Model - Female",
+    "Designers": "Designers",
+    "Photographers": "Photography",
+    "Makeup Artists": "Makeup & Hair",
+    "Hair Stylists": "Hair Stylists",
+    "Stylists": "Stylists",
+    "DJs": "DJs",
+    "Choreographers": "Choreographers",
+    "Casting Coordinators": "Casting Coordinators",
+    "Featured Talents": "Featured"
 }
 
 # All valid categories (both old and new)

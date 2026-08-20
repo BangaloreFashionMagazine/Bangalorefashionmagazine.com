@@ -260,11 +260,13 @@ def create_talent_routes(db):
 
 
     @router.get("/talents", response_model=List[TalentResponse])
-    async def get_talents(approved_only: bool = True, category: Optional[str] = None, lightweight: bool = False):
+    async def get_talents(approved_only: bool = True, category: Optional[str] = None, lightweight: bool = False, featured: bool = False):
         query = {}
         if approved_only:
             query["is_approved"] = True
-        if category:
+        if featured:
+            query["is_featured"] = True
+        if category and category not in ["All", "All Talents"]:
             query["category"] = category
         
         # Always exclude large portfolio fields from list view for faster loading
