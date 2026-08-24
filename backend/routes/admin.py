@@ -212,6 +212,23 @@ def create_admin_routes(db):
             "recent_shares": shares[:50]  # Last 50 shares
         }
     
+    # Share settings
+    @router.get("/admin/share-settings")
+    async def get_share_settings():
+        """Get share settings"""
+        settings = await db.settings.find_one({"type": "share_settings"}, {"_id": 0})
+        return settings or {"share_enabled": True}
+    
+    @router.post("/admin/share-settings")
+    async def update_share_settings(data: dict):
+        """Update share settings"""
+        await db.settings.update_one(
+            {"type": "share_settings"},
+            {"$set": {"type": "share_settings", "share_enabled": data.get("share_enabled", True)}},
+            upsert=True
+        )
+        return {"success": True}
+    
     # Get paid talents with payment details
     @router.get("/admin/paid-talents")
     async def get_paid_talents():

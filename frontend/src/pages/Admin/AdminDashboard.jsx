@@ -1,11 +1,12 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import axios from "axios";
-import { Users, Star, Award, Image, Download, Check, X, Phone, Mail, Trash2, ExternalLink, Music, Video, Upload, BarChart3, TrendingUp, Eye, MousePointer, ShoppingBag, Package, MapPin, Calendar, BookOpen, Settings, IndianRupee, Layers } from "lucide-react";
+import { Users, Star, Award, Image, Download, Check, X, Phone, Mail, Trash2, ExternalLink, Music, Video, Upload, BarChart3, TrendingUp, Eye, MousePointer, ShoppingBag, Package, MapPin, Calendar, BookOpen, Settings, IndianRupee, Layers, FileText, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ImageUploadWithCrop from "@/components/ImageUploadWithCrop";
 import { API, BFM_LOGO, TALENT_CATEGORIES, STORE_CATEGORIES, CATEGORY_DB } from "@/lib/config";
 import { autoCompressImage } from "@/lib/imageOptimization";
 import { QRCodeSVG } from "qrcode.react";
+import { jsPDF } from "jspdf";
 
 // Lazy load Magazine Builder for better performance
 const MagazineBuilder = lazy(() => import("./MagazineBuilder"));
@@ -61,6 +62,9 @@ const AdminDashboard = () => {
   const [storeSettings, setStoreSettings] = useState({ hero_images: [], contact_email: "", contact_phone: "", contact_instagram: "" });
   const [newProduct, setNewProduct] = useState({ name: "", description: "", store_category: "Everyday Chic", size: "", material: "", price: "", discount_percent: "", shipping_info: "", images: [], video: "", designer_id: "" });
   const [editingProduct, setEditingProduct] = useState(null);
+  
+  // Share settings state
+  const [shareSettings, setShareSettings] = useState({ share_enabled: true });
   
   // Events & Custom Payments state
   const [events, setEvents] = useState([]);
@@ -230,6 +234,16 @@ const AdminDashboard = () => {
       toast({ title: "Failed to delete event", variant: "destructive" });
     }
   };
+  
+  const fetchShareSettings = async () => {
+    try {
+      const res = await axios.get(`${API}/admin/share-settings`);
+      setShareSettings(res.data || { share_enabled: true });
+    } catch (err) { 
+      console.error(err);
+      setShareSettings({ share_enabled: true });
+    }
+  };
 
   const fetchPartyEvents = async () => {
     setLoading(true);
@@ -313,7 +327,7 @@ const AdminDashboard = () => {
       case 'export': await fetchStoreOrders(); break;
       case 'instagram': await fetchAllTalents(); break;  // Always fetch fresh talent data
       case 'events': await fetchEvents(); await fetchEventPayments(); break;
-      case 'settings': await fetchPaymentSettings(); await fetchPaymentHistory(); break;
+      case 'settings': await fetchPaymentSettings(); await fetchPaymentHistory(); await fetchShareSettings(); break;
       default: break;
     }
     setLoadedTabs(prev => ({...prev, [tabName]: true}));
@@ -3056,6 +3070,46 @@ const AdminDashboard = () => {
                   <li>4. Share with talents via WhatsApp, Instagram DM, etc.</li>
                   <li>5. For event-specific payments, use the <span className="text-[#D4AF37]">Events & Payments</span> tab with Razorpay integration</li>
                 </ul>
+              </div>
+            </div>
+            
+            {/* Share Settings Section */}
+            <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20 mt-6">
+              <div className="flex items-center gap-3 mb-4">
+                <Share2 className="text-[#D4AF37]" size={24} />
+                <h3 className="text-[#F5F5F0] font-bold text-lg">Share Settings</h3>
+              </div>
+              
+              <div className="bg-[#050A14] rounded-lg p-4 border border-[#D4AF37]/10 space-y-4">
+                {/* Share Enable/Disable Toggle */}
+                <div className="flex items-center justify-between p-3 bg-[#0A1628] rounded-lg">
+                  <div>
+                    <p className="text-[#F5F5F0] font-medium">Enable Talent Sharing</p>
+                    <p className="text-[#A0A5B0] text-sm">Allow talents to share their profiles with branded images</p>
+                  </div>
+                  <button 
+                    onClick={async () => {
+                      const newValue = !shareSettings.share_enabled;
+                      setShareSettings(s => ({ ...s, share_enabled: newValue }));
+                      try {
+                        await axios.post(`${API}/admin/share-settings`, { share_enabled: newValue });
+                        toast({ title: newValue ? "Sharing enabled" : "Sharing disabled" });
+                      } catch (err) {
+                        toast({ title: "Failed to update", variant: "destructive" });
+                      }
+                    }}
+                    className={`w-14 h-7 rounded-full transition-colors ${shareSettings.share_enabled ? "bg-[#D4AF37]" : "bg-[#050A14] border border-[#D4AF37]/30"}`}
+                  >
+                    <div className={`w-6 h-6 bg-white rounded-full transition-transform ${shareSettings.share_enabled ? "translate-x-7" : "translate-x-0.5"}`} />
+                  </button>
+                </div>
+                
+                <div className="p-3 bg-[#050A14]/50 rounded-lg">
+                  <p className="text-[#A0A5B0] text-sm">
+                    When enabled, talents can share their profiles as branded images to WhatsApp, Instagram Stories, and Instagram Feed. 
+                    Images include BFM logo, talent photo, name, category, and website URL.
+                  </p>
+                </div>
               </div>
             </div>
           </div>

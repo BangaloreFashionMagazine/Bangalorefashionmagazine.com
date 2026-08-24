@@ -60,6 +60,13 @@ async def get_categories():
     return {"categories": TALENT_CATEGORIES}
 
 
+@api_router.get("/share-settings")
+async def get_public_share_settings():
+    """Public endpoint to check if sharing is enabled"""
+    settings = await db.settings.find_one({"type": "share_settings"}, {"_id": 0})
+    return {"share_enabled": settings.get("share_enabled", True) if settings else True}
+
+
 # Combined homepage data endpoint for faster loading
 @api_router.get("/homepage-data")
 async def get_homepage_data():
