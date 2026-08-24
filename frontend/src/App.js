@@ -798,7 +798,12 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true, leade
     ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
 
     // Gradient overlay ONLY at bottom (preserves face at top)
-    const brandingHeight = format === 'story' ? 450 : 350;
+    // Increase branding height based on content
+    const hasCaption = caption.trim().length > 0;
+    const hasHashtags = hashtags.trim().length > 0;
+    const extraHeight = (hasCaption ? 60 : 0) + (hasHashtags ? 35 : 0);
+    const brandingHeight = (format === 'story' ? 480 : 400) + extraHeight;
+    
     const gradient = ctx.createLinearGradient(0, canvas.height - brandingHeight - 100, 0, canvas.height);
     gradient.addColorStop(0, 'rgba(0,0,0,0)');
     gradient.addColorStop(0.3, 'rgba(0,0,0,0.7)');
@@ -872,24 +877,25 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true, leade
     ctx.textAlign = 'center';
     ctx.fillText('Scan to view profile', qrX + qrSize/2, qrY + qrSize + 18);
 
-    // Talent Info
+    // Talent Info - positioned below logo/QR section
+    const infoStartY = bottomY + 110;
+    
     ctx.fillStyle = '#D4AF37';
     ctx.font = '16px sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText('FEATURED TALENT', 50, bottomY + 115);
+    ctx.fillText('FEATURED TALENT', 50, infoStartY);
     
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 48px serif';
-    ctx.fillText(talent.name, 50, bottomY + 170);
+    ctx.font = 'bold 44px serif';
+    ctx.fillText(talent.name, 50, infoStartY + 50);
     
     ctx.fillStyle = '#D4AF37';
-    ctx.font = '24px sans-serif';
-    ctx.fillText(getCategoryDisplay(talent.category).toUpperCase(), 50, bottomY + 205);
+    ctx.font = '22px sans-serif';
+    ctx.fillText(getCategoryDisplay(talent.category).toUpperCase(), 50, infoStartY + 85);
 
     // Calculate dynamic Y position for caption/hashtags/CTA
-    let currentY = bottomY + 230;
-    const lineSpacing = 30;
-    const bottomPadding = 80; // Space from canvas bottom for CTA
+    let currentY = infoStartY + 120;
+    const lineHeight = 28;
     
     // Custom Caption (if provided)
     if (caption.trim()) {
@@ -903,14 +909,14 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true, leade
         const testLine = line + word + ' ';
         if (ctx.measureText(testLine).width > maxWidth && line.length > 1) {
           ctx.fillText(line, 50, currentY);
-          currentY += 25;
+          currentY += lineHeight;
           line = word + ' ';
         } else {
           line = testLine;
         }
       }
       ctx.fillText(line.trim() + '"', 50, currentY);
-      currentY += lineSpacing;
+      currentY += lineHeight + 8;
     }
 
     // Custom Hashtags (if provided)
@@ -918,17 +924,17 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true, leade
       ctx.fillStyle = '#D4AF37';
       ctx.font = '14px sans-serif';
       ctx.fillText(hashtags, 50, currentY);
-      currentY += lineSpacing;
+      currentY += lineHeight + 5;
     }
 
-    // Website CTA at very bottom - fixed position with clear spacing
-    const ctaY = Math.max(currentY + 20, canvas.height - bottomPadding);
-    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    // Website CTA - ensure it's at least 60px from bottom
+    const ctaY = Math.min(currentY + 15, canvas.height - 70);
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
     ctx.font = '14px sans-serif';
     ctx.fillText('Discover more talents at', 50, ctaY);
     ctx.fillStyle = '#D4AF37';
     ctx.font = 'bold 18px sans-serif';
-    ctx.fillText('bangalorefashionmagazine.com', 50, ctaY + 22);
+    ctx.fillText('bangalorefashionmagazine.com', 50, ctaY + 24);
 
     return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.92));
   };
@@ -993,8 +999,12 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true, leade
     }
     ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
 
-    // Gradient overlay
-    const brandingHeight = format === 'story' ? 450 : 350;
+    // Gradient overlay - dynamic height based on content
+    const hasCaption = caption.trim().length > 0;
+    const hasHashtags = hashtags.trim().length > 0;
+    const extraHeight = (hasCaption ? 60 : 0) + (hasHashtags ? 35 : 0);
+    const brandingHeight = (format === 'story' ? 480 : 400) + extraHeight;
+    
     const gradient = ctx.createLinearGradient(0, logicalHeight - brandingHeight - 100, 0, logicalHeight);
     gradient.addColorStop(0, 'rgba(0,0,0,0)');
     gradient.addColorStop(0.3, 'rgba(0,0,0,0.7)');
@@ -1055,23 +1065,24 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true, leade
     ctx.textAlign = 'center';
     ctx.fillText('Scan to view profile', qrX + qrSize/2, qrY + qrSize + 18);
 
-    // Talent Info
+    // Talent Info - positioned below logo/QR section
+    const infoStartY = bottomY + 110;
+    
     ctx.fillStyle = '#D4AF37';
     ctx.font = '16px sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText('FEATURED TALENT', 50, bottomY + 115);
+    ctx.fillText('FEATURED TALENT', 50, infoStartY);
     
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 48px serif';
-    ctx.fillText(talent.name, 50, bottomY + 170);
+    ctx.font = 'bold 44px serif';
+    ctx.fillText(talent.name, 50, infoStartY + 50);
     
     ctx.fillStyle = '#D4AF37';
-    ctx.font = '24px sans-serif';
-    ctx.fillText(getCategoryDisplay(talent.category).toUpperCase(), 50, bottomY + 205);
+    ctx.font = '22px sans-serif';
+    ctx.fillText(getCategoryDisplay(talent.category).toUpperCase(), 50, infoStartY + 85);
 
-    let currentY = bottomY + 230;
-    const lineSpacing = 30;
-    const bottomPadding = 80;
+    let currentY = infoStartY + 120;
+    const lineHeight = 28;
     
     if (caption.trim()) {
       ctx.fillStyle = '#FFFFFF';
@@ -1083,30 +1094,31 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true, leade
         const testLine = line + word + ' ';
         if (ctx.measureText(testLine).width > maxWidth && line.length > 1) {
           ctx.fillText(line, 50, currentY);
-          currentY += 25;
+          currentY += lineHeight;
           line = word + ' ';
         } else {
           line = testLine;
         }
       }
       ctx.fillText(line.trim() + '"', 50, currentY);
-      currentY += lineSpacing;
+      currentY += lineHeight + 8;
     }
 
     if (hashtags.trim()) {
       ctx.fillStyle = '#D4AF37';
       ctx.font = '14px sans-serif';
       ctx.fillText(hashtags, 50, currentY);
-      currentY += lineSpacing;
+      currentY += lineHeight + 5;
     }
 
-    const ctaY = Math.max(currentY + 20, logicalHeight - bottomPadding);
-    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    // Website CTA - ensure at least 60px from bottom
+    const ctaY = Math.min(currentY + 15, logicalHeight - 70);
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
     ctx.font = '14px sans-serif';
     ctx.fillText('Discover more talents at', 50, ctaY);
     ctx.fillStyle = '#D4AF37';
     ctx.font = 'bold 18px sans-serif';
-    ctx.fillText('bangalorefashionmagazine.com', 50, ctaY + 22);
+    ctx.fillText('bangalorefashionmagazine.com', 50, ctaY + 24);
 
     // Return as PNG for better print quality
     return new Promise(resolve => canvas.toBlob(resolve, 'image/png', 1.0));
