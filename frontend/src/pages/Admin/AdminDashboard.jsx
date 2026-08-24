@@ -74,7 +74,10 @@ const AdminDashboard = () => {
     showTalentInsta: false,  // Default OFF - don't show talent's Instagram
     showWebsite: true,       // Default ON - show BFM website
     showQR: true,            // Default ON - show QR code to BFM profile
-    promotionFormat: 'both'  // 'feed', 'story', or 'both'
+    promotionFormat: 'both', // 'feed', 'story', or 'both'
+    customHashtags: '#bangalorefashionmagazine #BFM #fashion #model #talent', // Max 5 hashtags
+    customCaption: 'Discover {name} on Bangalore Fashion Magazine! 🌟',  // {name} will be replaced
+    showHashtags: true
   });
 
   // Payment Settings state
@@ -872,6 +875,44 @@ const AdminDashboard = () => {
                   </button>
                 </div>
               </div>
+              
+              {/* Custom Hashtags - Max 5 for Instagram */}
+              <div className="mt-4 pt-4 border-t border-[#D4AF37]/10">
+                <label className="text-[#F5F5F0] text-sm mb-2 block">Custom Hashtags (Max 5)</label>
+                <input 
+                  type="text"
+                  placeholder="#bangalorefashionmagazine #BFM #fashion #model #talent"
+                  value={instaSettings.customHashtags}
+                  onChange={(e) => {
+                    // Count hashtags and limit to 5
+                    const hashtags = e.target.value;
+                    const count = (hashtags.match(/#/g) || []).length;
+                    if (count <= 5) {
+                      setInstaSettings(s => ({ ...s, customHashtags: hashtags }));
+                    }
+                  }}
+                  className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-sm"
+                />
+                <p className="text-[#A0A5B0] text-[10px] mt-1">
+                  {(instaSettings.customHashtags.match(/#/g) || []).length}/5 hashtags used. These will appear in the copy-ready caption.
+                </p>
+              </div>
+              
+              {/* Custom Caption Template */}
+              <div className="mt-3">
+                <label className="text-[#F5F5F0] text-sm mb-2 block">Caption Template</label>
+                <textarea 
+                  placeholder="Discover {name} on Bangalore Fashion Magazine! 🌟"
+                  value={instaSettings.customCaption}
+                  onChange={(e) => setInstaSettings(s => ({ ...s, customCaption: e.target.value }))}
+                  rows={2}
+                  className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-sm resize-none"
+                />
+                <p className="text-[#A0A5B0] text-[10px] mt-1">
+                  Use <span className="text-[#D4AF37]">{'{name}'}</span> for talent name, <span className="text-[#D4AF37]">{'{category}'}</span> for category
+                </p>
+              </div>
+
               <p className="text-[#A0A5B0] text-xs mt-3">
                 Default: Hide talent's personal Instagram to drive traffic to BFM website instead.
               </p>
@@ -1349,20 +1390,48 @@ const AdminDashboard = () => {
                         </button>
                       </div>
                       <div className="bg-[#050A14] rounded-lg p-4">
-                        <h4 className="text-[#F5F5F0] font-bold mb-3">Hashtags</h4>
-                        <textarea 
-                          readOnly 
-                          value={instagramDesigns.hashtags} 
-                          className="w-full h-40 px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-sm"
-                        />
+                        <h4 className="text-[#F5F5F0] font-bold mb-3">Caption & Hashtags</h4>
+                        {/* Generated Caption */}
+                        <div className="mb-3">
+                          <label className="text-[#A0A5B0] text-xs mb-1 block">Caption</label>
+                          <textarea 
+                            value={instaSettings.customCaption
+                              .replace('{name}', instagramTalent?.name || 'Talent')
+                              .replace('{category}', instagramTalent?.category || 'Model')}
+                            onChange={(e) => setInstaSettings(s => ({ ...s, customCaption: e.target.value }))}
+                            className="w-full h-20 px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-sm"
+                          />
+                        </div>
+                        {/* Hashtags */}
+                        <div>
+                          <label className="text-[#A0A5B0] text-xs mb-1 block">Hashtags (Max 5)</label>
+                          <textarea 
+                            value={instaSettings.customHashtags}
+                            onChange={(e) => {
+                              const hashtags = e.target.value;
+                              const count = (hashtags.match(/#/g) || []).length;
+                              if (count <= 5) {
+                                setInstaSettings(s => ({ ...s, customHashtags: hashtags }));
+                              }
+                            }}
+                            className="w-full h-24 px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-sm"
+                          />
+                          <p className="text-[#A0A5B0] text-[10px] mt-1">
+                            {(instaSettings.customHashtags.match(/#/g) || []).length}/5 hashtags
+                          </p>
+                        </div>
                         <button 
                           onClick={() => {
-                            navigator.clipboard.writeText(instagramDesigns.hashtags);
-                            toast({ title: "Hashtags copied!" });
+                            const fullCaption = instaSettings.customCaption
+                              .replace('{name}', instagramTalent?.name || 'Talent')
+                              .replace('{category}', instagramTalent?.category || 'Model') + 
+                              '\n\n' + instaSettings.customHashtags;
+                            navigator.clipboard.writeText(fullCaption);
+                            toast({ title: "Caption & Hashtags copied!" });
                           }}
-                          className="mt-3 w-full px-4 py-2 bg-[#0A1628] border border-[#D4AF37] text-[#D4AF37] rounded font-bold text-sm"
+                          className="mt-3 w-full px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold text-sm"
                         >
-                          Copy Hashtags
+                          Copy Caption + Hashtags
                         </button>
                       </div>
                     </div>
