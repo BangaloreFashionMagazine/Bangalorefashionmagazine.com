@@ -798,11 +798,11 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true, leade
     ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
 
     // Gradient overlay ONLY at bottom (preserves face at top)
-    // Increase branding height based on content
+    // MUCH larger branding area to prevent text overlap
     const hasCaption = caption.trim().length > 0;
     const hasHashtags = hashtags.trim().length > 0;
-    const extraHeight = (hasCaption ? 60 : 0) + (hasHashtags ? 35 : 0);
-    const brandingHeight = (format === 'story' ? 480 : 400) + extraHeight;
+    const extraHeight = (hasCaption ? 80 : 0) + (hasHashtags ? 50 : 0);
+    const brandingHeight = (format === 'story' ? 520 : 450) + extraHeight;
     
     const gradient = ctx.createLinearGradient(0, canvas.height - brandingHeight - 100, 0, canvas.height);
     gradient.addColorStop(0, 'rgba(0,0,0,0)');
@@ -882,63 +882,66 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true, leade
     ctx.fillText('SCAN ME', qrX + qrSize/2, qrY + qrSize + 20);
 
     // Talent Info - positioned below logo/QR section
-    const infoStartY = bottomY + 110;
+    const infoStartY = bottomY + 130;
     
     ctx.fillStyle = '#D4AF37';
-    ctx.font = '16px sans-serif';
+    ctx.font = '14px sans-serif';
     ctx.textAlign = 'left';
     ctx.fillText('FEATURED TALENT', 50, infoStartY);
     
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 44px serif';
-    ctx.fillText(talent.name, 50, infoStartY + 50);
+    ctx.font = 'bold 40px serif';
+    ctx.fillText(talent.name, 50, infoStartY + 45);
     
     ctx.fillStyle = '#D4AF37';
-    ctx.font = '22px sans-serif';
-    ctx.fillText(getCategoryDisplay(talent.category).toUpperCase(), 50, infoStartY + 85);
+    ctx.font = '20px sans-serif';
+    ctx.fillText(getCategoryDisplay(talent.category).toUpperCase(), 50, infoStartY + 75);
 
     // Calculate dynamic Y position for caption/hashtags/CTA
-    let currentY = infoStartY + 120;
-    const lineHeight = 28;
+    // Start well below the category with good spacing
+    let currentY = infoStartY + 115;
+    const lineHeight = 32;
+    const sectionGap = 20;
     
     // Custom Caption (if provided)
     if (caption.trim()) {
       ctx.fillStyle = '#FFFFFF';
-      ctx.font = 'italic 18px sans-serif';
+      ctx.font = 'italic 16px sans-serif';
       // Wrap long captions
-      const maxWidth = canvas.width - 100;
+      const maxWidth = canvas.width - 120;
       const words = caption.split(' ');
       let line = '"';
       for (let word of words) {
         const testLine = line + word + ' ';
         if (ctx.measureText(testLine).width > maxWidth && line.length > 1) {
           ctx.fillText(line, 50, currentY);
-          currentY += lineHeight;
+          currentY += 24;
           line = word + ' ';
         } else {
           line = testLine;
         }
       }
       ctx.fillText(line.trim() + '"', 50, currentY);
-      currentY += lineHeight + 8;
+      currentY += lineHeight + sectionGap;
     }
 
     // Custom Hashtags (if provided)
     if (hashtags.trim()) {
       ctx.fillStyle = '#D4AF37';
-      ctx.font = '14px sans-serif';
+      ctx.font = '13px sans-serif';
       ctx.fillText(hashtags, 50, currentY);
-      currentY += lineHeight + 5;
+      currentY += lineHeight + sectionGap;
     }
 
-    // Website CTA - ensure it's at least 60px from bottom
-    const ctaY = Math.min(currentY + 15, canvas.height - 70);
-    ctx.fillStyle = 'rgba(255,255,255,0.9)';
-    ctx.font = '14px sans-serif';
+    // Website CTA - FIXED at bottom with guaranteed spacing
+    // Always place CTA at a fixed distance from bottom
+    const ctaY = canvas.height - 55;
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '12px sans-serif';
     ctx.fillText('Discover more talents at', 50, ctaY);
     ctx.fillStyle = '#D4AF37';
-    ctx.font = 'bold 18px sans-serif';
-    ctx.fillText('bangalorefashionmagazine.com', 50, ctaY + 24);
+    ctx.font = 'bold 16px sans-serif';
+    ctx.fillText('bangalorefashionmagazine.com', 50, ctaY + 20);
 
     return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.92));
   };
@@ -1003,11 +1006,11 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true, leade
     }
     ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
 
-    // Gradient overlay - dynamic height based on content
+    // Gradient overlay - MUCH larger branding area
     const hasCaption = caption.trim().length > 0;
     const hasHashtags = hashtags.trim().length > 0;
-    const extraHeight = (hasCaption ? 60 : 0) + (hasHashtags ? 35 : 0);
-    const brandingHeight = (format === 'story' ? 480 : 400) + extraHeight;
+    const extraHeight = (hasCaption ? 80 : 0) + (hasHashtags ? 50 : 0);
+    const brandingHeight = (format === 'story' ? 520 : 450) + extraHeight;
     
     const gradient = ctx.createLinearGradient(0, logicalHeight - brandingHeight - 100, 0, logicalHeight);
     gradient.addColorStop(0, 'rgba(0,0,0,0)');
@@ -1076,59 +1079,60 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true, leade
     ctx.fillText('SCAN ME', qrX + qrSize/2, qrY + qrSize + 20);
 
     // Talent Info - positioned below logo/QR section
-    const infoStartY = bottomY + 110;
+    const infoStartY = bottomY + 130;
     
     ctx.fillStyle = '#D4AF37';
-    ctx.font = '16px sans-serif';
+    ctx.font = '14px sans-serif';
     ctx.textAlign = 'left';
     ctx.fillText('FEATURED TALENT', 50, infoStartY);
     
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 44px serif';
-    ctx.fillText(talent.name, 50, infoStartY + 50);
+    ctx.font = 'bold 40px serif';
+    ctx.fillText(talent.name, 50, infoStartY + 45);
     
     ctx.fillStyle = '#D4AF37';
-    ctx.font = '22px sans-serif';
-    ctx.fillText(getCategoryDisplay(talent.category).toUpperCase(), 50, infoStartY + 85);
+    ctx.font = '20px sans-serif';
+    ctx.fillText(getCategoryDisplay(talent.category).toUpperCase(), 50, infoStartY + 75);
 
-    let currentY = infoStartY + 120;
-    const lineHeight = 28;
+    let currentY = infoStartY + 115;
+    const lineHeight = 32;
+    const sectionGap = 20;
     
     if (caption.trim()) {
       ctx.fillStyle = '#FFFFFF';
-      ctx.font = 'italic 18px sans-serif';
-      const maxWidth = logicalWidth - 100;
+      ctx.font = 'italic 16px sans-serif';
+      const maxWidth = logicalWidth - 120;
       const words = caption.split(' ');
       let line = '"';
       for (let word of words) {
         const testLine = line + word + ' ';
         if (ctx.measureText(testLine).width > maxWidth && line.length > 1) {
           ctx.fillText(line, 50, currentY);
-          currentY += lineHeight;
+          currentY += 24;
           line = word + ' ';
         } else {
           line = testLine;
         }
       }
       ctx.fillText(line.trim() + '"', 50, currentY);
-      currentY += lineHeight + 8;
+      currentY += lineHeight + sectionGap;
     }
 
     if (hashtags.trim()) {
       ctx.fillStyle = '#D4AF37';
-      ctx.font = '14px sans-serif';
+      ctx.font = '13px sans-serif';
       ctx.fillText(hashtags, 50, currentY);
-      currentY += lineHeight + 5;
+      currentY += lineHeight + sectionGap;
     }
 
-    // Website CTA - ensure at least 60px from bottom
-    const ctaY = Math.min(currentY + 15, logicalHeight - 70);
-    ctx.fillStyle = 'rgba(255,255,255,0.9)';
-    ctx.font = '14px sans-serif';
+    // Website CTA - FIXED at bottom
+    const ctaY = logicalHeight - 55;
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '12px sans-serif';
     ctx.fillText('Discover more talents at', 50, ctaY);
     ctx.fillStyle = '#D4AF37';
-    ctx.font = 'bold 18px sans-serif';
-    ctx.fillText('bangalorefashionmagazine.com', 50, ctaY + 24);
+    ctx.font = 'bold 16px sans-serif';
+    ctx.fillText('bangalorefashionmagazine.com', 50, ctaY + 20);
 
     // Return as PNG for better print quality
     return new Promise(resolve => canvas.toBlob(resolve, 'image/png', 1.0));
