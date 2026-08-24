@@ -842,10 +842,10 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true, leade
       ctx.fillText('FASHION MAGAZINE', 135, bottomY + 60);
     }
 
-    // REAL QR Code (right side) - links to talent profile with tracking
-    const qrSize = 90;
-    const qrX = canvas.width - qrSize - 40;
-    const qrY = bottomY + 5;
+    // REAL QR Code (right side) - LARGER and more prominent
+    const qrSize = 110;  // Increased from 90
+    const qrX = canvas.width - qrSize - 35;
+    const qrY = bottomY + 8;
     
     // Generate tracking URL for the talent profile
     const baseUrl = window.location.origin;
@@ -863,19 +863,23 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true, leade
         qrImg.src = qrDataUrl;
       });
       
+      // Gold border around QR
+      ctx.fillStyle = '#D4AF37';
+      ctx.fillRect(qrX - 8, qrY - 8, qrSize + 16, qrSize + 16);
+      
       // White background for QR
       ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(qrX - 5, qrY - 5, qrSize + 10, qrSize + 10);
+      ctx.fillRect(qrX - 4, qrY - 4, qrSize + 8, qrSize + 8);
       
       // Draw the real QR code
       ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
     }
     
-    // "Scan to view" text under QR
-    ctx.fillStyle = '#A0A5B0';
-    ctx.font = '12px sans-serif';
+    // "Scan to view" text under QR - more prominent
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 13px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('Scan to view profile', qrX + qrSize/2, qrY + qrSize + 18);
+    ctx.fillText('SCAN ME', qrX + qrSize/2, qrY + qrSize + 20);
 
     // Talent Info - positioned below logo/QR section
     const infoStartY = bottomY + 110;
@@ -1040,10 +1044,10 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true, leade
       ctx.fillText('FASHION MAGAZINE', 135, bottomY + 60);
     }
 
-    // QR Code
-    const qrSize = 90;
-    const qrX = logicalWidth - qrSize - 40;
-    const qrY = bottomY + 5;
+    // QR Code - LARGER and more prominent
+    const qrSize = 110;
+    const qrX = logicalWidth - qrSize - 35;
+    const qrY = bottomY + 8;
     const baseUrl = window.location.origin;
     const trackingUrl = `${baseUrl}/talents/${encodeURIComponent(talent.category)}?talent=${talent.id}&ref=share`;
     const qrDataUrl = await generateQRCode(trackingUrl, qrSize * scale);
@@ -1055,15 +1059,21 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true, leade
         qrImg.onerror = resolve;
         qrImg.src = qrDataUrl;
       });
+      
+      // Gold border around QR
+      ctx.fillStyle = '#D4AF37';
+      ctx.fillRect(qrX - 8, qrY - 8, qrSize + 16, qrSize + 16);
+      
+      // White background
       ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(qrX - 5, qrY - 5, qrSize + 10, qrSize + 10);
+      ctx.fillRect(qrX - 4, qrY - 4, qrSize + 8, qrSize + 8);
       ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
     }
     
-    ctx.fillStyle = '#A0A5B0';
-    ctx.font = '12px sans-serif';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 13px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('Scan to view profile', qrX + qrSize/2, qrY + qrSize + 18);
+    ctx.fillText('SCAN ME', qrX + qrSize/2, qrY + qrSize + 20);
 
     // Talent Info - positioned below logo/QR section
     const infoStartY = bottomY + 110;
