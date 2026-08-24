@@ -270,4 +270,65 @@ def create_admin_routes(db):
             "talents": paid_talents
         }
     
+    # Track view from shared link
+    @router.post("/track-share-view")
+    async def track_share_view(data: dict):
+        """Track when someone views a profile via shared link"""
+        talent_id = data.get("talent_id")
+        ref = data.get("ref", "share")
+        
+        if not talent_id:
+            return {"success": False}
+        
+        view_record = {
+            "id": str(uuid.uuid4()),
+            "talent_id": talent_id,
+            "ref": ref,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.share_views.insert_one(view_record)
+        
+        # Update talent's share view count
+        await db.talents.update_one(
+            {"id": talent_id},
+            {"$inc": {"share_views": 1}}
+        )
+        
+        return {"success": True}
+    
+    # Get share stats for a specific talent (for talent dashboard)
+    @router.get("/talent/{talent_id}/share-stats")
+    async def get_talent_share_stats(talent_id: str):
+        """Get share statistics for a talent"""
+        # Get share count by type
+        shares = await db.shares.find({"talent_id": talent_id}, {"_id": 0}).to_list(100)
+        
+        # Get view count from shares
+        views = await db.share_views.count_documents({"talent_id": talent_id})
+        
+        # Calculate stats
+        stats = {
+            "total_shares": len(shares),
+            "total_views": views,
+            "by_type": {
+                "whatsapp": sum(1 for s in shares if s.get("share_type") == "whatsapp"),
+                "story": sum(1 for s in shares if s.get("share_type") == "story"),
+                "feed": sum(1 for s in shares if s.get("share_type") == "feed")
+            }
+        }
+        
+        return stats
+    
+    # Get share history for a talent
+    @router.get("/talent/{talent_id}/share-history")
+    async def get_talent_share_history(talent_id: str):
+        """Get share history for a talent"""
+        shares = await db.shares.find(
+            {"talent_id": talent_id},
+            {"_id": 0}
+        ).sort("timestamp", -1).to_list(50)
+        
+        return {"shares": shares}
+    
     return router

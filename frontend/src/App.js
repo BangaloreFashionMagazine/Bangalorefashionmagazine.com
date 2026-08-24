@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import "@/App.css";
-import { BrowserRouter, Routes, Route, Link, useNavigate, useParams } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { EffectFade, Autoplay, Pagination, Navigation } from 'swiper/modules';
@@ -8,10 +8,11 @@ import 'swiper/css';
 import 'swiper/css/effect-fade';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
-import { ChevronLeft, ChevronRight, Users, Palette, Sparkles, Camera, Briefcase, Calendar, Mail, Lock, User, Shield, Award, Image, Download, Star, Check, X, Phone, Instagram, Trash2, Vote, ExternalLink, Volume2, VolumeX, Music, Video, Upload, BarChart3, TrendingUp, Eye, MousePointer, ShoppingBag, Package, MapPin, Send, Search, Share2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Users, Palette, Sparkles, Camera, Briefcase, Calendar, Mail, Lock, User, Shield, Award, Image, Download, Star, Check, X, Phone, Instagram, Trash2, Vote, ExternalLink, Volume2, VolumeX, Music, Video, Upload, BarChart3, TrendingUp, Eye, MousePointer, ShoppingBag, Package, MapPin, Send, Search, Share2, History } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
 import { Helmet, HelmetProvider } from "react-helmet-async";
+import QRCode from "qrcode";
 import ImageUploadWithCrop from "@/components/ImageUploadWithCrop";
 import TalentHeroSlider from "@/components/TalentHeroSlider";
 import { API, BFM_LOGO, TALENT_CATEGORIES, MAGAZINE_CATEGORIES, CATEGORY_DISPLAY, CATEGORY_DB, getCategoryDisplay, getCategoryForDB, DEFAULT_SLIDES, STORE_SUBCATEGORIES } from "@/lib/config";
@@ -718,26 +719,22 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true }) => 
     }
   };
 
-  // Generate QR code as data URL
+  // Generate REAL QR code using qrcode library
   const generateQRCode = async (url, size = 100) => {
-    return new Promise((resolve) => {
-      const canvas = document.createElement('canvas');
-      canvas.width = size;
-      canvas.height = size;
-      // Simple QR-like placeholder with URL encoded - using QRCode library would be better
-      // For now, create a simple branded box
-      const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(0, 0, size, size);
-      ctx.fillStyle = '#050A14';
-      ctx.fillRect(4, 4, size-8, size-8);
-      ctx.fillStyle = '#D4AF37';
-      ctx.font = 'bold 10px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('SCAN', size/2, size/2 - 5);
-      ctx.fillText('ME', size/2, size/2 + 10);
-      resolve(canvas.toDataURL());
-    });
+    try {
+      const qrDataUrl = await QRCode.toDataURL(url, {
+        width: size,
+        margin: 1,
+        color: {
+          dark: '#050A14',
+          light: '#FFFFFF'
+        }
+      });
+      return qrDataUrl;
+    } catch (err) {
+      console.error('QR generation failed:', err);
+      return null;
+    }
   };
 
   // Create formatted image for sharing - branding at BOTTOM only, face visible
@@ -838,40 +835,34 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true }) => 
       ctx.fillText('FASHION MAGAZINE', 135, bottomY + 60);
     }
 
-    // QR Code (right side) - links to talent profile
+    // REAL QR Code (right side) - links to talent profile with tracking
     const qrSize = 90;
     const qrX = canvas.width - qrSize - 40;
     const qrY = bottomY + 5;
     
-    // QR code background
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(qrX - 5, qrY - 5, qrSize + 10, qrSize + 10);
+    // Generate tracking URL for the talent profile
+    const baseUrl = window.location.origin;
+    const trackingUrl = `${baseUrl}/talents/${encodeURIComponent(talent.category)}?talent=${talent.id}&ref=share`;
     
-    // Simple QR placeholder (in production, use actual QR library)
-    ctx.fillStyle = '#050A14';
-    ctx.fillRect(qrX, qrY, qrSize, qrSize);
-    ctx.fillStyle = '#FFFFFF';
-    // Create QR-like pattern
-    for (let i = 0; i < 7; i++) {
-      for (let j = 0; j < 7; j++) {
-        if (Math.random() > 0.5 || (i < 2 && j < 2) || (i > 4 && j < 2) || (i < 2 && j > 4)) {
-          ctx.fillRect(qrX + 8 + i * 10, qrY + 8 + j * 10, 8, 8);
-        }
-      }
+    // Generate real QR code
+    const qrDataUrl = await generateQRCode(trackingUrl, qrSize);
+    
+    if (qrDataUrl) {
+      // Load and draw the real QR code
+      const qrImg = new window.Image();
+      await new Promise((resolve) => {
+        qrImg.onload = resolve;
+        qrImg.onerror = resolve;
+        qrImg.src = qrDataUrl;
+      });
+      
+      // White background for QR
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(qrX - 5, qrY - 5, qrSize + 10, qrSize + 10);
+      
+      // Draw the real QR code
+      ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
     }
-    // QR corner squares
-    ctx.fillStyle = '#050A14';
-    ctx.fillRect(qrX + 5, qrY + 5, 25, 25);
-    ctx.fillRect(qrX + qrSize - 30, qrY + 5, 25, 25);
-    ctx.fillRect(qrX + 5, qrY + qrSize - 30, 25, 25);
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(qrX + 10, qrY + 10, 15, 15);
-    ctx.fillRect(qrX + qrSize - 25, qrY + 10, 15, 15);
-    ctx.fillRect(qrX + 10, qrY + qrSize - 25, 15, 15);
-    ctx.fillStyle = '#050A14';
-    ctx.fillRect(qrX + 13, qrY + 13, 9, 9);
-    ctx.fillRect(qrX + qrSize - 22, qrY + 13, 9, 9);
-    ctx.fillRect(qrX + 13, qrY + qrSize - 22, 9, 9);
     
     // "Scan to view" text under QR
     ctx.fillStyle = '#A0A5B0';
@@ -1579,6 +1570,7 @@ const TalentCardSmall = ({ talent, onVote, onClick }) => {
 // Talents Page by Category (Public - No Search/Filter)
 const TalentsPage = ({ ads, shareEnabled = true }) => {
   const { category } = useParams();
+  const [searchParams] = useSearchParams();
   const [talents, setTalents] = useState([]);
   const [selectedTalent, setSelectedTalent] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -1593,6 +1585,23 @@ const TalentsPage = ({ ads, shareEnabled = true }) => {
   // Convert URL category (new name) to database category (old name)
   const dbCategory = getCategoryForDB(decodedCategory);
   const hasAds = ads && ads.length > 0;
+
+  // Track view if coming from shared link (ref=share)
+  useEffect(() => {
+    const ref = searchParams.get('ref');
+    const talentId = searchParams.get('talent');
+    
+    if (ref === 'share' && talentId) {
+      // Track the share view
+      axios.post(`${API}/track-share-view`, { talent_id: talentId, ref: 'share' })
+        .catch(err => console.error('Failed to track share view:', err));
+      
+      // Auto-open the talent modal
+      axios.get(`${API}/talent/${talentId}`)
+        .then(res => setSelectedTalent(res.data))
+        .catch(err => console.error('Failed to load shared talent:', err));
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     setLoading(true);

@@ -1,10 +1,125 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { X, Video, Trash2, Calendar, IndianRupee } from "lucide-react";
+import { X, Video, Trash2, Calendar, IndianRupee, Share2, Eye, History, BarChart3 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ImageUploadWithCrop from "@/components/ImageUploadWithCrop";
 import { API, TALENT_CATEGORIES, getCategoryDisplay, STORE_CATEGORIES } from "@/lib/config";
 import { autoCompressImage } from "@/lib/imageOptimization";
+
+// Share Stats & History Component
+const ShareStatsSection = ({ talent }) => {
+  const [stats, setStats] = useState(null);
+  const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+  
+  useEffect(() => {
+    if (talent?.id) {
+      fetchStats();
+      fetchHistory();
+    }
+  }, [talent?.id]);
+  
+  const fetchStats = async () => {
+    try {
+      const res = await axios.get(`${API}/talent/${talent.id}/share-stats`);
+      setStats(res.data);
+    } catch (err) { console.error(err); }
+    setLoading(false);
+  };
+  
+  const fetchHistory = async () => {
+    try {
+      const res = await axios.get(`${API}/talent/${talent.id}/share-history`);
+      setHistory(res.data.shares || []);
+    } catch (err) { console.error(err); }
+  };
+  
+  const getShareTypeLabel = (type) => {
+    switch(type) {
+      case 'whatsapp': return { label: 'WhatsApp', color: 'bg-[#25D366]', icon: 'W' };
+      case 'story': return { label: 'Insta Story', color: 'bg-gradient-to-tr from-[#833AB4] via-[#FD1D1D] to-[#F77737]', icon: 'S' };
+      case 'feed': return { label: 'Insta Feed', color: 'bg-gradient-to-tr from-[#833AB4] via-[#FD1D1D] to-[#F77737]', icon: 'F' };
+      default: return { label: type, color: 'bg-gray-500', icon: '?' };
+    }
+  };
+  
+  if (loading) return <div className="text-center py-8 text-[#A0A5B0]">Loading share stats...</div>;
+  
+  return (
+    <div className="space-y-6">
+      {/* Stats Overview */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="bg-[#050A14] rounded-xl p-4 text-center border border-[#D4AF37]/10">
+          <Share2 className="w-6 h-6 text-[#D4AF37] mx-auto mb-2" />
+          <p className="text-2xl font-bold text-[#F5F5F0]">{stats?.total_shares || 0}</p>
+          <p className="text-xs text-[#A0A5B0]">Total Shares</p>
+        </div>
+        <div className="bg-[#050A14] rounded-xl p-4 text-center border border-[#D4AF37]/10">
+          <Eye className="w-6 h-6 text-[#25D366] mx-auto mb-2" />
+          <p className="text-2xl font-bold text-[#F5F5F0]">{stats?.total_views || 0}</p>
+          <p className="text-xs text-[#A0A5B0]">Views from Shares</p>
+        </div>
+        <div className="bg-[#050A14] rounded-xl p-4 text-center border border-[#D4AF37]/10">
+          <div className="w-6 h-6 bg-[#25D366] rounded-full mx-auto mb-2 flex items-center justify-center text-white text-xs font-bold">W</div>
+          <p className="text-2xl font-bold text-[#F5F5F0]">{stats?.by_type?.whatsapp || 0}</p>
+          <p className="text-xs text-[#A0A5B0]">WhatsApp</p>
+        </div>
+        <div className="bg-[#050A14] rounded-xl p-4 text-center border border-[#D4AF37]/10">
+          <div className="w-6 h-6 bg-gradient-to-tr from-[#833AB4] via-[#FD1D1D] to-[#F77737] rounded-full mx-auto mb-2 flex items-center justify-center text-white text-xs font-bold">I</div>
+          <p className="text-2xl font-bold text-[#F5F5F0]">{(stats?.by_type?.story || 0) + (stats?.by_type?.feed || 0)}</p>
+          <p className="text-xs text-[#A0A5B0]">Instagram</p>
+        </div>
+      </div>
+      
+      {/* Share History */}
+      <div className="bg-[#050A14] rounded-xl p-4 border border-[#D4AF37]/10">
+        <div className="flex items-center gap-2 mb-4">
+          <History className="w-5 h-5 text-[#D4AF37]" />
+          <h3 className="text-[#F5F5F0] font-bold">Share History</h3>
+        </div>
+        
+        {history.length === 0 ? (
+          <div className="text-center py-8 text-[#A0A5B0]">
+            <Share2 className="w-12 h-12 mx-auto mb-3 opacity-30" />
+            <p>No shares yet</p>
+            <p className="text-sm mt-1">Share your profile to see activity here!</p>
+          </div>
+        ) : (
+          <div className="space-y-2 max-h-64 overflow-y-auto">
+            {history.map((share, i) => {
+              const typeInfo = getShareTypeLabel(share.share_type);
+              return (
+                <div key={i} className="flex items-center gap-3 p-2 bg-[#0A1628] rounded-lg">
+                  <div className={`w-8 h-8 ${typeInfo.color} rounded-full flex items-center justify-center text-white text-xs font-bold`}>
+                    {typeInfo.icon}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[#F5F5F0] text-sm font-medium">{typeInfo.label}</p>
+                    <p className="text-[#A0A5B0] text-xs">
+                      {share.timestamp ? new Date(share.timestamp).toLocaleDateString() : 'Unknown date'}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+      
+      {/* Share Tips */}
+      <div className="bg-[#D4AF37]/10 rounded-xl p-4 border border-[#D4AF37]/20">
+        <h4 className="text-[#D4AF37] font-bold text-sm mb-2">💡 Sharing Tips</h4>
+        <ul className="text-[#A0A5B0] text-xs space-y-1">
+          <li>• Use Instagram Stories to reach more followers daily</li>
+          <li>• Share to WhatsApp groups related to modeling/fashion</li>
+          <li>• Add custom captions to make your shares stand out</li>
+          <li>• The QR code on shares links directly to your profile</li>
+        </ul>
+      </div>
+    </div>
+  );
+};
 
 // Events Section Component for Talents
 const EventsSection = ({ talent }) => {
@@ -654,6 +769,15 @@ const TalentDashboard = ({ talent, onUpdate }) => {
       {talent?.category === "Designer Store" && (
         <DesignerProductsSection designerId={talent.id} designerCategories={talent.store_subcategories || []} />
       )}
+      
+      {/* Share Stats & History Section */}
+      <div className="bg-[#0A1628] rounded-xl p-4 md:p-6 border border-[#D4AF37]/20">
+        <div className="flex items-center gap-3 mb-4">
+          <BarChart3 className="text-[#D4AF37]" size={24} />
+          <h2 className="text-lg font-bold text-[#F5F5F0]">Share Stats & History</h2>
+        </div>
+        <ShareStatsSection talent={talent} />
+      </div>
       
       {/* Events & Contests Section - For all talents */}
       <EventsSection talent={talent} />
