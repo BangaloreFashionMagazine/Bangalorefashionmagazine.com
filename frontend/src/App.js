@@ -673,6 +673,7 @@ const TalentDetailModal = ({ talent, onClose, onVote }) => {
   const [fullTalent, setFullTalent] = useState(talent);
   const [loading, setLoading] = useState(true);
   const [sharing, setSharing] = useState(false);
+  const [showShareMenu, setShowShareMenu] = useState(false);
   const { toast } = useToast();
   
   // Fetch full talent data including portfolio images
@@ -699,53 +700,143 @@ const TalentDetailModal = ({ talent, onClose, onVote }) => {
     setVoting(false);
   };
 
-  // Share image function - uses Web Share API on mobile, download on desktop
-  const handleShareImage = async () => {
-    setSharing(true);
+  // Track share in analytics
+  const trackShare = async (shareType) => {
     try {
-      const imageUrl = fullTalent.profile_image || talent.profile_image;
-      if (!imageUrl) {
+      await axios.post(`${API}/track-share`, {
+        talent_id: talent.id,
+        talent_name: talent.name,
+        share_type: shareType
+      });
+    } catch (err) {
+      console.error("Failed to track share:", err);
+    }
+  };
+
+  // Create formatted image for sharing
+  const createFormattedImage = async (format) => {
+    const imageUrl = fullTalent.profile_image || talent.profile_image;
+    if (!imageUrl) return null;
+
+    const response = await fetch(imageUrl);
+    const blob = await response.blob();
+    
+    const img = new window.Image();
+    img.crossOrigin = "anonymous";
+    
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+      img.src = URL.createObjectURL(blob);
+    });
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Set dimensions based on format
+    if (format === 'story') {
+      canvas.width = 1080;
+      canvas.height = 1920;
+    } else if (format === 'feed') {
+      canvas.width = 1080;
+      canvas.height = 1350;
+    } else {
+      // WhatsApp - use original aspect ratio
+      return blob;
+    }
+
+    // Dark gradient background
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    gradient.addColorStop(0, '#0A1628');
+    gradient.addColorStop(1, '#050A14');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Calculate image dimensions
+    const maxWidth = canvas.width - 80;
+    const maxHeight = format === 'story' ? 1400 : 1000;
+    let imgWidth = img.width;
+    let imgHeight = img.height;
+    
+    if (imgWidth > maxWidth) {
+      imgHeight = (maxWidth / imgWidth) * imgHeight;
+      imgWidth = maxWidth;
+    }
+    if (imgHeight > maxHeight) {
+      imgWidth = (maxHeight / imgHeight) * imgWidth;
+      imgHeight = maxHeight;
+    }
+
+    const imgX = (canvas.width - imgWidth) / 2;
+    const imgY = format === 'story' ? (canvas.height - imgHeight) / 2 - 150 : (canvas.height - imgHeight) / 2 - 80;
+
+    // Draw image
+    ctx.drawImage(img, imgX, imgY, imgWidth, imgHeight);
+
+    // Gold border
+    ctx.strokeStyle = '#D4AF37';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(imgX - 10, imgY - 10, imgWidth + 20, imgHeight + 20);
+
+    // Talent name
+    ctx.fillStyle = '#D4AF37';
+    ctx.font = 'bold 48px serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(talent.name, canvas.width / 2, imgY + imgHeight + 70);
+
+    // Category
+    ctx.fillStyle = '#A0A5B0';
+    ctx.font = '28px sans-serif';
+    ctx.fillText(getCategoryDisplay(talent.category), canvas.width / 2, imgY + imgHeight + 110);
+
+    // BFM branding at bottom
+    ctx.fillStyle = '#F5F5F0';
+    ctx.font = 'bold 32px sans-serif';
+    ctx.fillText('BFM Magazine', canvas.width / 2, canvas.height - 60);
+    
+    ctx.fillStyle = '#D4AF37';
+    ctx.font = '20px sans-serif';
+    ctx.fillText('bangalorefashionmagazine.com', canvas.width / 2, canvas.height - 30);
+
+    return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.9));
+  };
+
+  // Share function with format option
+  const handleShare = async (format) => {
+    setSharing(true);
+    setShowShareMenu(false);
+    
+    try {
+      const blob = await createFormattedImage(format);
+      if (!blob) {
         toast({ title: "No image to share", variant: "destructive" });
         setSharing(false);
         return;
       }
 
-      // Fetch the image and convert to blob
-      let blob;
-      if (imageUrl.startsWith('data:')) {
-        // Base64 image
-        const response = await fetch(imageUrl);
-        blob = await response.blob();
-      } else {
-        // URL image
-        const response = await fetch(imageUrl);
-        blob = await response.blob();
-      }
+      const fileName = `${talent.name.replace(/\s+/g, '_')}_BFM_${format}.jpg`;
+      const file = new File([blob], fileName, { type: 'image/jpeg' });
 
-      const file = new File([blob], `${talent.name.replace(/\s+/g, '_')}_BFM.jpg`, { type: 'image/jpeg' });
+      // Track the share
+      await trackShare(format);
 
-      // Check if Web Share API is available and supports files
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: `${talent.name} - BFM Magazine`
-        });
+        await navigator.share({ files: [file], title: `${talent.name} - BFM Magazine` });
         toast({ title: "Shared successfully!" });
       } else {
-        // Fallback: Download the image
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${talent.name.replace(/\s+/g, '_')}_BFM.jpg`;
+        a.download = fileName;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        toast({ title: "Image downloaded!", description: "Share it manually to WhatsApp" });
+        toast({ title: "Image downloaded!", description: `Share to ${format === 'whatsapp' ? 'WhatsApp' : format === 'story' ? 'Instagram Story' : 'Instagram Feed'}` });
       }
     } catch (err) {
       if (err.name !== 'AbortError') {
-        toast({ title: "Could not share", description: "Try downloading instead", variant: "destructive" });
+        toast({ title: "Could not share", variant: "destructive" });
       }
     }
     setSharing(false);
@@ -862,15 +953,42 @@ const TalentDetailModal = ({ talent, onClose, onVote }) => {
               <Vote size={18} />
               {voting ? "Voting..." : "Vote"}
             </button>
-            <button 
-              onClick={handleShareImage} 
-              disabled={sharing}
-              className="px-4 py-2 bg-[#25D366] text-white rounded-lg font-bold hover:bg-[#128C7E] disabled:opacity-50 flex items-center gap-2"
-              title="Share to WhatsApp"
-            >
-              <Share2 size={18} />
-              {sharing ? "..." : "Share"}
-            </button>
+            <div className="relative">
+              <button 
+                onClick={() => setShowShareMenu(!showShareMenu)} 
+                disabled={sharing}
+                className="px-4 py-2 bg-[#25D366] text-white rounded-lg font-bold hover:bg-[#128C7E] disabled:opacity-50 flex items-center gap-2"
+              >
+                <Share2 size={18} />
+                {sharing ? "..." : "Share"}
+              </button>
+              {/* Share Menu Dropdown */}
+              {showShareMenu && (
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-[#0A1628] border border-[#D4AF37]/30 rounded-lg shadow-xl p-2 min-w-[160px] z-20">
+                  <button 
+                    onClick={() => handleShare('whatsapp')}
+                    className="w-full px-3 py-2 text-left text-[#F5F5F0] hover:bg-[#D4AF37]/20 rounded flex items-center gap-2 text-sm"
+                  >
+                    <span className="w-6 h-6 bg-[#25D366] rounded-full flex items-center justify-center text-white text-xs">W</span>
+                    WhatsApp
+                  </button>
+                  <button 
+                    onClick={() => handleShare('story')}
+                    className="w-full px-3 py-2 text-left text-[#F5F5F0] hover:bg-[#D4AF37]/20 rounded flex items-center gap-2 text-sm"
+                  >
+                    <span className="w-6 h-6 bg-gradient-to-tr from-[#833AB4] via-[#FD1D1D] to-[#F77737] rounded-full flex items-center justify-center text-white text-xs">S</span>
+                    Insta Story (9:16)
+                  </button>
+                  <button 
+                    onClick={() => handleShare('feed')}
+                    className="w-full px-3 py-2 text-left text-[#F5F5F0] hover:bg-[#D4AF37]/20 rounded flex items-center gap-2 text-sm"
+                  >
+                    <span className="w-6 h-6 bg-gradient-to-tr from-[#833AB4] via-[#FD1D1D] to-[#F77737] rounded-full flex items-center justify-center text-white text-xs">F</span>
+                    Insta Feed (4:5)
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
         
@@ -881,6 +999,7 @@ const TalentDetailModal = ({ talent, onClose, onVote }) => {
             initialIndex={galleryIndex} 
             onClose={() => setGalleryOpen(false)}
             talentName={talent.name}
+            talentId={talent.id}
           />
         )}
       </div>
@@ -889,11 +1008,11 @@ const TalentDetailModal = ({ talent, onClose, onVote }) => {
 };
 
 // Inline Image Gallery Component with Navigation and Share
-const ImageGalleryInline = ({ images, initialIndex = 0, onClose, talentName = "BFM Talent" }) => {
+const ImageGalleryInline = ({ images, initialIndex = 0, onClose, talentName = "BFM Talent", talentId = null }) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [touchStart, setTouchStart] = useState(null);
   const [sharing, setSharing] = useState(false);
-  const [shareMode, setShareMode] = useState(null); // null, 'normal', 'story'
+  const [showShareMenu, setShowShareMenu] = useState(false);
   const { toast } = useToast();
 
   const goNext = () => setCurrentIndex((prev) => (prev + 1) % images.length);
@@ -917,14 +1036,107 @@ const ImageGalleryInline = ({ images, initialIndex = 0, onClose, talentName = "B
     setTouchStart(null);
   };
 
-  // Share current image (normal format)
-  const handleShare = async () => {
-    setSharing(true);
+  // Track share in analytics
+  const trackShare = async (shareType) => {
+    if (!talentId) return;
     try {
-      const imageUrl = images[currentIndex];
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
-      const file = new File([blob], `${talentName.replace(/\s+/g, '_')}_BFM.jpg`, { type: 'image/jpeg' });
+      await axios.post(`${API}/track-share`, {
+        talent_id: talentId,
+        talent_name: talentName,
+        share_type: shareType
+      });
+    } catch (err) {
+      console.error("Failed to track share:", err);
+    }
+  };
+
+  // Create formatted image
+  const createFormattedImage = async (format) => {
+    const imageUrl = images[currentIndex];
+    const response = await fetch(imageUrl);
+    const blob = await response.blob();
+    
+    if (format === 'whatsapp') return blob;
+
+    const img = new window.Image();
+    img.crossOrigin = "anonymous";
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+      img.src = URL.createObjectURL(blob);
+    });
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    if (format === 'story') {
+      canvas.width = 1080;
+      canvas.height = 1920;
+    } else {
+      canvas.width = 1080;
+      canvas.height = 1350;
+    }
+
+    // Background
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    gradient.addColorStop(0, '#0A1628');
+    gradient.addColorStop(1, '#050A14');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Image sizing
+    const maxWidth = canvas.width - 80;
+    const maxHeight = format === 'story' ? 1400 : 1000;
+    let imgWidth = img.width;
+    let imgHeight = img.height;
+    
+    if (imgWidth > maxWidth) {
+      imgHeight = (maxWidth / imgWidth) * imgHeight;
+      imgWidth = maxWidth;
+    }
+    if (imgHeight > maxHeight) {
+      imgWidth = (maxHeight / imgHeight) * imgWidth;
+      imgHeight = maxHeight;
+    }
+
+    const imgX = (canvas.width - imgWidth) / 2;
+    const imgY = format === 'story' ? (canvas.height - imgHeight) / 2 - 150 : (canvas.height - imgHeight) / 2 - 80;
+
+    ctx.drawImage(img, imgX, imgY, imgWidth, imgHeight);
+
+    // Gold border
+    ctx.strokeStyle = '#D4AF37';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(imgX - 10, imgY - 10, imgWidth + 20, imgHeight + 20);
+
+    // Talent name
+    ctx.fillStyle = '#D4AF37';
+    ctx.font = 'bold 48px serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(talentName, canvas.width / 2, imgY + imgHeight + 70);
+
+    // BFM branding
+    ctx.fillStyle = '#F5F5F0';
+    ctx.font = 'bold 32px sans-serif';
+    ctx.fillText('BFM Magazine', canvas.width / 2, canvas.height - 60);
+    ctx.fillStyle = '#D4AF37';
+    ctx.font = '20px sans-serif';
+    ctx.fillText('bangalorefashionmagazine.com', canvas.width / 2, canvas.height - 30);
+
+    return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.9));
+  };
+
+  // Share handler
+  const handleShare = async (format) => {
+    setSharing(true);
+    setShowShareMenu(false);
+    
+    try {
+      const blob = await createFormattedImage(format);
+      const fileName = `${talentName.replace(/\s+/g, '_')}_BFM_${format}.jpg`;
+      const file = new File([blob], fileName, { type: 'image/jpeg' });
+
+      await trackShare(format);
 
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({ files: [file], title: `${talentName} - BFM Magazine` });
@@ -933,12 +1145,13 @@ const ImageGalleryInline = ({ images, initialIndex = 0, onClose, talentName = "B
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${talentName.replace(/\s+/g, '_')}_BFM.jpg`;
+        a.download = fileName;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        toast({ title: "Image downloaded!", description: "Share it manually" });
+        const platformName = format === 'whatsapp' ? 'WhatsApp' : format === 'story' ? 'Instagram Story' : 'Instagram Feed';
+        toast({ title: "Image downloaded!", description: `Share to ${platformName}` });
       }
     } catch (err) {
       if (err.name !== 'AbortError') {
@@ -946,100 +1159,6 @@ const ImageGalleryInline = ({ images, initialIndex = 0, onClose, talentName = "B
       }
     }
     setSharing(false);
-    setShareMode(null);
-  };
-
-  // Share as Instagram Story (9:16 format)
-  const handleShareStory = async () => {
-    setSharing(true);
-    try {
-      const imageUrl = images[currentIndex];
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
-      
-      // Create canvas for 9:16 story format (1080x1920)
-      const img = new window.Image();
-      img.crossOrigin = "anonymous";
-      
-      await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = reject;
-        img.src = URL.createObjectURL(blob);
-      });
-
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      canvas.width = 1080;
-      canvas.height = 1920;
-
-      // Dark gradient background
-      const gradient = ctx.createLinearGradient(0, 0, 0, 1920);
-      gradient.addColorStop(0, '#0A1628');
-      gradient.addColorStop(1, '#050A14');
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, 1080, 1920);
-
-      // Calculate image dimensions to fit in center (with padding)
-      const maxWidth = 1000;
-      const maxHeight = 1400;
-      let imgWidth = img.width;
-      let imgHeight = img.height;
-      
-      if (imgWidth > maxWidth) {
-        imgHeight = (maxWidth / imgWidth) * imgHeight;
-        imgWidth = maxWidth;
-      }
-      if (imgHeight > maxHeight) {
-        imgWidth = (maxHeight / imgHeight) * imgWidth;
-        imgHeight = maxHeight;
-      }
-
-      const imgX = (1080 - imgWidth) / 2;
-      const imgY = (1920 - imgHeight) / 2 - 100;
-
-      // Draw image
-      ctx.drawImage(img, imgX, imgY, imgWidth, imgHeight);
-
-      // Add gold border around image
-      ctx.strokeStyle = '#D4AF37';
-      ctx.lineWidth = 4;
-      ctx.strokeRect(imgX - 10, imgY - 10, imgWidth + 20, imgHeight + 20);
-
-      // Add talent name at bottom
-      ctx.fillStyle = '#D4AF37';
-      ctx.font = 'bold 48px serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(talentName, 540, imgY + imgHeight + 80);
-
-      // Add BFM branding
-      ctx.fillStyle = '#F5F5F0';
-      ctx.font = '28px sans-serif';
-      ctx.fillText('BFM Magazine', 540, imgY + imgHeight + 130);
-
-      // Convert canvas to blob
-      const storyBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.9));
-      const storyFile = new File([storyBlob], `${talentName.replace(/\s+/g, '_')}_BFM_Story.jpg`, { type: 'image/jpeg' });
-
-      if (navigator.canShare && navigator.canShare({ files: [storyFile] })) {
-        await navigator.share({ files: [storyFile], title: `${talentName} - BFM Magazine` });
-        toast({ title: "Story image shared!" });
-      } else {
-        const url = URL.createObjectURL(storyBlob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${talentName.replace(/\s+/g, '_')}_BFM_Story.jpg`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        toast({ title: "Story image downloaded!", description: "Upload to Instagram Stories" });
-      }
-    } catch (err) {
-      console.error(err);
-      toast({ title: "Could not create story image", variant: "destructive" });
-    }
-    setSharing(false);
-    setShareMode(null);
   };
 
   return (
@@ -1048,41 +1167,43 @@ const ImageGalleryInline = ({ images, initialIndex = 0, onClose, talentName = "B
       <button onClick={onClose} className="absolute top-4 right-4 p-3 bg-white/10 rounded-full text-white hover:bg-white/20 z-10"><X size={24} /></button>
       <div className="absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/50 rounded-full text-white text-sm">{currentIndex + 1} / {images.length}</div>
       
-      {/* Share buttons - top left */}
-      <div className="absolute top-4 left-4 flex gap-2 z-10">
-        {shareMode === null ? (
-          <button 
-            onClick={(e) => { e.stopPropagation(); setShareMode('choose'); }} 
-            disabled={sharing}
-            className="p-3 bg-[#25D366] rounded-full text-white hover:bg-[#128C7E] disabled:opacity-50"
-            title="Share Image"
-          >
-            <Share2 size={20} />
-          </button>
-        ) : shareMode === 'choose' ? (
-          <div className="flex gap-2 bg-black/70 p-2 rounded-lg" onClick={(e) => e.stopPropagation()}>
+      {/* Share button with dropdown - top left */}
+      <div className="absolute top-4 left-4 z-10">
+        <button 
+          onClick={(e) => { e.stopPropagation(); setShowShareMenu(!showShareMenu); }} 
+          disabled={sharing}
+          className="p-3 bg-[#25D366] rounded-full text-white hover:bg-[#128C7E] disabled:opacity-50"
+        >
+          <Share2 size={20} />
+        </button>
+        {showShareMenu && (
+          <div className="absolute top-full left-0 mt-2 bg-[#0A1628] border border-[#D4AF37]/30 rounded-lg shadow-xl p-2 min-w-[160px]" onClick={(e) => e.stopPropagation()}>
             <button 
-              onClick={handleShare}
+              onClick={() => handleShare('whatsapp')}
               disabled={sharing}
-              className="px-3 py-2 bg-[#25D366] rounded-lg text-white text-sm font-medium hover:bg-[#128C7E] disabled:opacity-50"
+              className="w-full px-3 py-2 text-left text-[#F5F5F0] hover:bg-[#D4AF37]/20 rounded flex items-center gap-2 text-sm disabled:opacity-50"
             >
-              {sharing ? '...' : 'Share'}
+              <span className="w-6 h-6 bg-[#25D366] rounded-full flex items-center justify-center text-white text-xs font-bold">W</span>
+              WhatsApp
             </button>
             <button 
-              onClick={handleShareStory}
+              onClick={() => handleShare('story')}
               disabled={sharing}
-              className="px-3 py-2 bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#F77737] rounded-lg text-white text-sm font-medium hover:opacity-80 disabled:opacity-50"
+              className="w-full px-3 py-2 text-left text-[#F5F5F0] hover:bg-[#D4AF37]/20 rounded flex items-center gap-2 text-sm disabled:opacity-50"
             >
-              {sharing ? '...' : 'Story 9:16'}
+              <span className="w-6 h-6 bg-gradient-to-tr from-[#833AB4] via-[#FD1D1D] to-[#F77737] rounded-full flex items-center justify-center text-white text-xs font-bold">S</span>
+              Insta Story (9:16)
             </button>
             <button 
-              onClick={(e) => { e.stopPropagation(); setShareMode(null); }}
-              className="px-2 py-2 bg-white/20 rounded-lg text-white text-sm hover:bg-white/30"
+              onClick={() => handleShare('feed')}
+              disabled={sharing}
+              className="w-full px-3 py-2 text-left text-[#F5F5F0] hover:bg-[#D4AF37]/20 rounded flex items-center gap-2 text-sm disabled:opacity-50"
             >
-              ✕
+              <span className="w-6 h-6 bg-gradient-to-tr from-[#833AB4] via-[#FD1D1D] to-[#F77737] rounded-full flex items-center justify-center text-white text-xs font-bold">F</span>
+              Insta Feed (4:5)
             </button>
           </div>
-        ) : null}
+        )}
       </div>
 
       {images.length > 1 && <button onClick={(e) => { e.stopPropagation(); goPrev(); }} className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/10 rounded-full text-white hover:bg-white/20 z-10"><ChevronLeft size={32} /></button>}

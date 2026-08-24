@@ -137,4 +137,79 @@ def create_admin_routes(db):
             headers={"Content-Disposition": "attachment; filename=talents_export.csv"}
         )
     
+    # Track talent share
+    @router.post("/track-share")
+    async def track_share(data: dict):
+        """Track when a talent profile/image is shared"""
+        talent_id = data.get("talent_id")
+        talent_name = data.get("talent_name", "Unknown")
+        share_type = data.get("share_type", "whatsapp")  # whatsapp, story, feed
+        
+        if not talent_id:
+            raise HTTPException(status_code=400, detail="talent_id required")
+        
+        share_record = {
+            "id": str(uuid.uuid4()),
+            "talent_id": talent_id,
+            "talent_name": talent_name,
+            "share_type": share_type,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.shares.insert_one(share_record)
+        
+        # Also update talent's share count
+        await db.talents.update_one(
+            {"id": talent_id},
+            {"$inc": {f"share_count_{share_type}": 1, "total_shares": 1}}
+        )
+        
+        return {"success": True}
+    
+    # Get share analytics
+    @router.get("/admin/share-analytics")
+    async def get_share_analytics():
+        """Get share analytics for admin dashboard"""
+        # Get all shares
+        shares = await db.shares.find({}, {"_id": 0}).sort("timestamp", -1).to_list(500)
+        
+        # Get share counts by type
+        pipeline = [
+            {"$group": {
+                "_id": "$share_type",
+                "count": {"$sum": 1}
+            }}
+        ]
+        type_counts = await db.shares.aggregate(pipeline).to_list(10)
+        
+        # Get top shared talents
+        talent_pipeline = [
+            {"$group": {
+                "_id": {"talent_id": "$talent_id", "talent_name": "$talent_name"},
+                "total": {"$sum": 1},
+                "whatsapp": {"$sum": {"$cond": [{"$eq": ["$share_type", "whatsapp"]}, 1, 0]}},
+                "story": {"$sum": {"$cond": [{"$eq": ["$share_type", "story"]}, 1, 0]}},
+                "feed": {"$sum": {"$cond": [{"$eq": ["$share_type", "feed"]}, 1, 0]}}
+            }},
+            {"$sort": {"total": -1}},
+            {"$limit": 20}
+        ]
+        top_talents = await db.shares.aggregate(talent_pipeline).to_list(20)
+        
+        return {
+            "total_shares": len(shares),
+            "by_type": {item["_id"]: item["count"] for item in type_counts},
+            "top_talents": [
+                {
+                    "talent_id": t["_id"]["talent_id"],
+                    "talent_name": t["_id"]["talent_name"],
+                    "total": t["total"],
+                    "whatsapp": t["whatsapp"],
+                    "story": t["story"],
+                    "feed": t["feed"]
+                } for t in top_talents
+            ],
+            "recent_shares": shares[:50]  # Last 50 shares
+        }
+    
     return router

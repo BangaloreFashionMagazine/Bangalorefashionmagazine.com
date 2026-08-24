@@ -39,6 +39,7 @@ const AdminDashboard = () => {
   const [recentActivity, setRecentActivity] = useState([]);
   const [storeAnalytics, setStoreAnalytics] = useState(null);
   const [categoryBreakdown, setCategoryBreakdown] = useState([]);
+  const [shareAnalytics, setShareAnalytics] = useState(null);
   
   const { toast } = useToast();
 
@@ -268,6 +269,12 @@ const AdminDashboard = () => {
         const pendingOrders = orders.filter(o => o.status === 'pending').length;
         const completedOrders = orders.filter(o => o.status === 'completed' || o.status === 'delivered').length;
         setStoreAnalytics({ totalOrders, totalRevenue, pendingOrders, completedOrders });
+      } catch (e) { console.error(e); }
+      
+      // Fetch share analytics
+      try {
+        const shareRes = await axios.get(`${API}/admin/share-analytics`);
+        setShareAnalytics(shareRes.data);
       } catch (e) { console.error(e); }
       
     } catch (err) { console.error(err); }
@@ -1998,6 +2005,80 @@ const AdminDashboard = () => {
                   </div>
                 )}
               </div>
+            </div>
+
+            {/* Share Analytics */}
+            <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20">
+              <h3 className="text-lg font-bold text-[#F5F5F0] mb-4">📤 Share Analytics</h3>
+              
+              {/* Share Stats Overview */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                <div className="bg-[#050A14] rounded-lg p-4 text-center">
+                  <p className="text-2xl font-bold text-[#F5F5F0]">{shareAnalytics?.total_shares || 0}</p>
+                  <p className="text-xs text-[#A0A5B0]">Total Shares</p>
+                </div>
+                <div className="bg-[#050A14] rounded-lg p-4 text-center">
+                  <div className="w-6 h-6 bg-[#25D366] rounded-full mx-auto mb-1 flex items-center justify-center text-white text-xs font-bold">W</div>
+                  <p className="text-xl font-bold text-[#F5F5F0]">{shareAnalytics?.by_type?.whatsapp || 0}</p>
+                  <p className="text-xs text-[#A0A5B0]">WhatsApp</p>
+                </div>
+                <div className="bg-[#050A14] rounded-lg p-4 text-center">
+                  <div className="w-6 h-6 bg-gradient-to-tr from-[#833AB4] via-[#FD1D1D] to-[#F77737] rounded-full mx-auto mb-1 flex items-center justify-center text-white text-xs font-bold">S</div>
+                  <p className="text-xl font-bold text-[#F5F5F0]">{shareAnalytics?.by_type?.story || 0}</p>
+                  <p className="text-xs text-[#A0A5B0]">Insta Story</p>
+                </div>
+                <div className="bg-[#050A14] rounded-lg p-4 text-center">
+                  <div className="w-6 h-6 bg-gradient-to-tr from-[#833AB4] via-[#FD1D1D] to-[#F77737] rounded-full mx-auto mb-1 flex items-center justify-center text-white text-xs font-bold">F</div>
+                  <p className="text-xl font-bold text-[#F5F5F0]">{shareAnalytics?.by_type?.feed || 0}</p>
+                  <p className="text-xs text-[#A0A5B0]">Insta Feed</p>
+                </div>
+              </div>
+
+              {/* Top Shared Talents */}
+              <h4 className="text-sm font-bold text-[#D4AF37] mb-3">🔥 Top Shared Talents</h4>
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {shareAnalytics?.top_talents?.length > 0 ? (
+                  shareAnalytics.top_talents.map((t, i) => (
+                    <div key={i} className="flex items-center gap-3 p-3 bg-[#050A14] rounded-lg">
+                      <span className="text-[#D4AF37] font-bold text-sm">#{i + 1}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[#F5F5F0] font-medium text-sm truncate">{t.talent_name}</p>
+                        <div className="flex gap-2 text-[10px] text-[#A0A5B0]">
+                          <span className="text-[#25D366]">W: {t.whatsapp}</span>
+                          <span className="text-pink-400">S: {t.story}</span>
+                          <span className="text-orange-400">F: {t.feed}</span>
+                        </div>
+                      </div>
+                      <span className="text-[#D4AF37] font-bold text-lg">{t.total}</span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-[#A0A5B0]">
+                    <p>No shares yet</p>
+                    <p className="text-xs">Shares will appear here when talents share their profiles</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Recent Shares */}
+              {shareAnalytics?.recent_shares?.length > 0 && (
+                <div className="mt-4">
+                  <h4 className="text-sm font-bold text-[#D4AF37] mb-3">🕐 Recent Shares</h4>
+                  <div className="space-y-1 max-h-40 overflow-y-auto">
+                    {shareAnalytics.recent_shares.slice(0, 10).map((s, i) => (
+                      <div key={i} className="flex items-center gap-2 text-xs py-1 border-b border-[#D4AF37]/10">
+                        <span className={`w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold ${
+                          s.share_type === 'whatsapp' ? 'bg-[#25D366]' : 'bg-gradient-to-tr from-[#833AB4] via-[#FD1D1D] to-[#F77737]'
+                        }`}>
+                          {s.share_type === 'whatsapp' ? 'W' : s.share_type === 'story' ? 'S' : 'F'}
+                        </span>
+                        <span className="text-[#F5F5F0] flex-1 truncate">{s.talent_name}</span>
+                        <span className="text-[#A0A5B0]">{new Date(s.timestamp).toLocaleDateString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Quick Insights */}
