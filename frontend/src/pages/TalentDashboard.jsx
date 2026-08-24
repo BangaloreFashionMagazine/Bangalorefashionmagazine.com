@@ -78,8 +78,7 @@ const EventsSection = ({ talent }) => {
         },
         prefill: {
           name: talent.name,
-          email: talent.email,
-          contact: talent.phone
+          email: talent.email
         },
         theme: { color: "#D4AF37" }
       };

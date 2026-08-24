@@ -1472,8 +1472,7 @@ const JoinPage = () => {
         },
         prefill: {
           name: formData.name,
-          email: formData.email,
-          contact: formData.phone
+          email: formData.email
         },
         theme: {
           color: "#D4AF37"
