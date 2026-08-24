@@ -212,4 +212,45 @@ def create_admin_routes(db):
             "recent_shares": shares[:50]  # Last 50 shares
         }
     
+    # Get paid talents with payment details
+    @router.get("/admin/paid-talents")
+    async def get_paid_talents():
+        """Get all talents who have completed payment with their payment details"""
+        # Get all paid payment orders
+        paid_orders = await db.payment_orders.find(
+            {"status": "paid"},
+            {"_id": 0}
+        ).sort("paid_at", -1).to_list(500)
+        
+        # Get talent details for each paid order
+        paid_talents = []
+        seen_talent_ids = set()
+        
+        for order in paid_orders:
+            talent_id = order.get("talent_id")
+            if talent_id and talent_id not in seen_talent_ids:
+                seen_talent_ids.add(talent_id)
+                
+                # Get talent info
+                talent = await db.talents.find_one({"id": talent_id}, {"_id": 0})
+                if talent:
+                    paid_talents.append({
+                        "talent_id": talent_id,
+                        "name": talent.get("name", "Unknown"),
+                        "email": talent.get("email", ""),
+                        "phone": talent.get("phone", ""),
+                        "category": talent.get("category", ""),
+                        "profile_image": talent.get("profile_image", ""),
+                        "is_approved": talent.get("is_approved", False),
+                        "payment_id": order.get("razorpay_payment_id", ""),
+                        "payment_amount": order.get("amount", 0),
+                        "paid_at": order.get("paid_at", ""),
+                        "order_id": order.get("razorpay_order_id", "")
+                    })
+        
+        return {
+            "total_paid": len(paid_talents),
+            "talents": paid_talents
+        }
+    
     return router
