@@ -1105,7 +1105,7 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true, leade
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        toast({ title: "Image downloaded!", description: `Share to ${shareFormat === 'whatsapp' ? 'WhatsApp' : shareFormat === 'story' ? 'Instagram Story' : 'Instagram Feed'}` });
+        toast({ title: "Image downloaded!", description: `Share to ${shareFormat === 'story' ? 'Instagram Story' : 'Instagram Feed'}` });
       }
       setShowSharePreview(false);
     } catch (err) {
@@ -1487,13 +1487,7 @@ const ImageGalleryInline = ({ images, initialIndex = 0, onClose, talentName = "B
     ctx.font = 'bold 42px serif';
     ctx.fillText(talentName, 50, bottomY + 140);
 
-    // Website CTA
-    ctx.fillStyle = 'rgba(255,255,255,0.8)';
-    ctx.font = '16px sans-serif';
-    ctx.fillText('Discover this talent on', 50, canvas.height - 55);
-    ctx.fillStyle = '#D4AF37';
-    ctx.font = 'bold 20px sans-serif';
-    ctx.fillText('bangalorefashionmagazine.com', 50, canvas.height - 30);
+    // NO "Discover" text - clean design
 
     return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.92));
   };
@@ -1522,7 +1516,7 @@ const ImageGalleryInline = ({ images, initialIndex = 0, onClose, talentName = "B
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        const platformName = format === 'whatsapp' ? 'WhatsApp' : format === 'story' ? 'Instagram Story' : 'Instagram Feed';
+        const platformName = format === 'story' ? 'Instagram Story' : 'Instagram Feed';
         toast({ title: "Image downloaded!", description: `Share to ${platformName}` });
       }
     } catch (err) {
@@ -1545,20 +1539,12 @@ const ImageGalleryInline = ({ images, initialIndex = 0, onClose, talentName = "B
           <button 
             onClick={(e) => { e.stopPropagation(); setShowShareMenu(!showShareMenu); }} 
             disabled={sharing}
-            className="p-3 bg-[#25D366] rounded-full text-white hover:bg-[#128C7E] disabled:opacity-50"
+            className="p-3 bg-gradient-to-tr from-[#833AB4] via-[#FD1D1D] to-[#F77737] rounded-full text-white hover:opacity-80 disabled:opacity-50"
           >
             <Share2 size={20} />
           </button>
           {showShareMenu && (
             <div className="absolute top-full left-0 mt-2 bg-[#0A1628] border border-[#D4AF37]/30 rounded-lg shadow-xl p-2 min-w-[160px]" onClick={(e) => e.stopPropagation()}>
-              <button 
-                onClick={() => handleShare('whatsapp')}
-                disabled={sharing}
-                className="w-full px-3 py-2 text-left text-[#F5F5F0] hover:bg-[#D4AF37]/20 rounded flex items-center gap-2 text-sm disabled:opacity-50"
-              >
-                <span className="w-6 h-6 bg-[#25D366] rounded-full flex items-center justify-center text-white text-xs font-bold">W</span>
-                WhatsApp
-              </button>
               <button 
                 onClick={() => handleShare('story')}
                 disabled={sharing}
