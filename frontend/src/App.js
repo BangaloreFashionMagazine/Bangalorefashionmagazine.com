@@ -11,6 +11,7 @@ import 'swiper/css/navigation';
 import { ChevronLeft, ChevronRight, Users, Palette, Sparkles, Camera, Briefcase, Calendar, Mail, Lock, User, Shield, Award, Image, Download, Star, Check, X, Phone, Instagram, Trash2, Vote, ExternalLink, Volume2, VolumeX, Music, Video, Upload, BarChart3, TrendingUp, Eye, MousePointer, ShoppingBag, Package, MapPin, Send, Search, Share2 } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
+import { Helmet, HelmetProvider } from "react-helmet-async";
 import ImageUploadWithCrop from "@/components/ImageUploadWithCrop";
 import TalentHeroSlider from "@/components/TalentHeroSlider";
 import { API, BFM_LOGO, TALENT_CATEGORIES, MAGAZINE_CATEGORIES, CATEGORY_DISPLAY, CATEGORY_DB, getCategoryDisplay, getCategoryForDB, DEFAULT_SLIDES, STORE_SUBCATEGORIES } from "@/lib/config";
@@ -760,6 +761,20 @@ const TalentDetailModal = ({ talent, onClose, onVote }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80" onClick={onClose}>
+      {/* Dynamic SEO Meta Tags for Talent Profile */}
+      <Helmet>
+        <title>{talent.name} | {getCategoryDisplay(talent.category)} | BFM Magazine</title>
+        <meta name="description" content={fullTalent.bio || `${talent.name} - ${getCategoryDisplay(talent.category)} featured on Bangalore Fashion Magazine. View portfolio and vote for your favorite talent.`} />
+        <meta property="og:title" content={`${talent.name} | BFM Magazine`} />
+        <meta property="og:description" content={fullTalent.bio || `${getCategoryDisplay(talent.category)} featured on Bangalore Fashion Magazine`} />
+        <meta property="og:image" content={fullTalent.profile_image || talent.profile_image || BFM_LOGO} />
+        <meta property="og:type" content="profile" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${talent.name} | BFM Magazine`} />
+        <meta name="twitter:description" content={fullTalent.bio || `${getCategoryDisplay(talent.category)} featured on Bangalore Fashion Magazine`} />
+        <meta name="twitter:image" content={fullTalent.profile_image || talent.profile_image || BFM_LOGO} />
+      </Helmet>
+      
       <div className="bg-[#0A1628] rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-[#D4AF37]/20 relative" onClick={e => e.stopPropagation()}>
         {/* Close Button */}
         <button onClick={onClose} className="absolute top-4 right-4 p-2 bg-[#050A14] rounded-full text-[#F5F5F0] hover:text-[#D4AF37] z-10">
@@ -864,7 +879,8 @@ const TalentDetailModal = ({ talent, onClose, onVote }) => {
           <ImageGalleryInline 
             images={allImages} 
             initialIndex={galleryIndex} 
-            onClose={() => setGalleryOpen(false)} 
+            onClose={() => setGalleryOpen(false)}
+            talentName={talent.name}
           />
         )}
       </div>
@@ -872,10 +888,13 @@ const TalentDetailModal = ({ talent, onClose, onVote }) => {
   );
 };
 
-// Inline Image Gallery Component with Navigation
-const ImageGalleryInline = ({ images, initialIndex = 0, onClose }) => {
+// Inline Image Gallery Component with Navigation and Share
+const ImageGalleryInline = ({ images, initialIndex = 0, onClose, talentName = "BFM Talent" }) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [touchStart, setTouchStart] = useState(null);
+  const [sharing, setSharing] = useState(false);
+  const [shareMode, setShareMode] = useState(null); // null, 'normal', 'story'
+  const { toast } = useToast();
 
   const goNext = () => setCurrentIndex((prev) => (prev + 1) % images.length);
   const goPrev = () => setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
@@ -898,11 +917,174 @@ const ImageGalleryInline = ({ images, initialIndex = 0, onClose }) => {
     setTouchStart(null);
   };
 
+  // Share current image (normal format)
+  const handleShare = async () => {
+    setSharing(true);
+    try {
+      const imageUrl = images[currentIndex];
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const file = new File([blob], `${talentName.replace(/\s+/g, '_')}_BFM.jpg`, { type: 'image/jpeg' });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: `${talentName} - BFM Magazine` });
+        toast({ title: "Shared successfully!" });
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${talentName.replace(/\s+/g, '_')}_BFM.jpg`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast({ title: "Image downloaded!", description: "Share it manually" });
+      }
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        toast({ title: "Could not share", variant: "destructive" });
+      }
+    }
+    setSharing(false);
+    setShareMode(null);
+  };
+
+  // Share as Instagram Story (9:16 format)
+  const handleShareStory = async () => {
+    setSharing(true);
+    try {
+      const imageUrl = images[currentIndex];
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      
+      // Create canvas for 9:16 story format (1080x1920)
+      const img = new window.Image();
+      img.crossOrigin = "anonymous";
+      
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = URL.createObjectURL(blob);
+      });
+
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = 1080;
+      canvas.height = 1920;
+
+      // Dark gradient background
+      const gradient = ctx.createLinearGradient(0, 0, 0, 1920);
+      gradient.addColorStop(0, '#0A1628');
+      gradient.addColorStop(1, '#050A14');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 1080, 1920);
+
+      // Calculate image dimensions to fit in center (with padding)
+      const maxWidth = 1000;
+      const maxHeight = 1400;
+      let imgWidth = img.width;
+      let imgHeight = img.height;
+      
+      if (imgWidth > maxWidth) {
+        imgHeight = (maxWidth / imgWidth) * imgHeight;
+        imgWidth = maxWidth;
+      }
+      if (imgHeight > maxHeight) {
+        imgWidth = (maxHeight / imgHeight) * imgWidth;
+        imgHeight = maxHeight;
+      }
+
+      const imgX = (1080 - imgWidth) / 2;
+      const imgY = (1920 - imgHeight) / 2 - 100;
+
+      // Draw image
+      ctx.drawImage(img, imgX, imgY, imgWidth, imgHeight);
+
+      // Add gold border around image
+      ctx.strokeStyle = '#D4AF37';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(imgX - 10, imgY - 10, imgWidth + 20, imgHeight + 20);
+
+      // Add talent name at bottom
+      ctx.fillStyle = '#D4AF37';
+      ctx.font = 'bold 48px serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(talentName, 540, imgY + imgHeight + 80);
+
+      // Add BFM branding
+      ctx.fillStyle = '#F5F5F0';
+      ctx.font = '28px sans-serif';
+      ctx.fillText('BFM Magazine', 540, imgY + imgHeight + 130);
+
+      // Convert canvas to blob
+      const storyBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.9));
+      const storyFile = new File([storyBlob], `${talentName.replace(/\s+/g, '_')}_BFM_Story.jpg`, { type: 'image/jpeg' });
+
+      if (navigator.canShare && navigator.canShare({ files: [storyFile] })) {
+        await navigator.share({ files: [storyFile], title: `${talentName} - BFM Magazine` });
+        toast({ title: "Story image shared!" });
+      } else {
+        const url = URL.createObjectURL(storyBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${talentName.replace(/\s+/g, '_')}_BFM_Story.jpg`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast({ title: "Story image downloaded!", description: "Upload to Instagram Stories" });
+      }
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Could not create story image", variant: "destructive" });
+    }
+    setSharing(false);
+    setShareMode(null);
+  };
+
   return (
     <div className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center" onClick={onClose}
       onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
       <button onClick={onClose} className="absolute top-4 right-4 p-3 bg-white/10 rounded-full text-white hover:bg-white/20 z-10"><X size={24} /></button>
       <div className="absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/50 rounded-full text-white text-sm">{currentIndex + 1} / {images.length}</div>
+      
+      {/* Share buttons - top left */}
+      <div className="absolute top-4 left-4 flex gap-2 z-10">
+        {shareMode === null ? (
+          <button 
+            onClick={(e) => { e.stopPropagation(); setShareMode('choose'); }} 
+            disabled={sharing}
+            className="p-3 bg-[#25D366] rounded-full text-white hover:bg-[#128C7E] disabled:opacity-50"
+            title="Share Image"
+          >
+            <Share2 size={20} />
+          </button>
+        ) : shareMode === 'choose' ? (
+          <div className="flex gap-2 bg-black/70 p-2 rounded-lg" onClick={(e) => e.stopPropagation()}>
+            <button 
+              onClick={handleShare}
+              disabled={sharing}
+              className="px-3 py-2 bg-[#25D366] rounded-lg text-white text-sm font-medium hover:bg-[#128C7E] disabled:opacity-50"
+            >
+              {sharing ? '...' : 'Share'}
+            </button>
+            <button 
+              onClick={handleShareStory}
+              disabled={sharing}
+              className="px-3 py-2 bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#F77737] rounded-lg text-white text-sm font-medium hover:opacity-80 disabled:opacity-50"
+            >
+              {sharing ? '...' : 'Story 9:16'}
+            </button>
+            <button 
+              onClick={(e) => { e.stopPropagation(); setShareMode(null); }}
+              className="px-2 py-2 bg-white/20 rounded-lg text-white text-sm hover:bg-white/30"
+            >
+              ✕
+            </button>
+          </div>
+        ) : null}
+      </div>
+
       {images.length > 1 && <button onClick={(e) => { e.stopPropagation(); goPrev(); }} className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/10 rounded-full text-white hover:bg-white/20 z-10"><ChevronLeft size={32} /></button>}
       <div className="max-w-[90vw] max-h-[85vh] relative" onClick={(e) => e.stopPropagation()}>
         <img src={images[currentIndex]} alt={`Image ${currentIndex + 1}`} className="max-w-full max-h-[85vh] object-contain rounded-lg" draggable={false} />
@@ -1094,6 +1276,15 @@ const TalentsPage = ({ ads }) => {
 
   return (
     <div className="min-h-screen bg-[#050A14] pt-16 sm:pt-20 pb-8 sm:pb-12">
+      {/* Dynamic SEO for Category Pages */}
+      <Helmet>
+        <title>{decodedCategory} | BFM Magazine Bangalore</title>
+        <meta name="description" content={`Browse ${decodedCategory.toLowerCase()} on BFM Magazine. Discover top fashion talent in Bangalore and vote for your favorites.`} />
+        <meta property="og:title" content={`${decodedCategory} | BFM Magazine`} />
+        <meta property="og:description" content={`Browse ${decodedCategory.toLowerCase()} featured on Bangalore Fashion Magazine`} />
+        <meta property="og:type" content="website" />
+      </Helmet>
+      
       <div className="container mx-auto px-3 sm:px-4">
         <div className="flex gap-4">
           <div className="flex-1 min-w-0">
@@ -2431,38 +2622,51 @@ function App() {
   };
 
   return (
-    <BrowserRouter>
-      {/* Welcome Splash Screen */}
-      {showSplash && <WelcomeSplash onClose={closeSplash} />}
-      
-      {/* Music Control Button */}
-      {music && (
-        <button 
-          onClick={toggleMute}
-          className="fixed bottom-6 right-6 z-50 p-3 bg-[#D4AF37] text-[#050A14] rounded-full shadow-lg hover:bg-[#F5F5F0] transition-all"
-          title={isMuted ? "Play Music" : "Mute Music"}
-        >
-          {isMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}
-        </button>
-      )}
-      
-      <Routes>
-        <Route path="/" element={<HomePage user={user} talent={talent} onLogout={handleLogout} heroImages={heroImages} awards={awards} ads={ads} magazine={magazine} video={video} partyEvents={partyEvents} />} />
-        <Route path="/talent/:talentId" element={<TalentProfilePage />} />
-        <Route path="/login" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><LoginPage onLogin={setUser} /></>} />
-        <Route path="/talent-login" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><TalentLoginPage onTalentLogin={setTalent} /></>} />
-        <Route path="/forgot-password" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><ForgotPasswordPage /></>} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/join" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><JoinPage /></>} />
-        <Route path="/about" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><AboutPage /></>} />
-        <Route path="/designer-store" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><DesignerStorePageComponent /></>} />
-        <Route path="/talents/:category" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><TalentsPage ads={ads} /></>} />
-        <Route path="/magazine/:section" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><MagazinePage /></>} />
-        <Route path="/talent-dashboard" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><TalentDashboard talent={talent} onUpdate={setTalent} /></>} />
-        <Route path="/admin" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><AdminDashboard /></>} />
-      </Routes>
-      <Toaster />
-    </BrowserRouter>
+    <HelmetProvider>
+      <BrowserRouter>
+        {/* Default SEO Meta Tags */}
+        <Helmet>
+          <title>BFM Magazine | Bangalore Fashion Magazine</title>
+          <meta name="description" content="Discover top fashion talent in Bangalore - Models, Designers, Photographers, Makeup Artists and more. Vote for your favorites on BFM Magazine." />
+          <meta property="og:title" content="BFM Magazine | Bangalore Fashion Magazine" />
+          <meta property="og:description" content="Discover top fashion talent in Bangalore - Models, Designers, Photographers, and more." />
+          <meta property="og:image" content={BFM_LOGO} />
+          <meta property="og:type" content="website" />
+          <meta name="twitter:card" content="summary_large_image" />
+        </Helmet>
+        
+        {/* Welcome Splash Screen */}
+        {showSplash && <WelcomeSplash onClose={closeSplash} />}
+        
+        {/* Music Control Button */}
+        {music && (
+          <button 
+            onClick={toggleMute}
+            className="fixed bottom-6 right-6 z-50 p-3 bg-[#D4AF37] text-[#050A14] rounded-full shadow-lg hover:bg-[#F5F5F0] transition-all"
+            title={isMuted ? "Play Music" : "Mute Music"}
+          >
+            {isMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}
+          </button>
+        )}
+        
+        <Routes>
+          <Route path="/" element={<HomePage user={user} talent={talent} onLogout={handleLogout} heroImages={heroImages} awards={awards} ads={ads} magazine={magazine} video={video} partyEvents={partyEvents} />} />
+          <Route path="/talent/:talentId" element={<TalentProfilePage />} />
+          <Route path="/login" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><LoginPage onLogin={setUser} /></>} />
+          <Route path="/talent-login" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><TalentLoginPage onTalentLogin={setTalent} /></>} />
+          <Route path="/forgot-password" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><ForgotPasswordPage /></>} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/join" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><JoinPage /></>} />
+          <Route path="/about" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><AboutPage /></>} />
+          <Route path="/designer-store" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><DesignerStorePageComponent /></>} />
+          <Route path="/talents/:category" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><TalentsPage ads={ads} /></>} />
+          <Route path="/magazine/:section" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><MagazinePage /></>} />
+          <Route path="/talent-dashboard" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><TalentDashboard talent={talent} onUpdate={setTalent} /></>} />
+          <Route path="/admin" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><AdminDashboard /></>} />
+        </Routes>
+        <Toaster />
+      </BrowserRouter>
+    </HelmetProvider>
   );
 }
 
