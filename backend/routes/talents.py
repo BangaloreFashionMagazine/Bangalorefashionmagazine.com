@@ -18,10 +18,11 @@ logger = logging.getLogger(__name__)
 # Thumbnail cache to avoid regenerating
 _THUMB_CACHE = {}
 
-def _make_thumb(data_url: str, size: tuple = (150, 200)) -> Optional[str]:
+def _make_thumb(data_url: str, size: tuple = (300, 400)) -> Optional[str]:
     """
-    Convert a base64 data URL to a smaller thumbnail.
+    Convert a base64 data URL to a medium-quality thumbnail.
     Returns base64 data URL of the thumbnail, or None on error.
+    Increased size (300x400) and quality (85%) for better grid display.
     """
     if not data_url or not data_url.startswith("data:"):
         return None
@@ -42,11 +43,11 @@ def _make_thumb(data_url: str, size: tuple = (150, 200)) -> Optional[str]:
         img = Image.open(io.BytesIO(img_bytes))
         img.thumbnail(size, Image.Resampling.LANCZOS)
         
-        # Convert to JPEG for smaller size
+        # Convert to JPEG with better quality
         buffer = io.BytesIO()
         if img.mode in ('RGBA', 'P'):
             img = img.convert('RGB')
-        img.save(buffer, format="JPEG", quality=70, optimize=True)
+        img.save(buffer, format="JPEG", quality=85, optimize=True)
         
         # Create new data URL
         thumb_b64 = base64.b64encode(buffer.getvalue()).decode()
