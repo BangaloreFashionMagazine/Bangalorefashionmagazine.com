@@ -331,4 +331,84 @@ def create_admin_routes(db):
         
         return {"shares": shares}
     
+    # Track referral when someone signs up via shared link
+    @router.post("/track-referral")
+    async def track_referral(data: dict):
+        """Track when someone signs up via a referral"""
+        referrer_id = data.get("referrer_id")
+        new_talent_id = data.get("new_talent_id")
+        new_talent_name = data.get("new_talent_name", "Unknown")
+        
+        if not referrer_id or not new_talent_id:
+            return {"success": False}
+        
+        # Record the referral
+        referral_record = {
+            "id": str(uuid.uuid4()),
+            "referrer_id": referrer_id,
+            "new_talent_id": new_talent_id,
+            "new_talent_name": new_talent_name,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.referrals.insert_one(referral_record)
+        
+        # Update referrer's referral count
+        await db.talents.update_one(
+            {"id": referrer_id},
+            {"$inc": {"referral_count": 1}}
+        )
+        
+        return {"success": True}
+    
+    # Get referral stats for a talent
+    @router.get("/talent/{talent_id}/referral-stats")
+    async def get_talent_referral_stats(talent_id: str):
+        """Get referral statistics for a talent"""
+        referrals = await db.referrals.find(
+            {"referrer_id": talent_id},
+            {"_id": 0}
+        ).sort("timestamp", -1).to_list(50)
+        
+        return {
+            "total_referrals": len(referrals),
+            "referrals": referrals
+        }
+    
+    # Get share leaderboard (top shared talents)
+    @router.get("/share-leaderboard")
+    async def get_share_leaderboard():
+        """Get top shared talents for leaderboard"""
+        # Aggregate shares by talent
+        pipeline = [
+            {"$group": {
+                "_id": "$talent_id",
+                "talent_name": {"$first": "$talent_name"},
+                "total_shares": {"$sum": 1}
+            }},
+            {"$sort": {"total_shares": -1}},
+            {"$limit": 10}
+        ]
+        
+        leaderboard = await db.shares.aggregate(pipeline).to_list(10)
+        
+        # Get full talent details for each
+        result = []
+        for item in leaderboard:
+            talent = await db.talents.find_one(
+                {"id": item["_id"], "is_approved": True},
+                {"_id": 0, "id": 1, "name": 1, "category": 1, "profile_image": 1, "votes": 1}
+            )
+            if talent:
+                result.append({
+                    "talent_id": item["_id"],
+                    "name": talent.get("name", item.get("talent_name", "Unknown")),
+                    "category": talent.get("category", ""),
+                    "profile_image": talent.get("profile_image", ""),
+                    "total_shares": item["total_shares"],
+                    "votes": talent.get("votes", 0)
+                })
+        
+        return {"leaderboard": result}
+    
     return router

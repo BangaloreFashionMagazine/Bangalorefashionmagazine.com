@@ -10,6 +10,7 @@ import { autoCompressImage } from "@/lib/imageOptimization";
 const ShareStatsSection = ({ talent }) => {
   const [stats, setStats] = useState(null);
   const [history, setHistory] = useState([]);
+  const [referralStats, setReferralStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   
@@ -17,6 +18,7 @@ const ShareStatsSection = ({ talent }) => {
     if (talent?.id) {
       fetchStats();
       fetchHistory();
+      fetchReferrals();
     }
   }, [talent?.id]);
   
@@ -35,6 +37,13 @@ const ShareStatsSection = ({ talent }) => {
     } catch (err) { console.error(err); }
   };
   
+  const fetchReferrals = async () => {
+    try {
+      const res = await axios.get(`${API}/talent/${talent.id}/referral-stats`);
+      setReferralStats(res.data);
+    } catch (err) { console.error(err); }
+  };
+  
   const getShareTypeLabel = (type) => {
     switch(type) {
       case 'whatsapp': return { label: 'WhatsApp', color: 'bg-[#25D366]', icon: 'W' };
@@ -49,7 +58,7 @@ const ShareStatsSection = ({ talent }) => {
   return (
     <div className="space-y-6">
       {/* Stats Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         <div className="bg-[#050A14] rounded-xl p-4 text-center border border-[#D4AF37]/10">
           <Share2 className="w-6 h-6 text-[#D4AF37] mx-auto mb-2" />
           <p className="text-2xl font-bold text-[#F5F5F0]">{stats?.total_shares || 0}</p>
@@ -70,7 +79,33 @@ const ShareStatsSection = ({ talent }) => {
           <p className="text-2xl font-bold text-[#F5F5F0]">{(stats?.by_type?.story || 0) + (stats?.by_type?.feed || 0)}</p>
           <p className="text-xs text-[#A0A5B0]">Instagram</p>
         </div>
+        <div className="bg-[#050A14] rounded-xl p-4 text-center border border-green-500/20">
+          <div className="w-6 h-6 bg-green-500 rounded-full mx-auto mb-2 flex items-center justify-center text-white text-xs font-bold">👥</div>
+          <p className="text-2xl font-bold text-green-400">{referralStats?.total_referrals || 0}</p>
+          <p className="text-xs text-[#A0A5B0]">Referrals</p>
+        </div>
       </div>
+      
+      {/* Referrals Section (if any) */}
+      {referralStats?.referrals?.length > 0 && (
+        <div className="bg-green-500/10 rounded-xl p-4 border border-green-500/20">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-xl">🎉</span>
+            <h3 className="text-green-400 font-bold">You brought {referralStats.total_referrals} new talent(s) to BFM!</h3>
+          </div>
+          <div className="space-y-2">
+            {referralStats.referrals.slice(0, 5).map((ref, i) => (
+              <div key={i} className="flex items-center gap-2 text-sm">
+                <span className="text-green-400">✓</span>
+                <span className="text-[#F5F5F0]">{ref.new_talent_name}</span>
+                <span className="text-[#A0A5B0] text-xs">
+                  joined {ref.timestamp ? new Date(ref.timestamp).toLocaleDateString() : ''}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       
       {/* Share History */}
       <div className="bg-[#050A14] rounded-xl p-4 border border-[#D4AF37]/10">

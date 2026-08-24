@@ -666,6 +666,94 @@ const ClickableAdImage = ({ ad, className = "", imgClassName = "" }) => {
   );
 };
 
+// Share Leaderboard Component
+const ShareLeaderboard = () => {
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    axios.get(`${API}/share-leaderboard`)
+      .then(res => {
+        setLeaderboard(res.data.leaderboard || []);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
+  
+  if (loading) return null;
+  if (leaderboard.length === 0) return null;
+  
+  const getRankBadge = (rank) => {
+    if (rank === 1) return '🥇';
+    if (rank === 2) return '🥈';
+    if (rank === 3) return '🥉';
+    return `#${rank}`;
+  };
+  
+  return (
+    <div className="bg-gradient-to-r from-[#0A1628] to-[#050A14] py-8 border-y border-[#D4AF37]/20">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold text-[#F5F5F0] mb-2">
+            <span className="text-[#D4AF37]">🏆</span> Top Shared Talents
+          </h2>
+          <p className="text-[#A0A5B0] text-sm">Most active talents spreading the BFM word</p>
+        </div>
+        
+        <div className="flex flex-wrap justify-center gap-4 md:gap-6">
+          {leaderboard.slice(0, 5).map((talent, i) => (
+            <Link 
+              key={talent.talent_id}
+              to={`/talents/${encodeURIComponent(talent.category)}?talent=${talent.talent_id}&ref=share`}
+              className="group"
+            >
+              <div className="relative bg-[#050A14] rounded-xl p-4 border border-[#D4AF37]/20 hover:border-[#D4AF37]/50 transition-all w-36 md:w-44">
+                {/* Rank Badge */}
+                <div className="absolute -top-3 -left-3 w-8 h-8 bg-[#D4AF37] rounded-full flex items-center justify-center text-[#050A14] font-bold text-sm shadow-lg">
+                  {getRankBadge(i + 1)}
+                </div>
+                
+                {/* Profile Image */}
+                <div className="w-20 h-20 md:w-24 md:h-24 mx-auto rounded-full overflow-hidden border-2 border-[#D4AF37]/30 group-hover:border-[#D4AF37] transition-all mb-3">
+                  {talent.profile_image ? (
+                    <img src={talent.profile_image} alt={talent.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37] text-2xl">
+                      {talent.name?.charAt(0) || '?'}
+                    </div>
+                  )}
+                </div>
+                
+                {/* Name */}
+                <p className="text-[#F5F5F0] font-medium text-sm text-center truncate">{talent.name}</p>
+                
+                {/* Stats */}
+                <div className="flex items-center justify-center gap-3 mt-2 text-xs">
+                  <span className="text-[#25D366] flex items-center gap-1">
+                    <Share2 size={12} /> {talent.total_shares}
+                  </span>
+                  <span className="text-[#D4AF37] flex items-center gap-1">
+                    <Star size={12} /> {talent.votes || 0}
+                  </span>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+        
+        {leaderboard.length > 5 && (
+          <div className="text-center mt-4">
+            <p className="text-[#A0A5B0] text-xs">And {leaderboard.length - 5} more top sharers!</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // Talent Detail Modal
 const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true }) => {
   const [voting, setVoting] = useState(false);
@@ -1596,6 +1684,10 @@ const TalentsPage = ({ ads, shareEnabled = true }) => {
       axios.post(`${API}/track-share-view`, { talent_id: talentId, ref: 'share' })
         .catch(err => console.error('Failed to track share view:', err));
       
+      // Store referrer in localStorage for sign-up credit
+      localStorage.setItem('referrer_talent_id', talentId);
+      localStorage.setItem('referrer_timestamp', Date.now().toString());
+      
       // Auto-open the talent modal
       axios.get(`${API}/talent/${talentId}`)
         .then(res => setSelectedTalent(res.data))
@@ -2272,6 +2364,24 @@ I confirm that I have read, understood, and voluntarily accepted this declaratio
       const newTalentId = response.data.id;
       setTalentId(newTalentId);
       
+      // Track referral if user came from a shared link
+      const referrerId = localStorage.getItem('referrer_talent_id');
+      const referrerTimestamp = localStorage.getItem('referrer_timestamp');
+      if (referrerId && referrerTimestamp) {
+        // Only credit referral if it's within 7 days
+        const daysSinceReferral = (Date.now() - parseInt(referrerTimestamp)) / (1000 * 60 * 60 * 24);
+        if (daysSinceReferral <= 7) {
+          axios.post(`${API}/track-referral`, {
+            referrer_id: referrerId,
+            new_talent_id: newTalentId,
+            new_talent_name: formData.name
+          }).catch(err => console.error('Failed to track referral:', err));
+        }
+        // Clear referral data
+        localStorage.removeItem('referrer_talent_id');
+        localStorage.removeItem('referrer_timestamp');
+      }
+      
       // If payment is enabled, initiate payment
       if (paymentSettings.payment_enabled) {
         setPaymentStep('payment');
@@ -2809,6 +2919,9 @@ const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine, v
             </div>
           </div>
         )}
+        
+        {/* Share Leaderboard - Top Shared Talents */}
+        <ShareLeaderboard />
         
         {/* Contact Section */}
         <div className="bg-[#0A1628] py-6 border-y border-[#D4AF37]/20">
