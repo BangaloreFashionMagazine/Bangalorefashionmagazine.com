@@ -8,6 +8,9 @@ import { autoCompressImage } from "@/lib/imageOptimization";
 import { QRCodeSVG } from "qrcode.react";
 import { jsPDF } from "jspdf";
 
+// Import modular tab components
+import { PendingTab, AllTalentsTab, PaidTalentsTab, AnalyticsTab } from "./tabs";
+
 // Lazy load Magazine Builder for better performance
 const MagazineBuilder = lazy(() => import("./MagazineBuilder"));
 // Lazy load Hero Management
@@ -757,274 +760,41 @@ const AdminDashboard = () => {
 
         {/* Pending */}
         {tab === "pending" && (
-          <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20">
-            <h2 className="text-lg font-bold text-[#F5F5F0] mb-4">Pending Approvals</h2>
-            <p className="text-[#A0A5B0] text-sm mb-4">Click on a profile to view full details before approving.</p>
-            {loading ? <p className="text-[#A0A5B0]">Loading...</p> : pending.length === 0 ? <p className="text-[#A0A5B0]">No pending registrations</p> : (
-              <div className="space-y-4">
-                {pending.map(t => (
-                  <div key={t.id} className="bg-[#050A14] rounded-lg overflow-hidden border border-[#D4AF37]/10">
-                    <div className="flex items-center gap-4 p-4 cursor-pointer hover:bg-[#0D1B2A] transition-colors" onClick={() => openTalentDetail(t)}>
-                      <img src={t.profile_image || "https://via.placeholder.com/80"} className="w-16 h-16 rounded-full object-cover border-2 border-[#D4AF37]/30" />
-                      <div className="flex-1">
-                        <p className="text-[#F5F5F0] font-bold text-lg">{t.name}</p>
-                        <p className="text-[#D4AF37] text-sm">{t.category}</p>
-                        <p className="text-[#A0A5B0] text-xs mt-1">{t.email} • {t.phone || "No phone"}</p>
-                      </div>
-                      <div className="text-right">
-                        <div className="flex items-center gap-2 mb-2">
-                          {t.agreed_to_terms ? (
-                            <span className="flex items-center gap-1 text-green-500 text-sm">
-                              <Check size={14} /> Terms Agreed
-                            </span>
-                          ) : (
-                            <span className="flex items-center gap-1 text-red-400 text-sm">
-                              <X size={14} /> Terms NOT Agreed
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-[#A0A5B0] text-xs">
-                          {t.portfolio_images?.length || 0} portfolio images
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex border-t border-[#D4AF37]/10">
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); openTalentDetail(t); }} 
-                        className="flex-1 py-3 text-[#D4AF37] hover:bg-[#D4AF37]/10 transition-colors text-sm font-medium"
-                      >
-                        View Full Details
-                      </button>
-                      <button onClick={(e) => { e.stopPropagation(); approve(t.id); }} className="flex-1 py-3 bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors text-sm font-medium flex items-center justify-center gap-2">
-                        <Check size={16} /> Approve
-                      </button>
-                      <button onClick={(e) => { e.stopPropagation(); reject(t.id); }} className="flex-1 py-3 bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors text-sm font-medium flex items-center justify-center gap-2">
-                        <X size={16} /> Reject
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <PendingTab 
+            pending={pending}
+            loading={loading}
+            openTalentDetail={openTalentDetail}
+            approve={approve}
+            reject={reject}
+          />
         )}
 
         {/* All Talents */}
         {tab === "talents" && (
-          <div className="bg-[#0A1628] rounded-xl p-4 md:p-6 border border-[#D4AF37]/20">
-            <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 gap-3">
-              <h2 className="text-lg font-bold text-[#F5F5F0]">All Registered Talents ({allTalents.length})</h2>
-              <div className="flex gap-2 items-center flex-wrap">
-                {/* Search Box */}
-                <div className="relative">
-                  <input 
-                    type="text"
-                    placeholder="Search by name..."
-                    value={talentSearchAdmin}
-                    onChange={(e) => setTalentSearchAdmin(e.target.value)}
-                    className="px-3 py-2 pl-8 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-sm w-48"
-                  />
-                  <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0A5B0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-                <select 
-                  value={categoryFilter} 
-                  onChange={(e) => setCategoryFilter(e.target.value)}
-                  className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-sm"
-                >
-                  <option value="">All Categories</option>
-                  {TALENT_CATEGORIES.map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
-                {(talentSearchAdmin || categoryFilter) && (
-                  <button 
-                    onClick={() => { setTalentSearchAdmin(''); setCategoryFilter(''); }}
-                    className="px-3 py-2 text-[#A0A5B0] hover:text-[#D4AF37] text-sm"
-                  >
-                    Clear
-                  </button>
-                )}
-                <a href={`${API}/admin/talents/export`} download 
-                  className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded text-sm font-bold flex items-center gap-2">
-                  <Download size={16} /> Export
-                </a>
-              </div>
-            </div>
-            {/* Filter Results Info */}
-            {(talentSearchAdmin || categoryFilter) && (
-              <div className="mb-4 text-[#A0A5B0] text-sm">
-                Showing {allTalents.filter(t => 
-                  (!categoryFilter || t.category === categoryFilter) &&
-                  (!talentSearchAdmin || t.name.toLowerCase().includes(talentSearchAdmin.toLowerCase()))
-                ).length} of {allTalents.length} talents
-                {talentSearchAdmin && <span className="text-[#D4AF37]"> matching "{talentSearchAdmin}"</span>}
-                {categoryFilter && <span className="text-[#D4AF37]"> in {categoryFilter}</span>}
-              </div>
-            )}
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#D4AF37] border-t-transparent mr-3"></div>
-                <span className="ml-3 text-[#A0A5B0]">Loading talents...</span>
-              </div>
-            ) : allTalents.filter(t => 
-                (!categoryFilter || t.category === categoryFilter) &&
-                (!talentSearchAdmin || t.name.toLowerCase().includes(talentSearchAdmin.toLowerCase()))
-              ).length === 0 ? (
-              <p className="text-[#A0A5B0] text-center py-8">
-                {(categoryFilter || talentSearchAdmin) ? `No talents found matching your filters.` : "No talents found."}
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {allTalents.filter(t => 
-                  (!categoryFilter || t.category === categoryFilter) &&
-                  (!talentSearchAdmin || t.name.toLowerCase().includes(talentSearchAdmin.toLowerCase()))
-                ).map(t => (
-                  <div key={t.id} className="bg-[#050A14] rounded-lg p-3 md:p-4 flex flex-col md:flex-row md:items-center gap-3 cursor-pointer hover:bg-[#0D1B2A] transition-colors" onClick={() => openTalentDetail(t)}>
-                    <img src={t.profile_image || "https://via.placeholder.com/60"} className="w-14 h-14 rounded-full object-cover border-2 border-[#D4AF37]/30 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-[#F5F5F0] font-bold">{t.name}</p>
-                        <span className={`text-xs px-2 py-0.5 rounded ${t.is_approved ? "bg-green-500/20 text-green-500" : "bg-yellow-500/20 text-yellow-500"}`}>{t.is_approved ? "Approved" : "Pending"}</span>
-                        {t.is_featured && <span className="text-xs px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded">⭐ Featured</span>}
-                        {t.rank && <span className="text-xs px-2 py-0.5 bg-[#D4AF37]/20 text-[#D4AF37] rounded">Rank #{t.rank}</span>}
-                      </div>
-                      <p className="text-[#D4AF37] text-sm">{t.category}</p>
-                      <p className="text-[#A0A5B0] text-xs truncate">{t.email} {t.phone ? `• ${t.phone}` : ""}</p>
-                    </div>
-                    <div className="flex items-center gap-2 flex-wrap md:flex-nowrap">
-                      <button 
-                        onClick={async (e) => { 
-                          e.stopPropagation(); 
-                          try {
-                            await axios.put(`${API}/admin/talent/${t.id}/featured?featured=${!t.is_featured}`);
-                            toast({ title: t.is_featured ? "Removed from Featured" : "Added to Featured!" });
-                            fetchAllTalents();
-                          } catch (err) { toast({ title: "Failed to update", variant: "destructive" }); }
-                        }} 
-                        className={`px-2 py-1 rounded text-xs ${t.is_featured ? "bg-purple-500/30 text-purple-400" : "bg-[#0A1628] text-[#A0A5B0] hover:text-purple-400"}`}
-                        title={t.is_featured ? "Remove from Spotlight" : "Add to Talent Spotlight"}
-                      >
-                        {t.is_featured ? "★ Featured" : "☆ Feature"}
-                      </button>
-                      <input type="number" min="1" max="9999" placeholder="Rank" onClick={(e) => e.stopPropagation()} value={t.rank || ""} onChange={(e) => updateRank(t.id, parseInt(e.target.value) || null)} className="px-2 py-1 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-sm w-20" />
-                      <span className="text-[#A0A5B0] text-sm">{t.votes || 0} votes</span>
-                      <button onClick={(e) => { e.stopPropagation(); deleteTalent(t.id); }} className="px-3 py-1 bg-red-500/20 text-red-500 rounded text-sm">Delete</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <AllTalentsTab
+            allTalents={allTalents}
+            loading={loading}
+            categoryFilter={categoryFilter}
+            setCategoryFilter={setCategoryFilter}
+            talentSearchAdmin={talentSearchAdmin}
+            setTalentSearchAdmin={setTalentSearchAdmin}
+            openTalentDetail={openTalentDetail}
+            updateRank={updateRank}
+            deleteTalent={deleteTalent}
+            fetchAllTalents={fetchAllTalents}
+            toast={toast}
+          />
         )}
 
         {/* Paid Talents Tab */}
+        {/* Paid Talents */}
         {tab === "paid-talents" && (
-          <div className="bg-[#0A1628] rounded-xl p-4 md:p-6 border border-[#D4AF37]/20">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-              <div>
-                <h2 className="text-lg font-bold text-[#F5F5F0]">💰 Paid Talents</h2>
-                <p className="text-[#A0A5B0] text-sm">Talents who have completed payment registration</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-sm font-medium">
-                  {paidTalents.length} Paid
-                </span>
-                <input
-                  type="text"
-                  placeholder="Search by name, email..."
-                  value={paidSearchFilter}
-                  onChange={(e) => setPaidSearchFilter(e.target.value)}
-                  className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0] text-sm w-64"
-                />
-              </div>
-            </div>
-
-            {loading ? (
-              <div className="text-center py-12 text-[#A0A5B0]">Loading paid talents...</div>
-            ) : paidTalents.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-[#A0A5B0] text-lg mb-2">No paid talents yet</p>
-                <p className="text-[#A0A5B0] text-sm">Talents who complete payment will appear here</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-[#D4AF37]/20">
-                      <th className="text-left py-3 px-4 text-[#D4AF37] text-sm font-medium">Talent</th>
-                      <th className="text-left py-3 px-4 text-[#D4AF37] text-sm font-medium">Category</th>
-                      <th className="text-left py-3 px-4 text-[#D4AF37] text-sm font-medium">Contact</th>
-                      <th className="text-left py-3 px-4 text-[#D4AF37] text-sm font-medium">Payment</th>
-                      <th className="text-left py-3 px-4 text-[#D4AF37] text-sm font-medium">Paid On</th>
-                      <th className="text-left py-3 px-4 text-[#D4AF37] text-sm font-medium">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paidTalents
-                      .filter(t => 
-                        !paidSearchFilter || 
-                        t.name?.toLowerCase().includes(paidSearchFilter.toLowerCase()) ||
-                        t.email?.toLowerCase().includes(paidSearchFilter.toLowerCase()) ||
-                        t.phone?.includes(paidSearchFilter)
-                      )
-                      .map((t, i) => (
-                        <tr key={i} className="border-b border-[#D4AF37]/10 hover:bg-[#D4AF37]/5">
-                          <td className="py-3 px-4">
-                            <div className="flex items-center gap-3">
-                              {t.profile_image ? (
-                                <img src={t.profile_image} alt={t.name} className="w-10 h-10 rounded-full object-cover" />
-                              ) : (
-                                <div className="w-10 h-10 rounded-full bg-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37]">
-                                  {t.name?.charAt(0) || '?'}
-                                </div>
-                              )}
-                              <div>
-                                <p className="text-[#F5F5F0] font-medium">{t.name}</p>
-                                <p className="text-[#A0A5B0] text-xs">{t.talent_id?.slice(0, 8)}...</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="py-3 px-4">
-                            <span className="px-2 py-1 bg-[#D4AF37]/10 text-[#D4AF37] rounded text-xs">
-                              {t.category || 'N/A'}
-                            </span>
-                          </td>
-                          <td className="py-3 px-4">
-                            <p className="text-[#F5F5F0] text-sm">{t.email}</p>
-                            <p className="text-[#A0A5B0] text-xs">{t.phone}</p>
-                          </td>
-                          <td className="py-3 px-4">
-                            <p className="text-green-400 font-medium">₹{(t.payment_amount / 100).toLocaleString()}</p>
-                            <p className="text-[#A0A5B0] text-xs truncate max-w-[120px]" title={t.payment_id}>
-                              {t.payment_id?.slice(0, 12)}...
-                            </p>
-                          </td>
-                          <td className="py-3 px-4">
-                            <p className="text-[#F5F5F0] text-sm">
-                              {t.paid_at ? new Date(t.paid_at).toLocaleDateString() : 'N/A'}
-                            </p>
-                            <p className="text-[#A0A5B0] text-xs">
-                              {t.paid_at ? new Date(t.paid_at).toLocaleTimeString() : ''}
-                            </p>
-                          </td>
-                          <td className="py-3 px-4">
-                            <span className={`px-2 py-1 rounded text-xs font-medium ${
-                              t.is_approved 
-                                ? 'bg-green-500/20 text-green-400' 
-                                : 'bg-yellow-500/20 text-yellow-400'
-                            }`}>
-                              {t.is_approved ? '✓ Approved' : '⏳ Pending'}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
+          <PaidTalentsTab
+            paidTalents={paidTalents}
+            loading={loading}
+            paidSearchFilter={paidSearchFilter}
+            setPaidSearchFilter={setPaidSearchFilter}
+          />
         )}
 
         {/* Magazine Builder Tab */}

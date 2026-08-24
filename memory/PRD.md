@@ -48,6 +48,7 @@ Build a comprehensive fashion talent platform for Bangalore Fashion Magazine (BF
 - [x] Hero Images (Legacy) - original static uploads
 - [x] Contest & Winners management
 - [x] Advertisements management
+- [x] **Modular Tab Components** - Extracted PendingTab, AllTalentsTab, PaidTalentsTab, AnalyticsTab to `/pages/Admin/tabs/`
 - [x] Background music settings
 - [x] Party updates
 - [x] Featured video
