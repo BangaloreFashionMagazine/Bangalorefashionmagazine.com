@@ -798,11 +798,8 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true, leade
     ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
 
     // Gradient overlay ONLY at bottom (preserves face at top)
-    // MUCH larger branding area to prevent text overlap
-    const hasCaption = caption.trim().length > 0;
-    const hasHashtags = hashtags.trim().length > 0;
-    const extraHeight = (hasCaption ? 80 : 0) + (hasHashtags ? 50 : 0);
-    const brandingHeight = (format === 'story' ? 520 : 450) + extraHeight;
+    // Simplified - smaller branding area
+    const brandingHeight = format === 'story' ? 350 : 300;
     
     const gradient = ctx.createLinearGradient(0, canvas.height - brandingHeight - 100, 0, canvas.height);
     gradient.addColorStop(0, 'rgba(0,0,0,0)');
@@ -881,7 +878,7 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true, leade
     ctx.textAlign = 'center';
     ctx.fillText('SCAN ME', qrX + qrSize/2, qrY + qrSize + 20);
 
-    // Talent Info - positioned below logo/QR section
+    // Talent Info - SIMPLIFIED: Only name and category
     const infoStartY = bottomY + 130;
     
     ctx.fillStyle = '#D4AF37';
@@ -897,51 +894,7 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true, leade
     ctx.font = '20px sans-serif';
     ctx.fillText(getCategoryDisplay(talent.category).toUpperCase(), 50, infoStartY + 75);
 
-    // Calculate dynamic Y position for caption/hashtags/CTA
-    // Start well below the category with good spacing
-    let currentY = infoStartY + 115;
-    const lineHeight = 32;
-    const sectionGap = 20;
-    
-    // Custom Caption (if provided)
-    if (caption.trim()) {
-      ctx.fillStyle = '#FFFFFF';
-      ctx.font = 'italic 16px sans-serif';
-      // Wrap long captions
-      const maxWidth = canvas.width - 120;
-      const words = caption.split(' ');
-      let line = '"';
-      for (let word of words) {
-        const testLine = line + word + ' ';
-        if (ctx.measureText(testLine).width > maxWidth && line.length > 1) {
-          ctx.fillText(line, 50, currentY);
-          currentY += 24;
-          line = word + ' ';
-        } else {
-          line = testLine;
-        }
-      }
-      ctx.fillText(line.trim() + '"', 50, currentY);
-      currentY += lineHeight + sectionGap;
-    }
-
-    // Custom Hashtags (if provided)
-    if (hashtags.trim()) {
-      ctx.fillStyle = '#D4AF37';
-      ctx.font = '13px sans-serif';
-      ctx.fillText(hashtags, 50, currentY);
-      currentY += lineHeight + sectionGap;
-    }
-
-    // Website CTA - FIXED at bottom with guaranteed spacing
-    // Always place CTA at a fixed distance from bottom
-    const ctaY = canvas.height - 55;
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = '12px sans-serif';
-    ctx.fillText('Discover more talents at', 50, ctaY);
-    ctx.fillStyle = '#D4AF37';
-    ctx.font = 'bold 16px sans-serif';
-    ctx.fillText('bangalorefashionmagazine.com', 50, ctaY + 20);
+    // NO caption, NO hashtags, NO "Discover more talents" text - CLEAN design
 
     return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.92));
   };
@@ -1006,11 +959,8 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true, leade
     }
     ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
 
-    // Gradient overlay - MUCH larger branding area
-    const hasCaption = caption.trim().length > 0;
-    const hasHashtags = hashtags.trim().length > 0;
-    const extraHeight = (hasCaption ? 80 : 0) + (hasHashtags ? 50 : 0);
-    const brandingHeight = (format === 'story' ? 520 : 450) + extraHeight;
+    // Gradient overlay - simplified
+    const brandingHeight = format === 'story' ? 350 : 300;
     
     const gradient = ctx.createLinearGradient(0, logicalHeight - brandingHeight - 100, 0, logicalHeight);
     gradient.addColorStop(0, 'rgba(0,0,0,0)');
@@ -1078,7 +1028,7 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true, leade
     ctx.textAlign = 'center';
     ctx.fillText('SCAN ME', qrX + qrSize/2, qrY + qrSize + 20);
 
-    // Talent Info - positioned below logo/QR section
+    // Talent Info - SIMPLIFIED
     const infoStartY = bottomY + 130;
     
     ctx.fillStyle = '#D4AF37';
@@ -1094,45 +1044,7 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true, leade
     ctx.font = '20px sans-serif';
     ctx.fillText(getCategoryDisplay(talent.category).toUpperCase(), 50, infoStartY + 75);
 
-    let currentY = infoStartY + 115;
-    const lineHeight = 32;
-    const sectionGap = 20;
-    
-    if (caption.trim()) {
-      ctx.fillStyle = '#FFFFFF';
-      ctx.font = 'italic 16px sans-serif';
-      const maxWidth = logicalWidth - 120;
-      const words = caption.split(' ');
-      let line = '"';
-      for (let word of words) {
-        const testLine = line + word + ' ';
-        if (ctx.measureText(testLine).width > maxWidth && line.length > 1) {
-          ctx.fillText(line, 50, currentY);
-          currentY += 24;
-          line = word + ' ';
-        } else {
-          line = testLine;
-        }
-      }
-      ctx.fillText(line.trim() + '"', 50, currentY);
-      currentY += lineHeight + sectionGap;
-    }
-
-    if (hashtags.trim()) {
-      ctx.fillStyle = '#D4AF37';
-      ctx.font = '13px sans-serif';
-      ctx.fillText(hashtags, 50, currentY);
-      currentY += lineHeight + sectionGap;
-    }
-
-    // Website CTA - FIXED at bottom
-    const ctaY = logicalHeight - 55;
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = '12px sans-serif';
-    ctx.fillText('Discover more talents at', 50, ctaY);
-    ctx.fillStyle = '#D4AF37';
-    ctx.font = 'bold 16px sans-serif';
-    ctx.fillText('bangalorefashionmagazine.com', 50, ctaY + 20);
+    // NO extra text - clean design
 
     // Return as PNG for better print quality
     return new Promise(resolve => canvas.toBlob(resolve, 'image/png', 1.0));
@@ -1332,43 +1244,11 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true, leade
                 {/* Enhanced Share Menu with Caption & Hashtags */}
                 {showShareMenu && (
                   <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-[#0A1628] border border-[#D4AF37]/30 rounded-xl shadow-xl p-4 w-72 z-20" onClick={e => e.stopPropagation()}>
-                    <h4 className="text-[#D4AF37] font-bold text-sm mb-3">Customize Your Share</h4>
+                    <h4 className="text-[#D4AF37] font-bold text-sm mb-3">Share to Instagram</h4>
                     
-                    {/* Custom Caption */}
-                    <div className="mb-3">
-                      <label className="text-[#A0A5B0] text-xs block mb-1">Caption (optional)</label>
-                      <input 
-                        type="text"
-                        value={customCaption}
-                        onChange={(e) => setCustomCaption(e.target.value)}
-                        placeholder="Add your message..."
-                        className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0] text-sm"
-                      />
-                    </div>
-                    
-                    {/* Custom Hashtags */}
-                    <div className="mb-4">
-                      <label className="text-[#A0A5B0] text-xs block mb-1">Hashtags</label>
-                      <input 
-                        type="text"
-                        value={customHashtags}
-                        onChange={(e) => setCustomHashtags(e.target.value)}
-                        placeholder="#BFMMagazine #Fashion"
-                        className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0] text-sm"
-                      />
-                    </div>
-                    
-                    {/* Format Selection with Preview */}
-                    <p className="text-[#A0A5B0] text-xs mb-2">Choose format & preview:</p>
+                    {/* Format Selection - Only Story and Feed */}
+                    <p className="text-[#A0A5B0] text-xs mb-2">Choose format:</p>
                     <div className="space-y-2">
-                      <button 
-                        onClick={() => generatePreview('whatsapp')}
-                        className="w-full px-3 py-2 text-left text-[#F5F5F0] hover:bg-[#D4AF37]/20 rounded-lg flex items-center gap-2 text-sm border border-[#D4AF37]/10"
-                      >
-                        <span className="w-6 h-6 bg-[#25D366] rounded-full flex items-center justify-center text-white text-xs font-bold">W</span>
-                        <span className="flex-1">WhatsApp</span>
-                        <span className="text-[#A0A5B0] text-xs">Preview →</span>
-                      </button>
                       <button 
                         onClick={() => generatePreview('story')}
                         className="w-full px-3 py-2 text-left text-[#F5F5F0] hover:bg-[#D4AF37]/20 rounded-lg flex items-center gap-2 text-sm border border-[#D4AF37]/10"
@@ -1407,7 +1287,7 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true, leade
               <div className="p-4 border-b border-[#D4AF37]/20">
                 <h3 className="text-[#F5F5F0] font-bold text-center">Preview Your Share</h3>
                 <p className="text-[#A0A5B0] text-xs text-center mt-1">
-                  {shareFormat === 'story' ? 'Instagram Story (9:16)' : shareFormat === 'feed' ? 'Instagram Feed (4:5)' : 'WhatsApp'}
+                  {shareFormat === 'story' ? 'Instagram Story (9:16)' : 'Instagram Feed (4:5)'}
                 </p>
               </div>
               <div className="p-4 flex justify-center">
