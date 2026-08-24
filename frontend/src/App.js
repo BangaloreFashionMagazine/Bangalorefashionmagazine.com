@@ -933,6 +933,206 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true, leade
     return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.92));
   };
 
+  // Create high-resolution image for print (2x resolution)
+  const createHighResImage = async (format, caption = '', hashtags = '') => {
+    const imageUrl = fullTalent.profile_image || talent.profile_image;
+    if (!imageUrl) return null;
+
+    const response = await fetch(imageUrl);
+    const blob = await response.blob();
+    
+    const img = new window.Image();
+    img.crossOrigin = "anonymous";
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+      img.src = URL.createObjectURL(blob);
+    });
+
+    const logo = new window.Image();
+    logo.crossOrigin = "anonymous";
+    await new Promise((resolve, reject) => {
+      logo.onload = resolve;
+      logo.onerror = () => resolve();
+      logo.src = BFM_LOGO;
+    });
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // 2x resolution for print quality
+    const scale = 2;
+    if (format === 'story') {
+      canvas.width = 1080 * scale;
+      canvas.height = 1920 * scale;
+    } else {
+      canvas.width = 1080 * scale;
+      canvas.height = 1350 * scale;
+    }
+    
+    // Scale context for high-res
+    ctx.scale(scale, scale);
+    const logicalWidth = canvas.width / scale;
+    const logicalHeight = canvas.height / scale;
+
+    // Draw image
+    const imgRatio = img.width / img.height;
+    const canvasRatio = logicalWidth / logicalHeight;
+    let drawWidth, drawHeight, drawX, drawY;
+    
+    if (imgRatio > canvasRatio) {
+      drawHeight = logicalHeight;
+      drawWidth = drawHeight * imgRatio;
+      drawX = (logicalWidth - drawWidth) / 2;
+      drawY = 0;
+    } else {
+      drawWidth = logicalWidth;
+      drawHeight = drawWidth / imgRatio;
+      drawX = 0;
+      drawY = 0;
+    }
+    ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+
+    // Gradient overlay
+    const brandingHeight = format === 'story' ? 450 : 350;
+    const gradient = ctx.createLinearGradient(0, logicalHeight - brandingHeight - 100, 0, logicalHeight);
+    gradient.addColorStop(0, 'rgba(0,0,0,0)');
+    gradient.addColorStop(0.3, 'rgba(0,0,0,0.7)');
+    gradient.addColorStop(1, 'rgba(0,0,0,0.95)');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, logicalHeight - brandingHeight - 100, logicalWidth, brandingHeight + 100);
+
+    const bottomY = logicalHeight - brandingHeight;
+    
+    // BFM Logo
+    if (logo.complete && logo.naturalWidth > 0) {
+      const logoSize = 70;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(50 + logoSize/2, bottomY + 45, logoSize/2, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.clip();
+      ctx.drawImage(logo, 50, bottomY + 10, logoSize, logoSize);
+      ctx.restore();
+      
+      ctx.strokeStyle = '#D4AF37';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(50 + logoSize/2, bottomY + 45, logoSize/2 + 3, 0, Math.PI * 2);
+      ctx.stroke();
+      
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = 'bold 22px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('BANGALORE', 135, bottomY + 35);
+      ctx.fillStyle = '#D4AF37';
+      ctx.font = '18px sans-serif';
+      ctx.fillText('FASHION MAGAZINE', 135, bottomY + 60);
+    }
+
+    // QR Code
+    const qrSize = 90;
+    const qrX = logicalWidth - qrSize - 40;
+    const qrY = bottomY + 5;
+    const baseUrl = window.location.origin;
+    const trackingUrl = `${baseUrl}/talents/${encodeURIComponent(talent.category)}?talent=${talent.id}&ref=share`;
+    const qrDataUrl = await generateQRCode(trackingUrl, qrSize * scale);
+    
+    if (qrDataUrl) {
+      const qrImg = new window.Image();
+      await new Promise((resolve) => {
+        qrImg.onload = resolve;
+        qrImg.onerror = resolve;
+        qrImg.src = qrDataUrl;
+      });
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(qrX - 5, qrY - 5, qrSize + 10, qrSize + 10);
+      ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
+    }
+    
+    ctx.fillStyle = '#A0A5B0';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Scan to view profile', qrX + qrSize/2, qrY + qrSize + 18);
+
+    // Talent Info
+    ctx.fillStyle = '#D4AF37';
+    ctx.font = '16px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('FEATURED TALENT', 50, bottomY + 115);
+    
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 48px serif';
+    ctx.fillText(talent.name, 50, bottomY + 170);
+    
+    ctx.fillStyle = '#D4AF37';
+    ctx.font = '24px sans-serif';
+    ctx.fillText(getCategoryDisplay(talent.category).toUpperCase(), 50, bottomY + 205);
+
+    let currentY = bottomY + 230;
+    const lineSpacing = 30;
+    const bottomPadding = 80;
+    
+    if (caption.trim()) {
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = 'italic 18px sans-serif';
+      const maxWidth = logicalWidth - 100;
+      const words = caption.split(' ');
+      let line = '"';
+      for (let word of words) {
+        const testLine = line + word + ' ';
+        if (ctx.measureText(testLine).width > maxWidth && line.length > 1) {
+          ctx.fillText(line, 50, currentY);
+          currentY += 25;
+          line = word + ' ';
+        } else {
+          line = testLine;
+        }
+      }
+      ctx.fillText(line.trim() + '"', 50, currentY);
+      currentY += lineSpacing;
+    }
+
+    if (hashtags.trim()) {
+      ctx.fillStyle = '#D4AF37';
+      ctx.font = '14px sans-serif';
+      ctx.fillText(hashtags, 50, currentY);
+      currentY += lineSpacing;
+    }
+
+    const ctaY = Math.max(currentY + 20, logicalHeight - bottomPadding);
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx.font = '14px sans-serif';
+    ctx.fillText('Discover more talents at', 50, ctaY);
+    ctx.fillStyle = '#D4AF37';
+    ctx.font = 'bold 18px sans-serif';
+    ctx.fillText('bangalorefashionmagazine.com', 50, ctaY + 22);
+
+    // Return as PNG for better print quality
+    return new Promise(resolve => canvas.toBlob(resolve, 'image/png', 1.0));
+  };
+
+  // Download high-res for print
+  const handleDownloadHighRes = async () => {
+    setSharing(true);
+    try {
+      const blob = await createHighResImage(shareFormat, customCaption, customHashtags);
+      const fileName = `${talent.name.replace(/\s+/g, '_')}_BFM_${shareFormat}_PRINT.png`;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast({ title: "High-res image downloaded!", description: "PNG format, 2x resolution for print" });
+    } catch (err) {
+      toast({ title: "Download failed", variant: "destructive" });
+    }
+    setSharing(false);
+  };
+
   // Generate preview
   const generatePreview = async (format) => {
     setShareFormat(format);
@@ -1191,20 +1391,31 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true, leade
                   className="max-h-[60vh] w-auto rounded-lg shadow-lg"
                 />
               </div>
-              <div className="p-4 border-t border-[#D4AF37]/20 flex gap-3">
+              <div className="p-4 border-t border-[#D4AF37]/20 space-y-3">
+                <div className="flex gap-3">
+                  <button 
+                    onClick={() => setShowSharePreview(false)}
+                    className="flex-1 py-2 bg-[#050A14] text-[#F5F5F0] rounded-lg hover:bg-[#D4AF37]/20"
+                  >
+                    Edit
+                  </button>
+                  <button 
+                    onClick={handleShareFromPreview}
+                    disabled={sharing}
+                    className="flex-1 py-2 bg-[#25D366] text-white rounded-lg font-bold hover:bg-[#128C7E] disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    <Share2 size={16} />
+                    {sharing ? "Sharing..." : "Share Now"}
+                  </button>
+                </div>
+                {/* High-Res Download Button */}
                 <button 
-                  onClick={() => setShowSharePreview(false)}
-                  className="flex-1 py-2 bg-[#050A14] text-[#F5F5F0] rounded-lg hover:bg-[#D4AF37]/20"
-                >
-                  Edit
-                </button>
-                <button 
-                  onClick={handleShareFromPreview}
+                  onClick={handleDownloadHighRes}
                   disabled={sharing}
-                  className="flex-1 py-2 bg-[#25D366] text-white rounded-lg font-bold hover:bg-[#128C7E] disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full py-2 bg-[#D4AF37]/20 text-[#D4AF37] rounded-lg text-sm hover:bg-[#D4AF37]/30 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  <Share2 size={16} />
-                  {sharing ? "Sharing..." : "Share Now"}
+                  <Download size={14} />
+                  Download High-Res for Print (2x PNG)
                 </button>
               </div>
             </div>
