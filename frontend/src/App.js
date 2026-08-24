@@ -886,28 +886,49 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true, leade
     ctx.font = '24px sans-serif';
     ctx.fillText(getCategoryDisplay(talent.category).toUpperCase(), 50, bottomY + 205);
 
+    // Calculate dynamic Y position for caption/hashtags/CTA
+    let currentY = bottomY + 230;
+    const lineSpacing = 30;
+    const bottomPadding = 80; // Space from canvas bottom for CTA
+    
     // Custom Caption (if provided)
     if (caption.trim()) {
       ctx.fillStyle = '#FFFFFF';
-      ctx.font = 'italic 20px sans-serif';
-      ctx.fillText(`"${caption}"`, 50, bottomY + 245);
+      ctx.font = 'italic 18px sans-serif';
+      // Wrap long captions
+      const maxWidth = canvas.width - 100;
+      const words = caption.split(' ');
+      let line = '"';
+      for (let word of words) {
+        const testLine = line + word + ' ';
+        if (ctx.measureText(testLine).width > maxWidth && line.length > 1) {
+          ctx.fillText(line, 50, currentY);
+          currentY += 25;
+          line = word + ' ';
+        } else {
+          line = testLine;
+        }
+      }
+      ctx.fillText(line.trim() + '"', 50, currentY);
+      currentY += lineSpacing;
     }
 
     // Custom Hashtags (if provided)
     if (hashtags.trim()) {
       ctx.fillStyle = '#D4AF37';
-      ctx.font = '16px sans-serif';
-      const hashtagY = caption.trim() ? bottomY + 280 : bottomY + 245;
-      ctx.fillText(hashtags, 50, hashtagY);
+      ctx.font = '14px sans-serif';
+      ctx.fillText(hashtags, 50, currentY);
+      currentY += lineSpacing;
     }
 
-    // Website CTA at very bottom
-    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    // Website CTA at very bottom - fixed position with clear spacing
+    const ctaY = Math.max(currentY + 20, canvas.height - bottomPadding);
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
     ctx.font = '14px sans-serif';
-    ctx.fillText('Discover more talents at', 50, canvas.height - 45);
+    ctx.fillText('Discover more talents at', 50, ctaY);
     ctx.fillStyle = '#D4AF37';
     ctx.font = 'bold 18px sans-serif';
-    ctx.fillText('bangalorefashionmagazine.com', 50, canvas.height - 22);
+    ctx.fillText('bangalorefashionmagazine.com', 50, ctaY + 22);
 
     return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.92));
   };
