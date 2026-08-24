@@ -1493,6 +1493,95 @@ const MagazineBuilder = () => {
     }
     setLoading(false);
   };
+
+  // Export current page as high-quality RAW PNG for Photoshop
+  const exportAsRawPNG = async () => {
+    toast({ title: "Exporting RAW PNG...", description: "High resolution for Photoshop editing" });
+    
+    try {
+      const { default: html2canvas } = await import('html2canvas');
+      
+      const originalPreview = previewMode;
+      setPreviewMode(true);
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      const pageEl = document.getElementById(`magazine-page-${currentPageIndex}`);
+      if (!pageEl) {
+        throw new Error("Page element not found");
+      }
+      
+      // Export at 3x scale for high resolution (suitable for print/Photoshop)
+      const canvas = await html2canvas(pageEl, { 
+        scale: 3, // High resolution
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: null,
+        logging: false
+      });
+      
+      setPreviewMode(originalPreview);
+      
+      // Download as PNG
+      const link = document.createElement('a');
+      link.download = `${talentDetails.name || 'Magazine'}_Page${currentPageIndex + 1}_${pages[currentPageIndex]?.name || 'page'}_RAW.png`;
+      link.href = canvas.toDataURL('image/png', 1.0);
+      link.click();
+      
+      toast({ title: "RAW PNG Downloaded!", description: "Open in Photoshop for editing" });
+    } catch (err) {
+      console.error("Export error:", err);
+      toast({ title: "Export failed", description: err.message, variant: "destructive" });
+    }
+  };
+
+  // Export ALL pages as RAW PNG (ZIP)
+  const exportAllPagesAsRawPNG = async () => {
+    toast({ title: "Exporting all pages as RAW PNG...", description: "This may take a moment" });
+    
+    try {
+      const { default: html2canvas } = await import('html2canvas');
+      const JSZip = (await import('jszip')).default;
+      
+      const zip = new JSZip();
+      const originalPage = currentPageIndex;
+      const originalPreview = previewMode;
+      
+      setPreviewMode(true);
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      for (let i = 0; i < pages.length; i++) {
+        setCurrentPageIndex(i);
+        await new Promise(resolve => setTimeout(resolve, 400));
+        
+        const pageEl = document.getElementById(`magazine-page-${i}`);
+        if (!pageEl) continue;
+        
+        const canvas = await html2canvas(pageEl, { 
+          scale: 3, // High resolution
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: null
+        });
+        
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png', 1.0));
+        zip.file(`Page${i + 1}_${pages[i].name.replace(/[^a-zA-Z0-9]/g, '_')}_RAW.png`, blob);
+      }
+      
+      setCurrentPageIndex(originalPage);
+      setPreviewMode(originalPreview);
+      
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(zipBlob);
+      link.download = `${talentDetails.name || 'Magazine'}_AllPages_RAW.zip`;
+      link.click();
+      
+      toast({ title: "All RAW PNGs Downloaded!", description: `${pages.length} pages exported` });
+    } catch (err) {
+      console.error("Export error:", err);
+      toast({ title: "Export failed", description: err.message, variant: "destructive" });
+    }
+  };
   
   const exportToPDF = async () => {
     toast({ title: "Preparing PDF...", description: "Optimizing for clean export. This may take a moment." });
@@ -3182,6 +3271,29 @@ const MagazineBuilder = () => {
                 >
                   <FolderDown size={12} className="mr-1" /> Project
                 </Button>
+                {/* RAW PNG Export for Photoshop */}
+                <div className="relative">
+                  <Button 
+                    size="sm" 
+                    className="bg-[#0A1628] border border-green-500 text-green-400 hover:bg-green-500 hover:text-white h-8 px-3"
+                    onClick={(e) => {
+                      const dropdown = e.currentTarget.nextElementSibling;
+                      dropdown.classList.toggle('hidden');
+                    }}
+                    title="Export as RAW PNG for Photoshop"
+                    data-testid="export-raw-png-btn"
+                  >
+                    <Image size={12} className="mr-1" /> RAW
+                  </Button>
+                  <div className="absolute right-0 top-full mt-1 bg-[#0A1628] border border-green-500/30 rounded shadow-lg hidden z-50 min-w-[160px]">
+                    <button onClick={exportAsRawPNG} className="block w-full px-3 py-2 text-xs text-left hover:bg-green-500/20 text-[#F5F5F0]" data-testid="export-raw-current">
+                      Current Page (PNG)
+                    </button>
+                    <button onClick={exportAllPagesAsRawPNG} className="block w-full px-3 py-2 text-xs text-left hover:bg-green-500/20 text-[#F5F5F0]" data-testid="export-raw-all">
+                      All Pages (ZIP)
+                    </button>
+                  </div>
+                </div>
               </div>
               
               {/* Advanced Settings Panels */}

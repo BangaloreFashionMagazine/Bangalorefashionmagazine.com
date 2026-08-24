@@ -79,11 +79,6 @@ const TalentHeroSlider = () => {
         className="relative w-full overflow-hidden"
         style={{ height: settings.hero_height || "70vh", backgroundColor: settings.default_bg_color || "#050A14" }}
       >
-        {/* BFM Logo */}
-        <div className="absolute top-6 left-6 z-20">
-          <img src={BFM_LOGO} alt="BFM" className="w-16 h-16 rounded-full border-2 border-[#D4AF37]/30" />
-        </div>
-
         {/* Default Background Gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#D4AF37]/10 via-[#050A14] to-[#0A1628]" />
         
@@ -121,8 +116,8 @@ const TalentHeroSlider = () => {
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* BFM Logo */}
-      {settings.logo_position !== "hidden" && (
+      {/* BFM Logo - Hidden by default since navbar has the logo */}
+      {settings.show_hero_logo && settings.logo_position !== "hidden" && (
         <div className={`absolute z-20 ${
           settings.logo_position === "top-center" ? "top-6 left-1/2 -translate-x-1/2" :
           settings.logo_position === "top-right" ? "top-6 right-6" :
