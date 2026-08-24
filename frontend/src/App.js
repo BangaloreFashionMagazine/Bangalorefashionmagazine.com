@@ -8,7 +8,7 @@ import 'swiper/css';
 import 'swiper/css/effect-fade';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
-import { ChevronLeft, ChevronRight, Users, Palette, Sparkles, Camera, Briefcase, Calendar, Mail, Lock, User, Shield, Award, Image, Download, Star, Check, X, Phone, Instagram, Trash2, Vote, ExternalLink, Volume2, VolumeX, Music, Video, Upload, BarChart3, TrendingUp, Eye, MousePointer, ShoppingBag, Package, MapPin, Send } from "lucide-react";
+import { ChevronLeft, ChevronRight, Users, Palette, Sparkles, Camera, Briefcase, Calendar, Mail, Lock, User, Shield, Award, Image, Download, Star, Check, X, Phone, Instagram, Trash2, Vote, ExternalLink, Volume2, VolumeX, Music, Video, Upload, BarChart3, TrendingUp, Eye, MousePointer, ShoppingBag, Package, MapPin, Send, Search } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
 import ImageUploadWithCrop from "@/components/ImageUploadWithCrop";
@@ -977,6 +977,7 @@ const TalentsPage = ({ ads }) => {
   const [talents, setTalents] = useState([]);
   const [selectedTalent, setSelectedTalent] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
   const decodedCategory = decodeURIComponent(category || "All Talents");
   
@@ -1009,6 +1010,11 @@ const TalentsPage = ({ ads }) => {
       });
   }, [dbCategory, isAllTalents, isFeatured]);
 
+  // Filter talents by search query
+  const filteredTalents = talents.filter(t => 
+    t.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const handleVote = async (talentId) => {
     try {
       await axios.post(`${API}/vote`, { talent_id: talentId });
@@ -1028,17 +1034,46 @@ const TalentsPage = ({ ads }) => {
       <div className="container mx-auto px-3 sm:px-4">
         <div className="flex gap-4">
           <div className="flex-1 min-w-0">
-            <h1 className="font-serif text-xl sm:text-2xl font-bold text-[#F5F5F0] mb-4 sm:mb-6">
-              {isFeatured && <Star className="inline-block w-6 h-6 text-[#D4AF37] mr-2" />}
-              {decodedCategory}
-            </h1>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-6">
+              <h1 className="font-serif text-xl sm:text-2xl font-bold text-[#F5F5F0]">
+                {isFeatured && <Star className="inline-block w-6 h-6 text-[#D4AF37] mr-2" />}
+                {decodedCategory}
+              </h1>
+              {/* Search Bar */}
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0A5B0]" />
+                <input
+                  type="text"
+                  placeholder="Search by name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0] text-sm placeholder-[#A0A5B0] focus:outline-none focus:border-[#D4AF37]/50"
+                />
+                {searchQuery && (
+                  <button 
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A0A5B0] hover:text-[#F5F5F0]"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+            {/* Results count when searching */}
+            {searchQuery && (
+              <p className="text-[#A0A5B0] text-sm mb-3">
+                Found {filteredTalents.length} talent{filteredTalents.length !== 1 ? 's' : ''} matching "{searchQuery}"
+              </p>
+            )}
             {loading ? (
               <p className="text-[#A0A5B0]">Loading...</p>
-            ) : talents.length === 0 ? (
-              <p className="text-[#A0A5B0]">No approved talents in this category yet.</p>
+            ) : filteredTalents.length === 0 ? (
+              <p className="text-[#A0A5B0]">
+                {searchQuery ? `No talents found matching "${searchQuery}"` : "No approved talents in this category yet."}
+              </p>
             ) : (
               <div className={gridClass}>
-                {talents.map(t => <TalentCardSmall key={t.id} talent={t} onVote={handleVote} onClick={setSelectedTalent} />)}
+                {filteredTalents.map(t => <TalentCardSmall key={t.id} talent={t} onVote={handleVote} onClick={setSelectedTalent} />)}
               </div>
             )}
           </div>
