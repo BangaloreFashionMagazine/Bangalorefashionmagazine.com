@@ -674,6 +674,11 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true }) => 
   const [loading, setLoading] = useState(true);
   const [sharing, setSharing] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
+  const [showSharePreview, setShowSharePreview] = useState(false);
+  const [sharePreviewUrl, setSharePreviewUrl] = useState(null);
+  const [shareFormat, setShareFormat] = useState('feed');
+  const [customCaption, setCustomCaption] = useState('');
+  const [customHashtags, setCustomHashtags] = useState('#BFMMagazine #BangaloreFashion');
   const { toast } = useToast();
   
   // Fetch full talent data including portfolio images
@@ -713,8 +718,30 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true }) => 
     }
   };
 
-  // Create formatted image for sharing - matches Instagram promo style
-  const createFormattedImage = async (format) => {
+  // Generate QR code as data URL
+  const generateQRCode = async (url, size = 100) => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      // Simple QR-like placeholder with URL encoded - using QRCode library would be better
+      // For now, create a simple branded box
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, size, size);
+      ctx.fillStyle = '#050A14';
+      ctx.fillRect(4, 4, size-8, size-8);
+      ctx.fillStyle = '#D4AF37';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('SCAN', size/2, size/2 - 5);
+      ctx.fillText('ME', size/2, size/2 + 10);
+      resolve(canvas.toDataURL());
+    });
+  };
+
+  // Create formatted image for sharing - branding at BOTTOM only, face visible
+  const createFormattedImage = async (format, caption = '', hashtags = '') => {
     const imageUrl = fullTalent.profile_image || talent.profile_image;
     if (!imageUrl) return null;
 
@@ -735,7 +762,7 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true }) => 
     logo.crossOrigin = "anonymous";
     await new Promise((resolve, reject) => {
       logo.onload = resolve;
-      logo.onerror = () => resolve(); // Continue even if logo fails
+      logo.onerror = () => resolve();
       logo.src = BFM_LOGO;
     });
 
@@ -746,20 +773,17 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true }) => 
     if (format === 'story') {
       canvas.width = 1080;
       canvas.height = 1920;
-    } else if (format === 'feed') {
-      canvas.width = 1080;
-      canvas.height = 1350;
     } else {
-      // WhatsApp - use feed format with branding
       canvas.width = 1080;
       canvas.height = 1350;
     }
 
-    // Draw talent image as full background
+    // Calculate image positioning - keep face visible at TOP, branding at BOTTOM
     const imgRatio = img.width / img.height;
     const canvasRatio = canvas.width / canvas.height;
     let drawWidth, drawHeight, drawX, drawY;
     
+    // Fill canvas width, position from top (face area)
     if (imgRatio > canvasRatio) {
       drawHeight = canvas.height;
       drawWidth = drawHeight * imgRatio;
@@ -769,92 +793,153 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true }) => 
       drawWidth = canvas.width;
       drawHeight = drawWidth / imgRatio;
       drawX = 0;
-      drawY = (canvas.height - drawHeight) / 2 - (canvas.height * 0.1); // Shift up slightly
+      // Position from TOP so face is visible, branding covers lower body
+      drawY = 0;
     }
     ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
 
-    // Gradient overlay from bottom (like Instagram promo)
-    const gradient = ctx.createLinearGradient(0, canvas.height * 0.4, 0, canvas.height);
+    // Gradient overlay ONLY at bottom (preserves face at top)
+    const brandingHeight = format === 'story' ? 450 : 350;
+    const gradient = ctx.createLinearGradient(0, canvas.height - brandingHeight - 100, 0, canvas.height);
     gradient.addColorStop(0, 'rgba(0,0,0,0)');
-    gradient.addColorStop(0.4, 'rgba(0,0,0,0.5)');
+    gradient.addColorStop(0.3, 'rgba(0,0,0,0.7)');
     gradient.addColorStop(1, 'rgba(0,0,0,0.95)');
     ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, canvas.height - brandingHeight - 100, canvas.width, brandingHeight + 100);
 
-    // Bottom content area
-    const bottomY = canvas.height - (format === 'story' ? 280 : 200);
+    // === BOTTOM BRANDING SECTION ===
+    const bottomY = canvas.height - brandingHeight;
     
-    // BFM Logo & Branding (top-left of bottom section)
+    // BFM Logo (left side)
     if (logo.complete && logo.naturalWidth > 0) {
-      const logoSize = 60;
+      const logoSize = 70;
       ctx.save();
       ctx.beginPath();
-      ctx.arc(50 + logoSize/2, bottomY + logoSize/2, logoSize/2, 0, Math.PI * 2);
+      ctx.arc(50 + logoSize/2, bottomY + 45, logoSize/2, 0, Math.PI * 2);
       ctx.closePath();
       ctx.clip();
-      ctx.drawImage(logo, 50, bottomY, logoSize, logoSize);
+      ctx.drawImage(logo, 50, bottomY + 10, logoSize, logoSize);
       ctx.restore();
       
       // Gold border around logo
       ctx.strokeStyle = '#D4AF37';
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.arc(50 + logoSize/2, bottomY + logoSize/2, logoSize/2 + 2, 0, Math.PI * 2);
+      ctx.arc(50 + logoSize/2, bottomY + 45, logoSize/2 + 3, 0, Math.PI * 2);
       ctx.stroke();
       
       // Magazine name next to logo
       ctx.fillStyle = '#FFFFFF';
-      ctx.font = 'bold 18px sans-serif';
+      ctx.font = 'bold 22px sans-serif';
       ctx.textAlign = 'left';
-      ctx.fillText('BANGALORE', 120, bottomY + 25);
+      ctx.fillText('BANGALORE', 135, bottomY + 35);
       ctx.fillStyle = '#D4AF37';
-      ctx.font = '16px sans-serif';
-      ctx.fillText('FASHION MAGAZINE', 120, bottomY + 45);
+      ctx.font = '18px sans-serif';
+      ctx.fillText('FASHION MAGAZINE', 135, bottomY + 60);
     }
+
+    // QR Code (right side) - links to talent profile
+    const qrSize = 90;
+    const qrX = canvas.width - qrSize - 40;
+    const qrY = bottomY + 5;
+    
+    // QR code background
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(qrX - 5, qrY - 5, qrSize + 10, qrSize + 10);
+    
+    // Simple QR placeholder (in production, use actual QR library)
+    ctx.fillStyle = '#050A14';
+    ctx.fillRect(qrX, qrY, qrSize, qrSize);
+    ctx.fillStyle = '#FFFFFF';
+    // Create QR-like pattern
+    for (let i = 0; i < 7; i++) {
+      for (let j = 0; j < 7; j++) {
+        if (Math.random() > 0.5 || (i < 2 && j < 2) || (i > 4 && j < 2) || (i < 2 && j > 4)) {
+          ctx.fillRect(qrX + 8 + i * 10, qrY + 8 + j * 10, 8, 8);
+        }
+      }
+    }
+    // QR corner squares
+    ctx.fillStyle = '#050A14';
+    ctx.fillRect(qrX + 5, qrY + 5, 25, 25);
+    ctx.fillRect(qrX + qrSize - 30, qrY + 5, 25, 25);
+    ctx.fillRect(qrX + 5, qrY + qrSize - 30, 25, 25);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(qrX + 10, qrY + 10, 15, 15);
+    ctx.fillRect(qrX + qrSize - 25, qrY + 10, 15, 15);
+    ctx.fillRect(qrX + 10, qrY + qrSize - 25, 15, 15);
+    ctx.fillStyle = '#050A14';
+    ctx.fillRect(qrX + 13, qrY + 13, 9, 9);
+    ctx.fillRect(qrX + qrSize - 22, qrY + 13, 9, 9);
+    ctx.fillRect(qrX + 13, qrY + qrSize - 22, 9, 9);
+    
+    // "Scan to view" text under QR
+    ctx.fillStyle = '#A0A5B0';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Scan to view profile', qrX + qrSize/2, qrY + qrSize + 18);
 
     // Talent Info
     ctx.fillStyle = '#D4AF37';
-    ctx.font = '14px sans-serif';
+    ctx.font = '16px sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText('FEATURED TALENT', 50, bottomY + 90);
+    ctx.fillText('FEATURED TALENT', 50, bottomY + 115);
     
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 42px serif';
-    ctx.fillText(talent.name, 50, bottomY + 140);
+    ctx.font = 'bold 48px serif';
+    ctx.fillText(talent.name, 50, bottomY + 170);
     
     ctx.fillStyle = '#D4AF37';
-    ctx.font = '22px sans-serif';
-    ctx.fillText(getCategoryDisplay(talent.category).toUpperCase(), 50, bottomY + 175);
+    ctx.font = '24px sans-serif';
+    ctx.fillText(getCategoryDisplay(talent.category).toUpperCase(), 50, bottomY + 205);
 
-    // Website CTA
-    ctx.fillStyle = 'rgba(255,255,255,0.8)';
-    ctx.font = '16px sans-serif';
-    ctx.fillText('Discover this talent on', 50, canvas.height - 55);
+    // Custom Caption (if provided)
+    if (caption.trim()) {
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = 'italic 20px sans-serif';
+      ctx.fillText(`"${caption}"`, 50, bottomY + 245);
+    }
+
+    // Custom Hashtags (if provided)
+    if (hashtags.trim()) {
+      ctx.fillStyle = '#D4AF37';
+      ctx.font = '16px sans-serif';
+      const hashtagY = caption.trim() ? bottomY + 280 : bottomY + 245;
+      ctx.fillText(hashtags, 50, hashtagY);
+    }
+
+    // Website CTA at very bottom
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.font = '14px sans-serif';
+    ctx.fillText('Discover more talents at', 50, canvas.height - 45);
     ctx.fillStyle = '#D4AF37';
-    ctx.font = 'bold 20px sans-serif';
-    ctx.fillText('bangalorefashionmagazine.com', 50, canvas.height - 30);
+    ctx.font = 'bold 18px sans-serif';
+    ctx.fillText('bangalorefashionmagazine.com', 50, canvas.height - 22);
 
     return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.92));
   };
 
-  // Share function with format option
-  const handleShare = async (format) => {
-    setSharing(true);
-    setShowShareMenu(false);
-    
-    try {
-      const blob = await createFormattedImage(format);
-      if (!blob) {
-        toast({ title: "No image to share", variant: "destructive" });
-        setSharing(false);
-        return;
-      }
+  // Generate preview
+  const generatePreview = async (format) => {
+    setShareFormat(format);
+    const blob = await createFormattedImage(format, customCaption, customHashtags);
+    if (blob) {
+      const url = URL.createObjectURL(blob);
+      setSharePreviewUrl(url);
+      setShowSharePreview(true);
+      setShowShareMenu(false);
+    }
+  };
 
-      const fileName = `${talent.name.replace(/\s+/g, '_')}_BFM_${format}.jpg`;
+  // Share from preview
+  const handleShareFromPreview = async () => {
+    setSharing(true);
+    try {
+      const blob = await createFormattedImage(shareFormat, customCaption, customHashtags);
+      const fileName = `${talent.name.replace(/\s+/g, '_')}_BFM_${shareFormat}.jpg`;
       const file = new File([blob], fileName, { type: 'image/jpeg' });
 
-      // Track the share
-      await trackShare(format);
+      await trackShare(shareFormat);
 
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({ files: [file], title: `${talent.name} - BFM Magazine` });
@@ -868,8 +953,9 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true }) => 
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        toast({ title: "Image downloaded!", description: `Share to ${format === 'whatsapp' ? 'WhatsApp' : format === 'story' ? 'Instagram Story' : 'Instagram Feed'}` });
+        toast({ title: "Image downloaded!", description: `Share to ${shareFormat === 'whatsapp' ? 'WhatsApp' : shareFormat === 'story' ? 'Instagram Story' : 'Instagram Feed'}` });
       }
+      setShowSharePreview(false);
     } catch (err) {
       if (err.name !== 'AbortError') {
         toast({ title: "Could not share", variant: "destructive" });
@@ -999,29 +1085,69 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true }) => 
                   <Share2 size={18} />
                   {sharing ? "..." : "Share"}
                 </button>
-                {/* Share Menu Dropdown */}
+                {/* Enhanced Share Menu with Caption & Hashtags */}
                 {showShareMenu && (
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-[#0A1628] border border-[#D4AF37]/30 rounded-lg shadow-xl p-2 min-w-[160px] z-20">
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-[#0A1628] border border-[#D4AF37]/30 rounded-xl shadow-xl p-4 w-72 z-20" onClick={e => e.stopPropagation()}>
+                    <h4 className="text-[#D4AF37] font-bold text-sm mb-3">Customize Your Share</h4>
+                    
+                    {/* Custom Caption */}
+                    <div className="mb-3">
+                      <label className="text-[#A0A5B0] text-xs block mb-1">Caption (optional)</label>
+                      <input 
+                        type="text"
+                        value={customCaption}
+                        onChange={(e) => setCustomCaption(e.target.value)}
+                        placeholder="Add your message..."
+                        className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0] text-sm"
+                      />
+                    </div>
+                    
+                    {/* Custom Hashtags */}
+                    <div className="mb-4">
+                      <label className="text-[#A0A5B0] text-xs block mb-1">Hashtags</label>
+                      <input 
+                        type="text"
+                        value={customHashtags}
+                        onChange={(e) => setCustomHashtags(e.target.value)}
+                        placeholder="#BFMMagazine #Fashion"
+                        className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0] text-sm"
+                      />
+                    </div>
+                    
+                    {/* Format Selection with Preview */}
+                    <p className="text-[#A0A5B0] text-xs mb-2">Choose format & preview:</p>
+                    <div className="space-y-2">
+                      <button 
+                        onClick={() => generatePreview('whatsapp')}
+                        className="w-full px-3 py-2 text-left text-[#F5F5F0] hover:bg-[#D4AF37]/20 rounded-lg flex items-center gap-2 text-sm border border-[#D4AF37]/10"
+                      >
+                        <span className="w-6 h-6 bg-[#25D366] rounded-full flex items-center justify-center text-white text-xs font-bold">W</span>
+                        <span className="flex-1">WhatsApp</span>
+                        <span className="text-[#A0A5B0] text-xs">Preview →</span>
+                      </button>
+                      <button 
+                        onClick={() => generatePreview('story')}
+                        className="w-full px-3 py-2 text-left text-[#F5F5F0] hover:bg-[#D4AF37]/20 rounded-lg flex items-center gap-2 text-sm border border-[#D4AF37]/10"
+                      >
+                        <span className="w-6 h-6 bg-gradient-to-tr from-[#833AB4] via-[#FD1D1D] to-[#F77737] rounded-full flex items-center justify-center text-white text-xs font-bold">S</span>
+                        <span className="flex-1">Insta Story (9:16)</span>
+                        <span className="text-[#A0A5B0] text-xs">Preview →</span>
+                      </button>
+                      <button 
+                        onClick={() => generatePreview('feed')}
+                        className="w-full px-3 py-2 text-left text-[#F5F5F0] hover:bg-[#D4AF37]/20 rounded-lg flex items-center gap-2 text-sm border border-[#D4AF37]/10"
+                      >
+                        <span className="w-6 h-6 bg-gradient-to-tr from-[#833AB4] via-[#FD1D1D] to-[#F77737] rounded-full flex items-center justify-center text-white text-xs font-bold">F</span>
+                        <span className="flex-1">Insta Feed (4:5)</span>
+                        <span className="text-[#A0A5B0] text-xs">Preview →</span>
+                      </button>
+                    </div>
+                    
                     <button 
-                      onClick={() => handleShare('whatsapp')}
-                      className="w-full px-3 py-2 text-left text-[#F5F5F0] hover:bg-[#D4AF37]/20 rounded flex items-center gap-2 text-sm"
+                      onClick={() => setShowShareMenu(false)}
+                      className="w-full mt-3 py-1 text-[#A0A5B0] text-xs hover:text-[#F5F5F0]"
                     >
-                      <span className="w-6 h-6 bg-[#25D366] rounded-full flex items-center justify-center text-white text-xs">W</span>
-                      WhatsApp
-                    </button>
-                    <button 
-                      onClick={() => handleShare('story')}
-                      className="w-full px-3 py-2 text-left text-[#F5F5F0] hover:bg-[#D4AF37]/20 rounded flex items-center gap-2 text-sm"
-                    >
-                      <span className="w-6 h-6 bg-gradient-to-tr from-[#833AB4] via-[#FD1D1D] to-[#F77737] rounded-full flex items-center justify-center text-white text-xs">S</span>
-                      Insta Story (9:16)
-                    </button>
-                    <button 
-                      onClick={() => handleShare('feed')}
-                      className="w-full px-3 py-2 text-left text-[#F5F5F0] hover:bg-[#D4AF37]/20 rounded flex items-center gap-2 text-sm"
-                    >
-                      <span className="w-6 h-6 bg-gradient-to-tr from-[#833AB4] via-[#FD1D1D] to-[#F77737] rounded-full flex items-center justify-center text-white text-xs">F</span>
-                      Insta Feed (4:5)
+                      Cancel
                     </button>
                   </div>
                 )}
@@ -1029,6 +1155,43 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true }) => 
             )}
           </div>
         </div>
+        
+        {/* Share Preview Modal */}
+        {showSharePreview && sharePreviewUrl && (
+          <div className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4" onClick={() => setShowSharePreview(false)}>
+            <div className="bg-[#0A1628] rounded-xl max-w-md w-full max-h-[90vh] overflow-hidden border border-[#D4AF37]/30" onClick={e => e.stopPropagation()}>
+              <div className="p-4 border-b border-[#D4AF37]/20">
+                <h3 className="text-[#F5F5F0] font-bold text-center">Preview Your Share</h3>
+                <p className="text-[#A0A5B0] text-xs text-center mt-1">
+                  {shareFormat === 'story' ? 'Instagram Story (9:16)' : shareFormat === 'feed' ? 'Instagram Feed (4:5)' : 'WhatsApp'}
+                </p>
+              </div>
+              <div className="p-4 flex justify-center">
+                <img 
+                  src={sharePreviewUrl} 
+                  alt="Share Preview" 
+                  className="max-h-[60vh] w-auto rounded-lg shadow-lg"
+                />
+              </div>
+              <div className="p-4 border-t border-[#D4AF37]/20 flex gap-3">
+                <button 
+                  onClick={() => setShowSharePreview(false)}
+                  className="flex-1 py-2 bg-[#050A14] text-[#F5F5F0] rounded-lg hover:bg-[#D4AF37]/20"
+                >
+                  Edit
+                </button>
+                <button 
+                  onClick={handleShareFromPreview}
+                  disabled={sharing}
+                  className="flex-1 py-2 bg-[#25D366] text-white rounded-lg font-bold hover:bg-[#128C7E] disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  <Share2 size={16} />
+                  {sharing ? "Sharing..." : "Share Now"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         
         {/* Full Image Gallery with Swipe */}
         {galleryOpen && (
