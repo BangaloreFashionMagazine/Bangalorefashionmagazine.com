@@ -64,6 +64,7 @@ const AdminDashboard = () => {
   const [eventPayments, setEventPayments] = useState([]);
   const [newEvent, setNewEvent] = useState({ title: "", description: "", amount: 500, event_type: "contest", max_participants: null, deadline: "", is_active: true });
   const [editingEvent, setEditingEvent] = useState(null);
+  const [paymentQRSettings, setPaymentQRSettings] = useState({ upi_id: "", paypal_email: "", payment_note: "Payment for BFM" });
   
   // Instagram Promo state
   const [instagramTalent, setInstagramTalent] = useState(null);
@@ -2758,6 +2759,102 @@ const AdminDashboard = () => {
                   <p className="text-[#A0A5B0]/60 text-sm">Payments will appear here once talents start registering</p>
                 </div>
               )}
+            </div>
+            
+            {/* Manual Payment QR/Links - For sharing with talents */}
+            <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20">
+              <h3 className="text-lg font-bold text-[#F5F5F0] mb-4">Payment QR & Links (Share with Talents)</h3>
+              <p className="text-[#A0A5B0] text-sm mb-4">Generate payment links or QR codes to share with talents for manual payments (photoshoots, special events, etc.)</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* UPI Payment */}
+                <div className="bg-[#050A14] rounded-lg p-4 border border-[#D4AF37]/10">
+                  <h4 className="text-[#D4AF37] font-bold mb-3">UPI Payment (India)</h4>
+                  <input
+                    type="text"
+                    placeholder="Your UPI ID (e.g., yourname@paytm)"
+                    value={paymentQRSettings.upi_id}
+                    onChange={(e) => setPaymentQRSettings(s => ({ ...s, upi_id: e.target.value }))}
+                    className="w-full px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0] mb-3"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Payment Note (e.g., BFM Photoshoot Fee)"
+                    value={paymentQRSettings.payment_note}
+                    onChange={(e) => setPaymentQRSettings(s => ({ ...s, payment_note: e.target.value }))}
+                    className="w-full px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0] mb-3"
+                  />
+                  {paymentQRSettings.upi_id && (
+                    <div className="text-center">
+                      <div className="bg-white p-4 rounded-lg inline-block mb-3">
+                        <QRCodeSVG 
+                          value={`upi://pay?pa=${paymentQRSettings.upi_id}&pn=BFM&tn=${encodeURIComponent(paymentQRSettings.payment_note)}`}
+                          size={150}
+                          level="M"
+                        />
+                      </div>
+                      <p className="text-[#A0A5B0] text-xs mb-2">Scan to pay via UPI</p>
+                      <button 
+                        onClick={() => {
+                          const link = `upi://pay?pa=${paymentQRSettings.upi_id}&pn=BFM&tn=${encodeURIComponent(paymentQRSettings.payment_note)}`;
+                          navigator.clipboard.writeText(link);
+                          toast({ title: "UPI link copied!" });
+                        }}
+                        className="px-4 py-2 bg-[#D4AF37]/20 text-[#D4AF37] rounded text-sm"
+                      >
+                        Copy UPI Link
+                      </button>
+                    </div>
+                  )}
+                </div>
+                
+                {/* PayPal Payment */}
+                <div className="bg-[#050A14] rounded-lg p-4 border border-[#D4AF37]/10">
+                  <h4 className="text-[#D4AF37] font-bold mb-3">PayPal Payment</h4>
+                  <input
+                    type="email"
+                    placeholder="Your PayPal Email"
+                    value={paymentQRSettings.paypal_email}
+                    onChange={(e) => setPaymentQRSettings(s => ({ ...s, paypal_email: e.target.value }))}
+                    className="w-full px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0] mb-3"
+                  />
+                  {paymentQRSettings.paypal_email && (
+                    <div className="text-center">
+                      <div className="bg-white p-4 rounded-lg inline-block mb-3">
+                        <QRCodeSVG 
+                          value={`https://paypal.me/${paymentQRSettings.paypal_email.split('@')[0]}`}
+                          size={150}
+                          level="M"
+                        />
+                      </div>
+                      <p className="text-[#A0A5B0] text-xs mb-2">Scan to pay via PayPal</p>
+                      <div className="flex gap-2 justify-center">
+                        <button 
+                          onClick={() => {
+                            navigator.clipboard.writeText(`https://paypal.me/${paymentQRSettings.paypal_email.split('@')[0]}`);
+                            toast({ title: "PayPal link copied!" });
+                          }}
+                          className="px-4 py-2 bg-[#D4AF37]/20 text-[#D4AF37] rounded text-sm"
+                        >
+                          Copy PayPal Link
+                        </button>
+                      </div>
+                      <p className="text-[#A0A5B0] text-[10px] mt-2">Note: PayPal.me links use username, not email. Update if different.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="mt-4 p-3 bg-[#050A14] rounded border border-[#D4AF37]/20">
+                <h4 className="text-[#D4AF37] font-bold text-sm mb-2">💡 How to use:</h4>
+                <ul className="text-[#A0A5B0] text-xs space-y-1">
+                  <li>1. Enter your UPI ID or PayPal email above</li>
+                  <li>2. QR code will be generated automatically</li>
+                  <li>3. Screenshot the QR or copy the link</li>
+                  <li>4. Share with talents via WhatsApp, Instagram DM, etc.</li>
+                  <li>5. For event-specific payments, use the <span className="text-[#D4AF37]">Events & Payments</span> tab with Razorpay integration</li>
+                </ul>
+              </div>
             </div>
           </div>
         )}

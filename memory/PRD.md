@@ -52,6 +52,8 @@ Build a comprehensive fashion talent platform for Bangalore Fashion Magazine (BF
 - [x] Party updates
 - [x] Featured video
 - [x] Designer store management
+- [x] Events & Custom Payments - Create events with custom fees
+- [x] Payment QR & Links - UPI/PayPal QR codes to share with talents
 
 ### Authentication (COMPLETED)
 - [x] Admin login with JWT

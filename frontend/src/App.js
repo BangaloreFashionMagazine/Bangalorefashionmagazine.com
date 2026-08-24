@@ -1799,8 +1799,24 @@ I confirm that I have read, understood, and voluntarily accepted this declaratio
             )}
           </div>
           
+          {/* Payment Info Banner */}
+          {paymentSettings.payment_enabled && (
+            <div className="p-4 bg-[#D4AF37]/10 border border-[#D4AF37]/30 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[#F5F5F0] font-bold">Registration Fee Required</p>
+                  <p className="text-[#A0A5B0] text-sm">Complete payment to submit your registration</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[#D4AF37] text-2xl font-bold">₹{paymentSettings.registration_fee}</p>
+                  <p className="text-[#A0A5B0] text-xs">One-time fee</p>
+                </div>
+              </div>
+            </div>
+          )}
+          
           <button type="submit" disabled={loading} className="w-full bg-[#D4AF37] text-[#050A14] py-3 rounded-lg font-bold disabled:opacity-50">
-            {loading ? "Registering..." : "Register"}
+            {loading ? "Processing..." : paymentSettings.payment_enabled ? `Register & Pay ₹${paymentSettings.registration_fee}` : "Register"}
           </button>
         </form>
 

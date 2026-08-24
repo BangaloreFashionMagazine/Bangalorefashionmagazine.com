@@ -5,9 +5,14 @@
 - **Password:** Rilrocky@9295BFM
 - **Access URL:** /login (direct link - not visible in navigation)
 
-## Talent Test Account
-- **Email:** kushi.kudgunti@test.com
-- **Password:** NewPassword@456
+## Talent Test Account (Preview)
+- **Email:** femalemodel@test.com
+- **Password:** test123
+- **Status:** Approved
+
+- **Email:** alexandra@test.com
+- **Password:** test123
+- **Status:** Approved
 
 ## Admin Access
 The Admin tab is now hidden from public navigation for security.
@@ -24,3 +29,4 @@ To access admin panel:
 - Admin password updated on July 10, 2026
 - Admin link removed from navigation for security
 - Password reset feature added (requires Gmail App Password setup)
+- Payment enabled: ₹499 registration fee via Razorpay
