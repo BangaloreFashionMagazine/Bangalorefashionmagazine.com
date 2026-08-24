@@ -244,13 +244,21 @@ def create_talent_routes(db):
 
 
     @router.get("/talent/{talent_id}", response_model=TalentResponse)
-    async def get_talent(talent_id: str):
+    async def get_talent(talent_id: str, include_contact: bool = False):
+        """
+        Get talent details. Phone and email are hidden by default for privacy.
+        Admin dashboard should pass include_contact=true to see contact info.
+        """
         talent = await db.talents.find_one({"id": talent_id}, {"_id": 0})
         if not talent:
             raise HTTPException(status_code=404, detail="Talent not found")
         
+        # Hide contact info for public requests (privacy protection)
+        email_value = talent["email"] if include_contact else ""
+        phone_value = talent["phone"] if include_contact else ""
+        
         return TalentResponse(
-            id=talent["id"], name=talent["name"], email=talent["email"], phone=talent["phone"],
+            id=talent["id"], name=talent["name"], email=email_value, phone=phone_value,
             instagram_id=talent.get("instagram_id", ""), category=talent["category"],
             bio=talent.get("bio", ""), profile_image=talent.get("profile_image", ""),
             portfolio_images=talent.get("portfolio_images", []), portfolio_video=talent.get("portfolio_video", ""),

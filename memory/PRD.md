@@ -234,10 +234,23 @@ Build a comprehensive fashion talent platform for Bangalore Fashion Magazine (BF
 - **Admin Settings**: Payment toggle, fee configuration, history view
 - **Status**: REQUIRES USER API KEYS - Add `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` to `backend/.env`
 
+### August 2026 - Privacy: Contact Info Hidden from Public (COMPLETED)
+- **Backend Fix**: `/api/talent/{talent_id}` now accepts `include_contact=true` parameter
+  - Public requests: Phone and email return as empty strings
+  - Admin requests (with `include_contact=true`): Full contact info visible
+- **Frontend**: Admin Dashboard uses `include_contact=true` for Instagram Promo generator
+- **Result**: Talent phone/email no longer visible to public visitors (even in network requests)
+- **Admin Visibility**: Phone and email still visible in Admin Dashboard lists
+
 ### P2 (Medium Priority)
+- **Advanced SEO Routing**: Dynamic Helmet/SSR meta tags for individual talent profiles
 - Cafe/Sponsor ad page templates
 - Multi-talent magazine support
 - 520 Production Error - Platform infrastructure issue
+- **Code Refactoring**: Break down monolithic files:
+  - `App.js` (2,400+ lines) → Component directory structure
+  - `AdminDashboard.jsx` (3,000+ lines) → Modular tabs
+  - `MagazineBuilder.jsx` (4,600+ lines) → Editor components
 
 ### P3 (Future Enhancements)
 - Template preview thumbnails

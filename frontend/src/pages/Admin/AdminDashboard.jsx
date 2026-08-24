@@ -996,7 +996,7 @@ const AdminDashboard = () => {
                   if (talent) {
                     // Fetch full talent data with portfolio
                     try {
-                      const res = await axios.get(`${API}/talent/${talent.id}`);
+                      const res = await axios.get(`${API}/talent/${talent.id}?include_contact=true`);
                       setInstagramTalent(res.data);
                       // Check for existing designs
                       const designRes = await axios.get(`${API}/instagram/designs/${talent.id}`);
