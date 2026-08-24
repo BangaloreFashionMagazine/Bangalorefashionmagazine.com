@@ -3,7 +3,7 @@ import axios from "axios";
 import { Users, Star, Award, Image, Download, Check, X, Phone, Mail, Trash2, ExternalLink, Music, Video, Upload, BarChart3, TrendingUp, Eye, MousePointer, ShoppingBag, Package, MapPin, Calendar, BookOpen, Settings, IndianRupee, Layers } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ImageUploadWithCrop from "@/components/ImageUploadWithCrop";
-import { API, BFM_LOGO, TALENT_CATEGORIES, STORE_CATEGORIES } from "@/lib/config";
+import { API, BFM_LOGO, TALENT_CATEGORIES, STORE_CATEGORIES, CATEGORY_DB } from "@/lib/config";
 import { autoCompressImage } from "@/lib/imageOptimization";
 import { QRCodeSVG } from "qrcode.react";
 
@@ -459,7 +459,12 @@ const AdminDashboard = () => {
 
   const saveTalentEdit = async () => {
     try {
-      await axios.put(`${API}/talent/${selectedTalent.id}`, editData);
+      // Convert display category to database format before saving
+      const dataToSave = {
+        ...editData,
+        category: CATEGORY_DB[editData.category] || editData.category
+      };
+      await axios.put(`${API}/talent/${selectedTalent.id}`, dataToSave);
       toast({ title: "Talent updated!" });
       fetchAllTalents();
       setSelectedTalent(null);
