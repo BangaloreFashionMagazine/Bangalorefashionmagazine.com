@@ -33,7 +33,8 @@ def create_payments_router(db):
     def get_razorpay_client():
         key_id = os.environ.get('RAZORPAY_KEY_ID')
         key_secret = os.environ.get('RAZORPAY_KEY_SECRET')
-        if not key_id or not key_secret:
+        # Check for missing keys OR placeholder values
+        if not key_id or not key_secret or key_id.startswith('your_') or key_secret.startswith('your_'):
             return None
         return razorpay.Client(auth=(key_id, key_secret))
     
@@ -123,7 +124,10 @@ def create_payments_router(db):
     async def verify_payment(request: PaymentVerifyRequest):
         client = get_razorpay_client()
         if not client:
+            logger.error("Razorpay client not available for verification")
             raise HTTPException(status_code=500, detail="Razorpay not configured")
+        
+        logger.info(f"Verifying payment - Order: {request.razorpay_order_id}, Payment: {request.razorpay_payment_id}, Talent: {request.talent_id}")
         
         try:
             # Verify signature
@@ -133,10 +137,15 @@ def create_payments_router(db):
                 'razorpay_signature': request.razorpay_signature
             }
             
-            client.utility.verify_payment_signature(params_dict)
+            try:
+                client.utility.verify_payment_signature(params_dict)
+                logger.info("Payment signature verified successfully")
+            except razorpay.errors.SignatureVerificationError as sig_err:
+                logger.error(f"Signature verification failed: {sig_err}")
+                raise HTTPException(status_code=400, detail="Payment verification failed. Invalid signature.")
             
             # Update order status
-            await db.payment_orders.update_one(
+            update_result = await db.payment_orders.update_one(
                 {"razorpay_order_id": request.razorpay_order_id},
                 {"$set": {
                     "status": "paid",
@@ -145,27 +154,29 @@ def create_payments_router(db):
                     "paid_at": datetime.now(timezone.utc).isoformat()
                 }}
             )
+            logger.info(f"Payment order updated: {update_result.modified_count} records")
             
             # Update talent status to show payment completed (still pending admin approval)
-            await db.talents.update_one(
-                {"id": request.talent_id},
-                {"$set": {
-                    "payment_status": "paid",
-                    "payment_id": request.razorpay_payment_id,
-                    "payment_date": datetime.now(timezone.utc).isoformat()
-                }}
-            )
+            if request.talent_id:
+                talent_update = await db.talents.update_one(
+                    {"id": request.talent_id},
+                    {"$set": {
+                        "payment_status": "paid",
+                        "payment_id": request.razorpay_payment_id,
+                        "payment_date": datetime.now(timezone.utc).isoformat()
+                    }}
+                )
+                logger.info(f"Talent payment status updated: {talent_update.modified_count} records")
             
             return {
                 "status": "success",
                 "message": "Payment verified successfully. Your registration is pending admin approval."
             }
             
-        except razorpay.errors.SignatureVerificationError:
-            logger.error("Payment signature verification failed")
-            raise HTTPException(status_code=400, detail="Payment verification failed. Invalid signature.")
+        except HTTPException:
+            raise
         except Exception as e:
-            logger.error(f"Payment verification error: {e}")
+            logger.error(f"Payment verification error: {type(e).__name__}: {e}")
             raise HTTPException(status_code=500, detail=f"Payment verification failed: {str(e)}")
     
     # Get payment history (admin)

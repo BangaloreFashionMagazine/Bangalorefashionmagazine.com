@@ -1454,16 +1454,20 @@ const JoinPage = () => {
         handler: async function(response) {
           // Verify payment
           try {
-            await axios.post(`${API}/verify-payment`, {
+            console.log("Verifying payment:", response);
+            const verifyRes = await axios.post(`${API}/verify-payment`, {
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
               talent_id: talentIdParam
             });
+            console.log("Verification response:", verifyRes.data);
             setPaymentStep('success');
             toast({ title: "Payment Successful!", description: "Your registration is pending admin approval." });
           } catch (err) {
-            toast({ title: "Payment verification failed", description: "Please contact support", variant: "destructive" });
+            console.error("Payment verification error:", err.response?.data || err);
+            const errorMsg = err.response?.data?.detail || "Payment verification failed. Please contact support with your payment ID: " + response.razorpay_payment_id;
+            toast({ title: "Payment verification failed", description: errorMsg, variant: "destructive" });
           }
         },
         prefill: {
