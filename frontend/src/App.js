@@ -8,7 +8,7 @@ import 'swiper/css';
 import 'swiper/css/effect-fade';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
-import { ChevronLeft, ChevronRight, Users, Palette, Sparkles, Camera, Briefcase, Calendar, Mail, Lock, User, Shield, Award, Image, Download, Star, Check, X, Phone, Instagram, Trash2, Vote, ExternalLink, Volume2, VolumeX, Music, Video, Upload, BarChart3, TrendingUp, Eye, MousePointer, ShoppingBag, Package, MapPin, Send, Search, Share2, History } from "lucide-react";
+import { ChevronLeft, ChevronRight, Users, Palette, Sparkles, Camera, Briefcase, Calendar, Mail, Lock, User, Shield, Award, Image, Download, Star, Check, X, Phone, Instagram, Trash2, Vote, ExternalLink, Volume2, VolumeX, Music, Video, Upload, BarChart3, TrendingUp, Eye, MousePointer, ShoppingBag, Package, MapPin, Send, Search, Share2, History, Filter, ArrowUpDown } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
 import { Helmet, HelmetProvider } from "react-helmet-async";
@@ -21,6 +21,8 @@ import DesignerStorePageComponent from "@/pages/DesignerStorePage";
 import AdminDashboard from "@/pages/Admin/AdminDashboard";
 import TalentDashboard from "@/pages/TalentDashboard";
 import ResetPassword from "@/pages/ResetPassword";
+import { ShareLeaderboard } from "@/components/share";
+import { ShareBadgeSmall, ShareBadgeLarge, useShareLeaderboard } from "@/components/share";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -666,96 +668,8 @@ const ClickableAdImage = ({ ad, className = "", imgClassName = "" }) => {
   );
 };
 
-// Share Leaderboard Component
-const ShareLeaderboard = () => {
-  const [leaderboard, setLeaderboard] = useState([]);
-  const [loading, setLoading] = useState(true);
-  
-  useEffect(() => {
-    axios.get(`${API}/share-leaderboard`)
-      .then(res => {
-        setLeaderboard(res.data.leaderboard || []);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
-        setLoading(false);
-      });
-  }, []);
-  
-  if (loading) return null;
-  if (leaderboard.length === 0) return null;
-  
-  const getRankBadge = (rank) => {
-    if (rank === 1) return '🥇';
-    if (rank === 2) return '🥈';
-    if (rank === 3) return '🥉';
-    return `#${rank}`;
-  };
-  
-  return (
-    <div className="bg-gradient-to-r from-[#0A1628] to-[#050A14] py-8 border-y border-[#D4AF37]/20">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-[#F5F5F0] mb-2">
-            <span className="text-[#D4AF37]">🏆</span> Top Shared Talents
-          </h2>
-          <p className="text-[#A0A5B0] text-sm">Most active talents spreading the BFM word</p>
-        </div>
-        
-        <div className="flex flex-wrap justify-center gap-4 md:gap-6">
-          {leaderboard.slice(0, 5).map((talent, i) => (
-            <Link 
-              key={talent.talent_id}
-              to={`/talents/${encodeURIComponent(talent.category)}?talent=${talent.talent_id}&ref=share`}
-              className="group"
-            >
-              <div className="relative bg-[#050A14] rounded-xl p-4 border border-[#D4AF37]/20 hover:border-[#D4AF37]/50 transition-all w-36 md:w-44">
-                {/* Rank Badge */}
-                <div className="absolute -top-3 -left-3 w-8 h-8 bg-[#D4AF37] rounded-full flex items-center justify-center text-[#050A14] font-bold text-sm shadow-lg">
-                  {getRankBadge(i + 1)}
-                </div>
-                
-                {/* Profile Image */}
-                <div className="w-20 h-20 md:w-24 md:h-24 mx-auto rounded-full overflow-hidden border-2 border-[#D4AF37]/30 group-hover:border-[#D4AF37] transition-all mb-3">
-                  {talent.profile_image ? (
-                    <img src={talent.profile_image} alt={talent.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full bg-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37] text-2xl">
-                      {talent.name?.charAt(0) || '?'}
-                    </div>
-                  )}
-                </div>
-                
-                {/* Name */}
-                <p className="text-[#F5F5F0] font-medium text-sm text-center truncate">{talent.name}</p>
-                
-                {/* Stats */}
-                <div className="flex items-center justify-center gap-3 mt-2 text-xs">
-                  <span className="text-[#25D366] flex items-center gap-1">
-                    <Share2 size={12} /> {talent.total_shares}
-                  </span>
-                  <span className="text-[#D4AF37] flex items-center gap-1">
-                    <Star size={12} /> {talent.votes || 0}
-                  </span>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-        
-        {leaderboard.length > 5 && (
-          <div className="text-center mt-4">
-            <p className="text-[#A0A5B0] text-xs">And {leaderboard.length - 5} more top sharers!</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
 // Talent Detail Modal
-const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true }) => {
+const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true, leaderboard = [] }) => {
   const [voting, setVoting] = useState(false);
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
@@ -1088,6 +1002,10 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true }) => 
           {/* 3. Model Name */}
           <div className="text-center mb-6">
             <h2 className="font-serif text-2xl md:text-3xl font-bold text-[#F5F5F0]">{talent.name}</h2>
+            {/* Share Badge */}
+            <div className="mt-2">
+              <ShareBadgeLarge talentId={talent.id} leaderboard={leaderboard} />
+            </div>
             <div className="w-16 h-[1px] bg-[#D4AF37]/60 mx-auto mt-3"></div>
           </div>
           
@@ -1604,7 +1522,7 @@ const TalentCard = ({ talent, onVote, onClick }) => {
 };
 
 // Small Talent Card for category pages (7-10 per row)
-const TalentCardSmall = ({ talent, onVote, onClick }) => {
+const TalentCardSmall = ({ talent, onVote, onClick, leaderboard = [] }) => {
   const [voting, setVoting] = useState(false);
   const [imgError, setImgError] = useState(false);
   
@@ -1632,6 +1550,9 @@ const TalentCardSmall = ({ talent, onVote, onClick }) => {
       onClick={() => onClick(talent)}
       data-testid={`talent-card-small-${talent.id}`}
     >
+      {/* Share Badge */}
+      <ShareBadgeSmall talentId={talent.id} leaderboard={leaderboard} />
+      
       <div className="aspect-[3/4] w-full overflow-hidden relative">
         <img 
           src={getImageSrc()} 
@@ -1655,7 +1576,7 @@ const TalentCardSmall = ({ talent, onVote, onClick }) => {
   );
 };
 
-// Talents Page by Category (Public - No Search/Filter)
+// Talents Page by Category (Public - with Filters)
 const TalentsPage = ({ ads, shareEnabled = true }) => {
   const { category } = useParams();
   const [searchParams] = useSearchParams();
@@ -1663,7 +1584,11 @@ const TalentsPage = ({ ads, shareEnabled = true }) => {
   const [selectedTalent, setSelectedTalent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("recent"); // recent, votes, shares
+  const [filterCategory, setFilterCategory] = useState("all");
+  const [showFilters, setShowFilters] = useState(false);
   const { toast } = useToast();
+  const { leaderboard } = useShareLeaderboard();
   const decodedCategory = decodeURIComponent(category || "All Talents");
   
   // Handle special categories
@@ -1716,10 +1641,34 @@ const TalentsPage = ({ ads, shareEnabled = true }) => {
       });
   }, [dbCategory, isAllTalents, isFeatured]);
 
-  // Filter talents by search query
-  const filteredTalents = talents.filter(t => 
-    t.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Get share count for a talent from leaderboard
+  const getShareCount = (talentId) => {
+    const entry = leaderboard.find(t => t.talent_id === talentId);
+    return entry?.total_shares || 0;
+  };
+
+  // Filter and sort talents
+  const filteredAndSortedTalents = talents
+    .filter(t => {
+      // Search filter
+      const matchesSearch = t.name.toLowerCase().includes(searchQuery.toLowerCase());
+      // Category filter (only for All Talents page)
+      const matchesCategory = filterCategory === "all" || t.category === filterCategory;
+      return matchesSearch && matchesCategory;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "votes":
+          return (b.votes || 0) - (a.votes || 0);
+        case "shares":
+          return getShareCount(b.id) - getShareCount(a.id);
+        case "name":
+          return a.name.localeCompare(b.name);
+        case "recent":
+        default:
+          return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+      }
+    });
 
   const handleVote = async (talentId) => {
     try {
@@ -1729,6 +1678,9 @@ const TalentsPage = ({ ads, shareEnabled = true }) => {
       toast({ title: "Error", description: err.response?.data?.detail || "Failed to vote", variant: "destructive" });
     }
   };
+
+  // Get unique categories from talents for filter
+  const availableCategories = [...new Set(talents.map(t => t.category))].sort();
 
   // Grid classes
   const gridClass = hasAds 
@@ -1749,46 +1701,113 @@ const TalentsPage = ({ ads, shareEnabled = true }) => {
       <div className="container mx-auto px-3 sm:px-4">
         <div className="flex gap-4">
           <div className="flex-1 min-w-0">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-6">
-              <h1 className="font-serif text-xl sm:text-2xl font-bold text-[#F5F5F0]">
-                {isFeatured && <Star className="inline-block w-6 h-6 text-[#D4AF37] mr-2" />}
-                {decodedCategory}
-              </h1>
-              {/* Search Bar */}
-              <div className="relative w-full sm:w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0A5B0]" />
-                <input
-                  type="text"
-                  placeholder="Search by name..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0] text-sm placeholder-[#A0A5B0] focus:outline-none focus:border-[#D4AF37]/50"
-                />
-                {searchQuery && (
-                  <button 
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A0A5B0] hover:text-[#F5F5F0]"
+            {/* Header with title and controls */}
+            <div className="flex flex-col gap-3 mb-4 sm:mb-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <h1 className="font-serif text-xl sm:text-2xl font-bold text-[#F5F5F0]">
+                  {isFeatured && <Star className="inline-block w-6 h-6 text-[#D4AF37] mr-2" />}
+                  {decodedCategory}
+                </h1>
+                
+                {/* Search and Filter Toggle */}
+                <div className="flex items-center gap-2">
+                  {/* Search Bar */}
+                  <div className="relative flex-1 sm:w-48">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0A5B0]" />
+                    <input
+                      type="text"
+                      placeholder="Search..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-9 pr-4 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0] text-sm placeholder-[#A0A5B0] focus:outline-none focus:border-[#D4AF37]/50"
+                    />
+                    {searchQuery && (
+                      <button 
+                        onClick={() => setSearchQuery("")}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A0A5B0] hover:text-[#F5F5F0]"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                  
+                  {/* Filter Toggle Button */}
+                  <button
+                    onClick={() => setShowFilters(!showFilters)}
+                    className={`p-2 rounded-lg border transition-colors ${showFilters ? 'bg-[#D4AF37]/20 border-[#D4AF37]/50 text-[#D4AF37]' : 'bg-[#0A1628] border-[#D4AF37]/20 text-[#A0A5B0] hover:text-[#D4AF37]'}`}
+                    title="Toggle filters"
                   >
-                    <X className="w-4 h-4" />
+                    <Filter className="w-4 h-4" />
                   </button>
-                )}
+                </div>
               </div>
+              
+              {/* Expandable Filter Bar */}
+              {showFilters && (
+                <div className="flex flex-wrap items-center gap-2 p-3 bg-[#0A1628] rounded-lg border border-[#D4AF37]/20 animate-fadeIn">
+                  {/* Sort Dropdown */}
+                  <div className="flex items-center gap-2">
+                    <ArrowUpDown className="w-4 h-4 text-[#A0A5B0]" />
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value)}
+                      className="px-3 py-1.5 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-sm focus:outline-none focus:border-[#D4AF37]/50"
+                    >
+                      <option value="recent">Recent</option>
+                      <option value="votes">Most Voted</option>
+                      <option value="shares">Most Shared</option>
+                      <option value="name">Name A-Z</option>
+                    </select>
+                  </div>
+                  
+                  {/* Category Filter (only on All Talents page) */}
+                  {isAllTalents && availableCategories.length > 1 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-[#A0A5B0] text-sm">Category:</span>
+                      <select
+                        value={filterCategory}
+                        onChange={(e) => setFilterCategory(e.target.value)}
+                        className="px-3 py-1.5 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-sm focus:outline-none focus:border-[#D4AF37]/50"
+                      >
+                        <option value="all">All Categories</option>
+                        {availableCategories.map(cat => (
+                          <option key={cat} value={cat}>{getCategoryDisplay(cat)}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  
+                  {/* Clear Filters */}
+                  {(sortBy !== "recent" || filterCategory !== "all" || searchQuery) && (
+                    <button
+                      onClick={() => { setSortBy("recent"); setFilterCategory("all"); setSearchQuery(""); }}
+                      className="px-3 py-1.5 text-[#D4AF37] text-sm hover:underline"
+                    >
+                      Clear filters
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
-            {/* Results count when searching */}
-            {searchQuery && (
+            
+            {/* Results count */}
+            {(searchQuery || filterCategory !== "all" || sortBy !== "recent") && (
               <p className="text-[#A0A5B0] text-sm mb-3">
-                Found {filteredTalents.length} talent{filteredTalents.length !== 1 ? 's' : ''} matching "{searchQuery}"
+                Showing {filteredAndSortedTalents.length} talent{filteredAndSortedTalents.length !== 1 ? 's' : ''}
+                {searchQuery && ` matching "${searchQuery}"`}
+                {sortBy !== "recent" && ` sorted by ${sortBy}`}
               </p>
             )}
+            
             {loading ? (
               <p className="text-[#A0A5B0]">Loading...</p>
-            ) : filteredTalents.length === 0 ? (
+            ) : filteredAndSortedTalents.length === 0 ? (
               <p className="text-[#A0A5B0]">
                 {searchQuery ? `No talents found matching "${searchQuery}"` : "No approved talents in this category yet."}
               </p>
             ) : (
               <div className={gridClass}>
-                {filteredTalents.map(t => <TalentCardSmall key={t.id} talent={t} onVote={handleVote} onClick={setSelectedTalent} />)}
+                {filteredAndSortedTalents.map(t => <TalentCardSmall key={t.id} talent={t} onVote={handleVote} onClick={setSelectedTalent} leaderboard={leaderboard} />)}
               </div>
             )}
           </div>
@@ -1818,6 +1837,7 @@ const TalentsPage = ({ ads, shareEnabled = true }) => {
           onClose={() => setSelectedTalent(null)} 
           onVote={handleVote}
           shareEnabled={shareEnabled}
+          leaderboard={leaderboard}
         />
       )}
     </div>
@@ -2035,6 +2055,7 @@ const TalentProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const { toast } = useToast();
+  const { leaderboard } = useShareLeaderboard();
 
   useEffect(() => {
     const fetchTalent = async () => {
@@ -2088,6 +2109,7 @@ const TalentProfilePage = () => {
             talent={talent} 
             onClose={() => window.history.back()} 
             onVote={handleVote} 
+            leaderboard={leaderboard} 
           />
         )}
         {!talent && (
@@ -2612,6 +2634,7 @@ const MagazinePage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedTalent, setSelectedTalent] = useState(null);
   const { toast } = useToast();
+  const { leaderboard } = useShareLeaderboard();
   
   const sectionTitle = {
     'latest-issues': 'Latest Issues',
@@ -2719,7 +2742,7 @@ const MagazinePage = () => {
                 ) : (
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                     {spotlightTalents.map(t => (
-                      <TalentCardSmall key={t.id} talent={t} onVote={handleVote} onClick={setSelectedTalent} />
+                      <TalentCardSmall key={t.id} talent={t} onVote={handleVote} onClick={setSelectedTalent} leaderboard={leaderboard} />
                     ))}
                   </div>
                 )}
@@ -2769,6 +2792,7 @@ const MagazinePage = () => {
           talent={selectedTalent} 
           onClose={() => setSelectedTalent(null)} 
           onVote={handleVote} 
+          leaderboard={leaderboard}
         />
       )}
     </div>
