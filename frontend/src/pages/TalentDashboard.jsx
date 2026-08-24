@@ -1,10 +1,183 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { X, Video, Trash2 } from "lucide-react";
+import { X, Video, Trash2, Calendar, IndianRupee } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ImageUploadWithCrop from "@/components/ImageUploadWithCrop";
 import { API, TALENT_CATEGORIES, getCategoryDisplay, STORE_CATEGORIES } from "@/lib/config";
 import { autoCompressImage } from "@/lib/imageOptimization";
+
+// Events Section Component for Talents
+const EventsSection = ({ talent }) => {
+  const [events, setEvents] = useState([]);
+  const [myRegistrations, setMyRegistrations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [paying, setPaying] = useState(null);
+  const { toast } = useToast();
+  
+  useEffect(() => {
+    fetchEvents();
+    fetchMyRegistrations();
+  }, [talent?.id]);
+  
+  const fetchEvents = async () => {
+    try {
+      const res = await axios.get(`${API}/events?active_only=true`);
+      setEvents(res.data);
+    } catch (err) { console.error(err); }
+    setLoading(false);
+  };
+  
+  const fetchMyRegistrations = async () => {
+    if (!talent?.id) return;
+    try {
+      const res = await axios.get(`${API}/events/talent/${talent.id}`);
+      setMyRegistrations(res.data);
+    } catch (err) { console.error(err); }
+  };
+  
+  const isRegistered = (eventId) => {
+    return myRegistrations.some(r => r.event_id === eventId);
+  };
+  
+  const handlePayment = async (event) => {
+    setPaying(event.id);
+    try {
+      // Create order
+      const orderRes = await axios.post(`${API}/events/create-order`, {
+        event_id: event.id,
+        talent_id: talent.id,
+        talent_name: talent.name,
+        talent_email: talent.email,
+        talent_phone: talent.phone
+      });
+      
+      const { order_id, amount, key_id, event_title } = orderRes.data;
+      
+      // Open Razorpay checkout
+      const options = {
+        key: key_id,
+        amount: amount,
+        currency: "INR",
+        name: "Bangalore Fashion Magazine",
+        description: `Registration: ${event_title}`,
+        order_id: order_id,
+        handler: async function(response) {
+          // Verify payment
+          try {
+            await axios.post(`${API}/events/verify-payment`, {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              talent_id: talent.id
+            });
+            toast({ title: "Payment successful!", description: `You're registered for ${event_title}` });
+            fetchMyRegistrations();
+          } catch (err) {
+            toast({ title: "Payment verification failed", variant: "destructive" });
+          }
+        },
+        prefill: {
+          name: talent.name,
+          email: talent.email,
+          contact: talent.phone
+        },
+        theme: { color: "#D4AF37" }
+      };
+      
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      toast({ title: err.response?.data?.detail || "Failed to initiate payment", variant: "destructive" });
+    }
+    setPaying(null);
+  };
+  
+  if (loading) return <p className="text-[#A0A5B0]">Loading events...</p>;
+  
+  return (
+    <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20 mt-6">
+      <h2 className="text-xl font-bold text-[#F5F5F0] mb-4 flex items-center gap-2">
+        <Calendar size={20} className="text-[#D4AF37]" />
+        Events & Contests
+      </h2>
+      
+      {events.length === 0 ? (
+        <p className="text-[#A0A5B0]">No active events at the moment. Check back later!</p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {events.map(event => {
+            const registered = isRegistered(event.id);
+            const isFull = event.max_participants && (event.participants?.length || 0) >= event.max_participants;
+            
+            return (
+              <div key={event.id} className="bg-[#050A14] rounded-lg p-4 border border-[#D4AF37]/10">
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <h3 className="text-[#F5F5F0] font-bold">{event.title}</h3>
+                    <span className="text-xs px-2 py-0.5 bg-[#D4AF37]/20 text-[#D4AF37] rounded uppercase">{event.event_type}</span>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[#D4AF37] font-bold text-lg">₹{event.amount}</p>
+                    <p className="text-[#A0A5B0] text-xs">Entry Fee</p>
+                  </div>
+                </div>
+                
+                {event.description && (
+                  <p className="text-[#A0A5B0] text-sm mb-3">{event.description}</p>
+                )}
+                
+                <div className="flex items-center gap-4 text-xs text-[#A0A5B0] mb-3">
+                  {event.max_participants && (
+                    <span>{event.participants?.length || 0}/{event.max_participants} registered</span>
+                  )}
+                  {event.deadline && (
+                    <span>Deadline: {new Date(event.deadline).toLocaleDateString()}</span>
+                  )}
+                </div>
+                
+                {registered ? (
+                  <div className="px-4 py-2 bg-green-500/20 text-green-400 rounded text-center font-bold text-sm">
+                    ✓ Already Registered
+                  </div>
+                ) : isFull ? (
+                  <div className="px-4 py-2 bg-red-500/20 text-red-400 rounded text-center font-bold text-sm">
+                    Event Full
+                  </div>
+                ) : (
+                  <button 
+                    onClick={() => handlePayment(event)}
+                    disabled={paying === event.id}
+                    className="w-full px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold text-sm hover:bg-[#F5F5F0] transition-colors disabled:opacity-50"
+                  >
+                    {paying === event.id ? "Processing..." : `Pay ₹${event.amount} to Register`}
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+      
+      {/* My Registrations */}
+      {myRegistrations.length > 0 && (
+        <div className="mt-6 pt-4 border-t border-[#D4AF37]/20">
+          <h3 className="text-[#F5F5F0] font-bold mb-3">My Registrations</h3>
+          <div className="space-y-2">
+            {myRegistrations.map((reg, idx) => (
+              <div key={idx} className="flex items-center justify-between bg-[#050A14] rounded p-3">
+                <div>
+                  <p className="text-[#F5F5F0]">{reg.event_title}</p>
+                  <p className="text-[#A0A5B0] text-xs">Paid on {new Date(reg.paid_at).toLocaleDateString()}</p>
+                </div>
+                <span className="text-[#D4AF37] font-bold">₹{reg.amount}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 // Designer Products Section Component
 const DesignerProductsSection = ({ designerId, designerCategories = [] }) => {
@@ -482,6 +655,9 @@ const TalentDashboard = ({ talent, onUpdate }) => {
       {talent?.category === "Designer Store" && (
         <DesignerProductsSection designerId={talent.id} designerCategories={talent.store_subcategories || []} />
       )}
+      
+      {/* Events & Contests Section - For all talents */}
+      <EventsSection talent={talent} />
     </div>
   );
 };

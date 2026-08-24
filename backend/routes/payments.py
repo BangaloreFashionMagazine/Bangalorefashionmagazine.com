@@ -224,5 +224,223 @@ def create_payments_router(db):
         except Exception as e:
             logger.error(f"Webhook processing error: {e}")
             return {"status": "error", "message": str(e)}
+
+    # ============== CUSTOM EVENTS/CONTESTS PAYMENT SYSTEM ==============
+    
+    class EventCreate(BaseModel):
+        title: str
+        description: Optional[str] = ""
+        amount: int  # Amount in INR
+        event_type: str = "contest"  # contest, event, workshop, etc.
+        max_participants: Optional[int] = None
+        deadline: Optional[str] = None
+        is_active: bool = True
+
+    class EventPaymentRequest(BaseModel):
+        event_id: str
+        talent_id: str
+        talent_name: str
+        talent_email: str
+        talent_phone: str
+
+    # Create a new event/contest
+    @router.post("/events/create")
+    async def create_event(event: EventCreate):
+        event_data = {
+            "id": str(uuid.uuid4()),
+            "title": event.title,
+            "description": event.description,
+            "amount": event.amount,
+            "event_type": event.event_type,
+            "max_participants": event.max_participants,
+            "deadline": event.deadline,
+            "is_active": event.is_active,
+            "participants": [],
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.events.insert_one(event_data)
+        return {"message": "Event created successfully", "event": event_data}
+
+    # Get all events
+    @router.get("/events")
+    async def get_events(active_only: bool = True):
+        query = {"is_active": True} if active_only else {}
+        events = await db.events.find(query, {"_id": 0}).sort("created_at", -1).to_list(100)
+        return events
+
+    # Get single event
+    @router.get("/events/{event_id}")
+    async def get_event(event_id: str):
+        event = await db.events.find_one({"id": event_id}, {"_id": 0})
+        if not event:
+            raise HTTPException(status_code=404, detail="Event not found")
+        return event
+
+    # Update event
+    @router.put("/events/{event_id}")
+    async def update_event(event_id: str, event: EventCreate):
+        result = await db.events.update_one(
+            {"id": event_id},
+            {"$set": {
+                "title": event.title,
+                "description": event.description,
+                "amount": event.amount,
+                "event_type": event.event_type,
+                "max_participants": event.max_participants,
+                "deadline": event.deadline,
+                "is_active": event.is_active,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        if result.modified_count == 0:
+            raise HTTPException(status_code=404, detail="Event not found")
+        return {"message": "Event updated successfully"}
+
+    # Delete event
+    @router.delete("/events/{event_id}")
+    async def delete_event(event_id: str):
+        result = await db.events.delete_one({"id": event_id})
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Event not found")
+        return {"message": "Event deleted successfully"}
+
+    # Create payment order for event
+    @router.post("/events/create-order")
+    async def create_event_payment_order(request: EventPaymentRequest):
+        client = get_razorpay_client()
+        if not client:
+            raise HTTPException(status_code=400, detail="Razorpay not configured")
+        
+        # Get event details
+        event = await db.events.find_one({"id": request.event_id})
+        if not event:
+            raise HTTPException(status_code=404, detail="Event not found")
+        
+        if not event.get("is_active"):
+            raise HTTPException(status_code=400, detail="Event is no longer active")
+        
+        # Check if talent already registered
+        if request.talent_id in event.get("participants", []):
+            raise HTTPException(status_code=400, detail="Already registered for this event")
+        
+        # Check max participants
+        if event.get("max_participants"):
+            if len(event.get("participants", [])) >= event["max_participants"]:
+                raise HTTPException(status_code=400, detail="Event is full")
+        
+        amount_paise = event["amount"] * 100
+        
+        try:
+            order = client.order.create({
+                "amount": amount_paise,
+                "currency": "INR",
+                "receipt": f"event_{request.event_id}_{request.talent_id}",
+                "notes": {
+                    "event_id": request.event_id,
+                    "event_title": event["title"],
+                    "talent_id": request.talent_id,
+                    "talent_name": request.talent_name,
+                    "payment_type": "event"
+                }
+            })
+            
+            # Store order details
+            await db.event_payments.insert_one({
+                "id": str(uuid.uuid4()),
+                "event_id": request.event_id,
+                "event_title": event["title"],
+                "razorpay_order_id": order["id"],
+                "talent_id": request.talent_id,
+                "talent_name": request.talent_name,
+                "talent_email": request.talent_email,
+                "talent_phone": request.talent_phone,
+                "amount": event["amount"],
+                "status": "created",
+                "created_at": datetime.now(timezone.utc).isoformat()
+            })
+            
+            return {
+                "order_id": order["id"],
+                "amount": amount_paise,
+                "currency": "INR",
+                "key_id": os.environ.get('RAZORPAY_KEY_ID'),
+                "event_title": event["title"]
+            }
+            
+        except Exception as e:
+            logger.error(f"Event payment order creation failed: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+
+    # Verify event payment
+    @router.post("/events/verify-payment")
+    async def verify_event_payment(request: PaymentVerifyRequest):
+        client = get_razorpay_client()
+        if not client:
+            raise HTTPException(status_code=400, detail="Razorpay not configured")
+        
+        try:
+            # Verify signature
+            client.utility.verify_payment_signature({
+                'razorpay_order_id': request.razorpay_order_id,
+                'razorpay_payment_id': request.razorpay_payment_id,
+                'razorpay_signature': request.razorpay_signature
+            })
+            
+            # Get order details
+            order = await db.event_payments.find_one({"razorpay_order_id": request.razorpay_order_id})
+            if not order:
+                raise HTTPException(status_code=404, detail="Order not found")
+            
+            # Update payment status
+            await db.event_payments.update_one(
+                {"razorpay_order_id": request.razorpay_order_id},
+                {"$set": {
+                    "status": "paid",
+                    "razorpay_payment_id": request.razorpay_payment_id,
+                    "paid_at": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+            
+            # Add talent to event participants
+            await db.events.update_one(
+                {"id": order["event_id"]},
+                {"$addToSet": {"participants": request.talent_id}}
+            )
+            
+            return {"status": "success", "message": "Payment verified and registration complete"}
+            
+        except razorpay.errors.SignatureVerificationError:
+            await db.event_payments.update_one(
+                {"razorpay_order_id": request.razorpay_order_id},
+                {"$set": {"status": "verification_failed"}}
+            )
+            raise HTTPException(status_code=400, detail="Payment verification failed")
+
+    # Get event participants
+    @router.get("/events/{event_id}/participants")
+    async def get_event_participants(event_id: str):
+        payments = await db.event_payments.find(
+            {"event_id": event_id, "status": "paid"},
+            {"_id": 0}
+        ).sort("paid_at", -1).to_list(500)
+        return payments
+
+    # Get all event payments (admin)
+    @router.get("/events/payments/all")
+    async def get_all_event_payments():
+        payments = await db.event_payments.find(
+            {},
+            {"_id": 0}
+        ).sort("created_at", -1).to_list(500)
+        return payments
+
+    # Get talent's event registrations
+    @router.get("/events/talent/{talent_id}")
+    async def get_talent_events(talent_id: str):
+        payments = await db.event_payments.find(
+            {"talent_id": talent_id, "status": "paid"},
+            {"_id": 0}
+        ).to_list(100)
+        return payments
     
     return router

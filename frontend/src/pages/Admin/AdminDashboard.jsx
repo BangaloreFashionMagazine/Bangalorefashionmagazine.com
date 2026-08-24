@@ -59,6 +59,12 @@ const AdminDashboard = () => {
   const [newProduct, setNewProduct] = useState({ name: "", description: "", store_category: "Everyday Chic", size: "", material: "", price: "", discount_percent: "", shipping_info: "", images: [], video: "", designer_id: "" });
   const [editingProduct, setEditingProduct] = useState(null);
   
+  // Events & Custom Payments state
+  const [events, setEvents] = useState([]);
+  const [eventPayments, setEventPayments] = useState([]);
+  const [newEvent, setNewEvent] = useState({ title: "", description: "", amount: 500, event_type: "contest", max_participants: null, deadline: "", is_active: true });
+  const [editingEvent, setEditingEvent] = useState(null);
+  
   // Instagram Promo state
   const [instagramTalent, setInstagramTalent] = useState(null);
   const [imageAnalyses, setImageAnalyses] = useState([]);
@@ -163,6 +169,55 @@ const AdminDashboard = () => {
     setLoading(false);
   };
 
+  // Fetch Events & Payments
+  const fetchEvents = async () => {
+    try {
+      const res = await axios.get(`${API}/events?active_only=false`);
+      setEvents(res.data);
+    } catch (err) { console.error(err); }
+  };
+  
+  const fetchEventPayments = async () => {
+    try {
+      const res = await axios.get(`${API}/events/payments/all`);
+      setEventPayments(res.data);
+    } catch (err) { console.error(err); }
+  };
+  
+  const createEvent = async () => {
+    try {
+      await axios.post(`${API}/events/create`, newEvent);
+      toast({ title: "Event created successfully!" });
+      setNewEvent({ title: "", description: "", amount: 500, event_type: "contest", max_participants: null, deadline: "", is_active: true });
+      fetchEvents();
+    } catch (err) {
+      toast({ title: "Failed to create event", variant: "destructive" });
+    }
+  };
+  
+  const updateEvent = async () => {
+    if (!editingEvent) return;
+    try {
+      await axios.put(`${API}/events/${editingEvent.id}`, editingEvent);
+      toast({ title: "Event updated!" });
+      setEditingEvent(null);
+      fetchEvents();
+    } catch (err) {
+      toast({ title: "Failed to update event", variant: "destructive" });
+    }
+  };
+  
+  const deleteEvent = async (eventId) => {
+    if (!confirm("Delete this event?")) return;
+    try {
+      await axios.delete(`${API}/events/${eventId}`);
+      toast({ title: "Event deleted!" });
+      fetchEvents();
+    } catch (err) {
+      toast({ title: "Failed to delete event", variant: "destructive" });
+    }
+  };
+
   const fetchPartyEvents = async () => {
     setLoading(true);
     try {
@@ -237,6 +292,7 @@ const AdminDashboard = () => {
       case 'store': await fetchStoreOrders(); await fetchStoreProducts(); await fetchStoreSettings(); break;
       case 'export': await fetchStoreOrders(); break;
       case 'instagram': await fetchAllTalents(); break;  // Always fetch fresh talent data
+      case 'events': await fetchEvents(); await fetchEventPayments(); break;
       case 'settings': await fetchPaymentSettings(); await fetchPaymentHistory(); break;
       default: break;
     }
@@ -636,6 +692,7 @@ const AdminDashboard = () => {
     { id: "magazine-builder", label: "Magazine Builder", icon: BookOpen },
     { id: "instagram", label: "Instagram Promo", icon: Image },
     { id: "analytics", label: "Analytics", icon: BarChart3 },
+    { id: "events", label: "Events & Payments", icon: IndianRupee },
     { id: "hero", label: "Hero Images (Legacy)", icon: Image },
     { id: "party", label: "Party Updates", icon: Calendar },
     { id: "video", label: "Featured Video", icon: Video },
@@ -1464,6 +1521,235 @@ const AdminDashboard = () => {
                 )}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Events & Custom Payments Tab */}
+        {tab === "events" && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-[#F5F5F0]">Events & Custom Payments</h2>
+            </div>
+            
+            {/* Create New Event */}
+            <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20">
+              <h3 className="text-lg font-bold text-[#F5F5F0] mb-4">
+                {editingEvent ? "Edit Event" : "Create New Event / Contest"}
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[#A0A5B0] text-sm mb-1 block">Event Title *</label>
+                  <input
+                    type="text"
+                    placeholder="e.g., BFM Model Contest 2024"
+                    value={editingEvent ? editingEvent.title : newEvent.title}
+                    onChange={(e) => editingEvent 
+                      ? setEditingEvent({...editingEvent, title: e.target.value})
+                      : setNewEvent({...newEvent, title: e.target.value})}
+                    className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]"
+                  />
+                </div>
+                <div>
+                  <label className="text-[#A0A5B0] text-sm mb-1 block">Entry Fee (₹) *</label>
+                  <input
+                    type="number"
+                    placeholder="500"
+                    value={editingEvent ? editingEvent.amount : newEvent.amount}
+                    onChange={(e) => editingEvent 
+                      ? setEditingEvent({...editingEvent, amount: parseInt(e.target.value) || 0})
+                      : setNewEvent({...newEvent, amount: parseInt(e.target.value) || 0})}
+                    className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]"
+                  />
+                </div>
+                <div>
+                  <label className="text-[#A0A5B0] text-sm mb-1 block">Event Type</label>
+                  <select
+                    value={editingEvent ? editingEvent.event_type : newEvent.event_type}
+                    onChange={(e) => editingEvent 
+                      ? setEditingEvent({...editingEvent, event_type: e.target.value})
+                      : setNewEvent({...newEvent, event_type: e.target.value})}
+                    className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]"
+                  >
+                    <option value="contest">Contest</option>
+                    <option value="event">Event</option>
+                    <option value="workshop">Workshop</option>
+                    <option value="photoshoot">Photoshoot</option>
+                    <option value="audition">Audition</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[#A0A5B0] text-sm mb-1 block">Max Participants (optional)</label>
+                  <input
+                    type="number"
+                    placeholder="Leave empty for unlimited"
+                    value={editingEvent ? (editingEvent.max_participants || "") : (newEvent.max_participants || "")}
+                    onChange={(e) => editingEvent 
+                      ? setEditingEvent({...editingEvent, max_participants: e.target.value ? parseInt(e.target.value) : null})
+                      : setNewEvent({...newEvent, max_participants: e.target.value ? parseInt(e.target.value) : null})}
+                    className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]"
+                  />
+                </div>
+                <div>
+                  <label className="text-[#A0A5B0] text-sm mb-1 block">Deadline (optional)</label>
+                  <input
+                    type="date"
+                    value={editingEvent ? (editingEvent.deadline || "") : (newEvent.deadline || "")}
+                    onChange={(e) => editingEvent 
+                      ? setEditingEvent({...editingEvent, deadline: e.target.value})
+                      : setNewEvent({...newEvent, deadline: e.target.value})}
+                    className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]"
+                  />
+                </div>
+                <div className="flex items-center gap-3">
+                  <label className="text-[#A0A5B0] text-sm">Active</label>
+                  <button
+                    onClick={() => editingEvent 
+                      ? setEditingEvent({...editingEvent, is_active: !editingEvent.is_active})
+                      : setNewEvent({...newEvent, is_active: !newEvent.is_active})}
+                    className={`w-12 h-6 rounded-full transition-colors ${
+                      (editingEvent ? editingEvent.is_active : newEvent.is_active) 
+                        ? "bg-green-500" : "bg-[#050A14] border border-[#D4AF37]/30"
+                    }`}
+                  >
+                    <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                      (editingEvent ? editingEvent.is_active : newEvent.is_active) ? "translate-x-6" : "translate-x-0.5"
+                    }`} />
+                  </button>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-[#A0A5B0] text-sm mb-1 block">Description</label>
+                  <textarea
+                    placeholder="Describe the event, rules, prizes, etc."
+                    value={editingEvent ? editingEvent.description : newEvent.description}
+                    onChange={(e) => editingEvent 
+                      ? setEditingEvent({...editingEvent, description: e.target.value})
+                      : setNewEvent({...newEvent, description: e.target.value})}
+                    rows={3}
+                    className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] resize-none"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-3 mt-4">
+                {editingEvent ? (
+                  <>
+                    <button onClick={updateEvent} className="px-6 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold">
+                      Update Event
+                    </button>
+                    <button onClick={() => setEditingEvent(null)} className="px-6 py-2 bg-[#050A14] border border-[#D4AF37]/30 text-[#A0A5B0] rounded">
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <button onClick={createEvent} disabled={!newEvent.title || !newEvent.amount} className="px-6 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold disabled:opacity-50">
+                    Create Event
+                  </button>
+                )}
+              </div>
+            </div>
+            
+            {/* Active Events List */}
+            <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20">
+              <h3 className="text-lg font-bold text-[#F5F5F0] mb-4">All Events ({events.length})</h3>
+              {events.length === 0 ? (
+                <p className="text-[#A0A5B0]">No events created yet. Create your first event above!</p>
+              ) : (
+                <div className="space-y-3">
+                  {events.map(event => (
+                    <div key={event.id} className="bg-[#050A14] rounded-lg p-4 flex flex-col md:flex-row md:items-center gap-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h4 className="text-[#F5F5F0] font-bold">{event.title}</h4>
+                          <span className={`text-xs px-2 py-0.5 rounded ${event.is_active ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}>
+                            {event.is_active ? "Active" : "Inactive"}
+                          </span>
+                          <span className="text-xs px-2 py-0.5 bg-[#D4AF37]/20 text-[#D4AF37] rounded uppercase">
+                            {event.event_type}
+                          </span>
+                        </div>
+                        <p className="text-[#A0A5B0] text-sm mt-1">{event.description || "No description"}</p>
+                        <div className="flex items-center gap-4 mt-2 text-sm">
+                          <span className="text-[#D4AF37] font-bold">₹{event.amount}</span>
+                          <span className="text-[#A0A5B0]">{event.participants?.length || 0} registered</span>
+                          {event.max_participants && (
+                            <span className="text-[#A0A5B0]">Max: {event.max_participants}</span>
+                          )}
+                          {event.deadline && (
+                            <span className="text-[#A0A5B0]">Deadline: {new Date(event.deadline).toLocaleDateString()}</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button 
+                          onClick={() => setEditingEvent(event)}
+                          className="px-3 py-1 bg-[#0A1628] border border-[#D4AF37]/30 text-[#D4AF37] rounded text-sm"
+                        >
+                          Edit
+                        </button>
+                        <button 
+                          onClick={() => deleteEvent(event.id)}
+                          className="px-3 py-1 bg-red-500/20 text-red-500 rounded text-sm"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            {/* Payment History */}
+            <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20">
+              <h3 className="text-lg font-bold text-[#F5F5F0] mb-4">Event Payment History ({eventPayments.length})</h3>
+              {eventPayments.length === 0 ? (
+                <p className="text-[#A0A5B0]">No event payments yet.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-[#D4AF37]/20">
+                        <th className="text-left py-2 text-[#A0A5B0]">Event</th>
+                        <th className="text-left py-2 text-[#A0A5B0]">Talent</th>
+                        <th className="text-left py-2 text-[#A0A5B0]">Amount</th>
+                        <th className="text-left py-2 text-[#A0A5B0]">Status</th>
+                        <th className="text-left py-2 text-[#A0A5B0]">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {eventPayments.map((payment, idx) => (
+                        <tr key={idx} className="border-b border-[#D4AF37]/10">
+                          <td className="py-2 text-[#F5F5F0]">{payment.event_title}</td>
+                          <td className="py-2 text-[#F5F5F0]">{payment.talent_name}</td>
+                          <td className="py-2 text-[#D4AF37]">₹{payment.amount}</td>
+                          <td className="py-2">
+                            <span className={`px-2 py-0.5 rounded text-xs ${
+                              payment.status === 'paid' ? 'bg-green-500/20 text-green-400' : 
+                              payment.status === 'created' ? 'bg-yellow-500/20 text-yellow-400' : 
+                              'bg-red-500/20 text-red-400'
+                            }`}>
+                              {payment.status}
+                            </span>
+                          </td>
+                          <td className="py-2 text-[#A0A5B0]">{new Date(payment.created_at).toLocaleDateString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+            
+            {/* Info Box */}
+            <div className="bg-[#050A14] rounded-lg p-4 border border-[#D4AF37]/30">
+              <h4 className="text-[#D4AF37] font-bold mb-2">How it works:</h4>
+              <ul className="text-[#A0A5B0] text-sm space-y-1">
+                <li>• Create events/contests with custom entry fees</li>
+                <li>• Talents can view and pay for events from their dashboard</li>
+                <li>• Payments are processed via Razorpay (same as registration)</li>
+                <li>• Track all registrations and payments here</li>
+              </ul>
+            </div>
           </div>
         )}
 
