@@ -8,7 +8,7 @@ import 'swiper/css';
 import 'swiper/css/effect-fade';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
-import { ChevronLeft, ChevronRight, Users, Palette, Sparkles, Camera, Briefcase, Calendar, Mail, Lock, User, Shield, Award, Image, Download, Star, Check, X, Phone, Instagram, Trash2, Vote, ExternalLink, Volume2, VolumeX, Music, Video, Upload, BarChart3, TrendingUp, Eye, MousePointer, ShoppingBag, Package, MapPin, Send, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Users, Palette, Sparkles, Camera, Briefcase, Calendar, Mail, Lock, User, Shield, Award, Image, Download, Star, Check, X, Phone, Instagram, Trash2, Vote, ExternalLink, Volume2, VolumeX, Music, Video, Upload, BarChart3, TrendingUp, Eye, MousePointer, ShoppingBag, Package, MapPin, Send, Search, Share2 } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
 import ImageUploadWithCrop from "@/components/ImageUploadWithCrop";
@@ -671,6 +671,8 @@ const TalentDetailModal = ({ talent, onClose, onVote }) => {
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [fullTalent, setFullTalent] = useState(talent);
   const [loading, setLoading] = useState(true);
+  const [sharing, setSharing] = useState(false);
+  const { toast } = useToast();
   
   // Fetch full talent data including portfolio images
   useEffect(() => {
@@ -694,6 +696,58 @@ const TalentDetailModal = ({ talent, onClose, onVote }) => {
     setVoting(true);
     await onVote(talent.id);
     setVoting(false);
+  };
+
+  // Share image function - uses Web Share API on mobile, download on desktop
+  const handleShareImage = async () => {
+    setSharing(true);
+    try {
+      const imageUrl = fullTalent.profile_image || talent.profile_image;
+      if (!imageUrl) {
+        toast({ title: "No image to share", variant: "destructive" });
+        setSharing(false);
+        return;
+      }
+
+      // Fetch the image and convert to blob
+      let blob;
+      if (imageUrl.startsWith('data:')) {
+        // Base64 image
+        const response = await fetch(imageUrl);
+        blob = await response.blob();
+      } else {
+        // URL image
+        const response = await fetch(imageUrl);
+        blob = await response.blob();
+      }
+
+      const file = new File([blob], `${talent.name.replace(/\s+/g, '_')}_BFM.jpg`, { type: 'image/jpeg' });
+
+      // Check if Web Share API is available and supports files
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: `${talent.name} - BFM Magazine`
+        });
+        toast({ title: "Shared successfully!" });
+      } else {
+        // Fallback: Download the image
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${talent.name.replace(/\s+/g, '_')}_BFM.jpg`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast({ title: "Image downloaded!", description: "Share it manually to WhatsApp" });
+      }
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        toast({ title: "Could not share", description: "Try downloading instead", variant: "destructive" });
+      }
+    }
+    setSharing(false);
   };
 
   // Combine profile image with portfolio for gallery display
@@ -782,7 +836,7 @@ const TalentDetailModal = ({ talent, onClose, onVote }) => {
             </div>
           )}
           
-          {/* 5. Voting Section - At the END below all images */}
+          {/* 5. Voting & Share Section - At the END below all images */}
           <div className="flex items-center justify-center gap-4 pt-6 border-t border-[#D4AF37]/20">
             <span className="text-[#F5F5F0]"><strong className="text-[#D4AF37] text-2xl">{talent.votes || 0}</strong> votes</span>
             <button 
@@ -792,6 +846,15 @@ const TalentDetailModal = ({ talent, onClose, onVote }) => {
             >
               <Vote size={18} />
               {voting ? "Voting..." : "Vote"}
+            </button>
+            <button 
+              onClick={handleShareImage} 
+              disabled={sharing}
+              className="px-4 py-2 bg-[#25D366] text-white rounded-lg font-bold hover:bg-[#128C7E] disabled:opacity-50 flex items-center gap-2"
+              title="Share to WhatsApp"
+            >
+              <Share2 size={18} />
+              {sharing ? "..." : "Share"}
             </button>
           </div>
         </div>
