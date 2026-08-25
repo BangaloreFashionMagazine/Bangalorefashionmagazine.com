@@ -1177,10 +1177,10 @@ const AdminDashboard = () => {
                                 className="w-full h-full object-cover"
                                 style={{ objectPosition: 'center 25%' }}
                               />
-                              {/* Overlay - All details at bottom */}
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent">
-                                {/* All content at bottom */}
-                                <div className="absolute bottom-4 left-4 right-4">
+                              {/* NO tint overlay - only gradient on text area at bottom */}
+                              <div className="absolute inset-0">
+                                {/* Text area at bottom only - minimal overlay */}
+                                <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 via-black/40 to-transparent" style={{height: '45%'}}>
                                   {/* BFM Logo & Branding */}
                                   <div className="flex items-center gap-2 mb-2">
                                     <img src={BFM_LOGO} alt="BFM" className="w-10 h-10 rounded-full object-cover border border-[#D4AF37]" />
@@ -1225,16 +1225,18 @@ const AdminDashboard = () => {
                               onClick={() => {
                                 const el = document.getElementById(`feed-design-${idx}`);
                                 import('html2canvas').then(({ default: html2canvas }) => {
-                                  // Export at exact Instagram dimensions: 1080x1350
+                                  // Export at exact Instagram dimensions: 1080x1350 with HIGH QUALITY
                                   html2canvas(el, { 
-                                    scale: 1080 / el.offsetWidth, 
+                                    scale: 3, // Higher scale for better quality
                                     useCORS: true,
+                                    allowTaint: true,
                                     width: el.offsetWidth,
-                                    height: el.offsetHeight
+                                    height: el.offsetHeight,
+                                    backgroundColor: null
                                   }).then(canvas => {
                                     const link = document.createElement('a');
                                     link.download = `BFM_${instagramTalent.name.replace(/\s+/g, '_')}_Feed_${idx + 1}.png`;
-                                    link.href = canvas.toDataURL('image/png');
+                                    link.href = canvas.toDataURL('image/png', 1.0); // Full quality PNG
                                     link.click();
                                   });
                                 });
@@ -1275,10 +1277,10 @@ const AdminDashboard = () => {
                                 className="w-full h-full object-cover"
                                 style={{ objectPosition: 'center top' }}
                               />
-                              {/* Story Overlay - gradient from bottom only */}
-                              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.8) 35%, rgba(0,0,0,0.3) 50%, transparent 70%)' }}>
-                                {/* ALL content at VERY bottom */}
-                                <div className="absolute bottom-2 left-2 right-2 text-center">
+                              {/* Story Overlay - NO tint, only bottom text area */}
+                              <div className="absolute inset-0">
+                                {/* Text area at bottom only */}
+                                <div className="absolute bottom-0 left-0 right-0 text-center p-2 bg-gradient-to-t from-black/80 via-black/50 to-transparent" style={{height: '40%'}}>
                                   {/* BFM Logo */}
                                   <img src={BFM_LOGO} alt="BFM" className="w-6 h-6 mx-auto rounded-full border border-[#D4AF37] mb-0.5" />
                                   <div className="text-[#D4AF37] text-[6px] font-bold tracking-wider">BANGALORE FASHION MAGAZINE</div>
@@ -1317,16 +1319,18 @@ const AdminDashboard = () => {
                               onClick={() => {
                                 const el = document.getElementById(`story-design-${idx}`);
                                 import('html2canvas').then(({ default: html2canvas }) => {
-                                  // Export at exact Instagram Story dimensions: 1080x1920
+                                  // Export at HIGH QUALITY
                                   html2canvas(el, { 
-                                    scale: 1080 / el.offsetWidth, 
+                                    scale: 5, // Higher scale for story format
                                     useCORS: true,
+                                    allowTaint: true,
                                     width: el.offsetWidth,
-                                    height: el.offsetHeight
+                                    height: el.offsetHeight,
+                                    backgroundColor: null
                                   }).then(canvas => {
                                     const link = document.createElement('a');
                                     link.download = `BFM_${instagramTalent.name.replace(/\s+/g, '_')}_Story_${idx + 1}.png`;
-                                    link.href = canvas.toDataURL('image/png');
+                                    link.href = canvas.toDataURL('image/png', 1.0); // Full quality PNG
                                     link.click();
                                   });
                                 });

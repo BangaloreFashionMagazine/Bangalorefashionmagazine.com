@@ -3,7 +3,7 @@ import axios from "axios";
 import { 
   Image, Plus, Trash2, Move, Eye, EyeOff, Settings, 
   ChevronUp, ChevronDown, Check, X, User, Crosshair,
-  Monitor, Smartphone, Play, Pause, ArrowLeft, ArrowRight
+  Monitor, Smartphone, Play, Pause, ArrowLeft, ArrowRight, Search
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { API, BFM_LOGO } from "@/lib/config";
@@ -38,6 +38,7 @@ const HeroManagement = () => {
   const [editingSlide, setEditingSlide] = useState(null);
   const [previewMode, setPreviewMode] = useState("desktop"); // desktop or mobile
   const [savingSettings, setSavingSettings] = useState(false);
+  const [talentSearchQuery, setTalentSearchQuery] = useState(""); // Search for talents
 
   // Fetch data
   const fetchSlides = async () => {
@@ -327,8 +328,31 @@ const HeroManagement = () => {
           Enable talents to appear in the hero and select which of their portfolio images can be used.
         </p>
         
+        {/* Search Bar */}
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0A5B0]" />
+          <input
+            type="text"
+            placeholder="Search talents by name..."
+            value={talentSearchQuery}
+            onChange={(e) => setTalentSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0] text-sm placeholder-[#A0A5B0] focus:outline-none focus:border-[#D4AF37]/50"
+          />
+          {talentSearchQuery && (
+            <button 
+              onClick={() => setTalentSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A0A5B0] hover:text-[#F5F5F0]"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+        
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 max-h-64 overflow-y-auto">
-          {allTalents.filter(t => t.is_approved).map(talent => (
+          {allTalents
+            .filter(t => t.is_approved)
+            .filter(t => !talentSearchQuery || t.name.toLowerCase().includes(talentSearchQuery.toLowerCase()))
+            .map(talent => (
             <div 
               key={talent.id}
               onClick={() => openTalentConfig(talent)}
