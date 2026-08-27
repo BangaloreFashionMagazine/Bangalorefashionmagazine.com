@@ -1,0 +1,47 @@
+[
+  {
+    "_id": "69a012d23a0fff8e4d4ebb97",
+    "id": "51752259-e898-46ca-99b1-383d66056d02",
+    "product_id": "e9b8f499-dbbc-4d49-b342-1d05b67436c1",
+    "reviewer_name": "Happy Customer",
+    "rating": 5,
+    "comment": "Excellent product! Highly recommended.",
+    "created_at": "2026-02-26T09:30:58.214620+00:00"
+  },
+  {
+    "_id": "69a012d23a0fff8e4d4ebb99",
+    "id": "3945ad57-7204-485e-a87b-0a9a66bb8e90",
+    "product_id": "6b7623dc-577f-41ca-b943-9412b92f6752",
+    "reviewer_name": "Another Customer",
+    "rating": 4,
+    "comment": "Good quality, fast delivery",
+    "created_at": "2026-02-26T09:30:58.687152+00:00"
+  },
+  {
+    "_id": "69a013e43a0fff8e4d4ebbb2",
+    "id": "f9b62c30-9095-417b-8d85-c82a583df2d9",
+    "product_id": "cd446973-43bc-4573-bad5-ab9ae722a071",
+    "reviewer_name": "Happy Reviewer",
+    "rating": 2,
+    "comment": "Great product! Beautiful design and excellent quality.",
+    "created_at": "2026-02-26T09:35:32.062276+00:00"
+  },
+  {
+    "_id": "69a04044b8eb8b2bdc3070cb",
+    "id": "45313e80-838f-4530-a912-38b6f40e3312",
+    "product_id": "512d84db-bf5c-41c8-8952-d4939457cef7",
+    "reviewer_name": "Happy Customer",
+    "rating": 5,
+    "comment": "Excellent product! Highly recommended.",
+    "created_at": "2026-02-26T12:44:52.739973+00:00"
+  },
+  {
+    "_id": "69a04045b8eb8b2bdc3070cd",
+    "id": "25d0e22b-240a-4528-8c65-7b3533c18201",
+    "product_id": "dbf65d6c-e867-4f1b-bafc-aa7aa9872144",
+    "reviewer_name": "Another Customer",
+    "rating": 4,
+    "comment": "Good quality, fast delivery",
+    "created_at": "2026-02-26T12:44:53.186532+00:00"
+  }
+]

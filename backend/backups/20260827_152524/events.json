@@ -1,0 +1,15 @@
+[
+  {
+    "_id": "6a8c189caf1a13d4c70ba439",
+    "id": "bc53484a-e2b3-4667-bac7-b635eccedaa3",
+    "title": "BFM Model Contest 2024",
+    "description": "Grand modeling contest with exciting prizes!",
+    "amount": 1000,
+    "event_type": "contest",
+    "max_participants": null,
+    "deadline": "",
+    "is_active": true,
+    "participants": [],
+    "created_at": "2026-08-24T10:10:36.088482+00:00"
+  }
+]

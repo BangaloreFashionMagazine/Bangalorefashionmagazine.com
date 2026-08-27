@@ -1,0 +1,9 @@
+[
+  {
+    "_id": "6a8c1930b5aaa9138236a1d2",
+    "type": "payment_settings",
+    "payment_enabled": true,
+    "registration_fee": 499,
+    "updated_at": "2026-08-24T10:14:32.706952+00:00"
+  }
+]

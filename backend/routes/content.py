@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime, timezone
 import uuid
 
@@ -9,6 +9,7 @@ from models import (
     VoteCreate,
     PartyEventCreate, PartyEventUpdate
 )
+from dependencies.auth import get_current_admin
 
 import logging
 logger = logging.getLogger(__name__)
@@ -16,7 +17,8 @@ logger = logging.getLogger(__name__)
 
 def create_content_routes(db):
     router = APIRouter()
-    
+    admin_router = APIRouter()
+
     # ============== Hero Images ==============
     @router.get("/hero-images")
     async def get_hero_images():
@@ -24,7 +26,7 @@ def create_content_routes(db):
         return images
 
 
-    @router.post("/admin/hero-images")
+    @admin_router.post("/admin/hero-images")
     async def create_hero_image(data: HeroImageCreate):
         image_id = str(uuid.uuid4())
         doc = {
@@ -40,7 +42,7 @@ def create_content_routes(db):
         return {"message": "Hero image created", "id": image_id}
 
 
-    @router.put("/admin/hero-images/{image_id}")
+    @admin_router.put("/admin/hero-images/{image_id}")
     async def update_hero_image(image_id: str, data: HeroImageUpdate):
         update_data = {k: v for k, v in data.model_dump().items() if v is not None}
         if update_data:
@@ -48,7 +50,7 @@ def create_content_routes(db):
         return {"message": "Hero image updated"}
 
 
-    @router.delete("/admin/hero-images/{image_id}")
+    @admin_router.delete("/admin/hero-images/{image_id}")
     async def delete_hero_image(image_id: str):
         result = await db.hero_images.delete_one({"id": image_id})
         if result.deleted_count == 0:
@@ -64,7 +66,7 @@ def create_content_routes(db):
         return awards
 
 
-    @router.post("/admin/awards")
+    @admin_router.post("/admin/awards")
     async def create_award(data: dict):
         award_id = str(uuid.uuid4())
         # Support multiple images (up to 5)
@@ -72,7 +74,7 @@ def create_content_routes(db):
         if data.get("winner_image"):
             images = [data.get("winner_image")] + images
         images = images[:5]  # Limit to 5 images
-        
+
         doc = {
             "id": award_id,
             "title": data.get("title", ""),
@@ -89,7 +91,7 @@ def create_content_routes(db):
         return {"message": "Award created", "id": award_id}
 
 
-    @router.put("/admin/awards/{award_id}")
+    @admin_router.put("/admin/awards/{award_id}")
     async def update_award(award_id: str, data: AwardUpdate):
         update_data = {k: v for k, v in data.model_dump().items() if v is not None}
         if update_data:
@@ -97,7 +99,7 @@ def create_content_routes(db):
         return {"message": "Award updated"}
 
 
-    @router.delete("/admin/awards/{award_id}")
+    @admin_router.delete("/admin/awards/{award_id}")
     async def delete_award(award_id: str):
         result = await db.awards.delete_one({"id": award_id})
         if result.deleted_count == 0:
@@ -112,7 +114,7 @@ def create_content_routes(db):
         return ads
 
 
-    @router.post("/admin/advertisements")
+    @admin_router.post("/admin/advertisements")
     async def create_advertisement(data: AdvertisementCreate):
         ad_id = str(uuid.uuid4())
         doc = {
@@ -128,7 +130,7 @@ def create_content_routes(db):
         return {"message": "Advertisement created", "id": ad_id}
 
 
-    @router.put("/admin/advertisements/{ad_id}")
+    @admin_router.put("/admin/advertisements/{ad_id}")
     async def update_advertisement(ad_id: str, data: AdvertisementUpdate):
         update_data = {k: v for k, v in data.model_dump().items() if v is not None}
         if update_data:
@@ -136,7 +138,7 @@ def create_content_routes(db):
         return {"message": "Advertisement updated"}
 
 
-    @router.delete("/admin/advertisements/{ad_id}")
+    @admin_router.delete("/admin/advertisements/{ad_id}")
     async def delete_advertisement(ad_id: str):
         result = await db.advertisements.delete_one({"id": ad_id})
         if result.deleted_count == 0:
@@ -150,19 +152,19 @@ def create_content_routes(db):
         talent = await db.talents.find_one({"id": vote.talent_id})
         if not talent:
             raise HTTPException(status_code=404, detail="Talent not found")
-        
+
         if not talent.get("is_approved"):
             raise HTTPException(status_code=400, detail="Cannot vote for unapproved talent")
-        
+
         await db.votes.insert_one({
             "id": str(uuid.uuid4()),
             "talent_id": vote.talent_id,
             "voter_email": vote.voter_email,
             "created_at": datetime.now(timezone.utc).isoformat()
         })
-        
+
         await db.talents.update_one({"id": vote.talent_id}, {"$inc": {"votes": 1}})
-        
+
         updated = await db.talents.find_one({"id": vote.talent_id}, {"_id": 0})
         return {"message": "Vote recorded", "votes": updated.get("votes", 0)}
 
@@ -182,7 +184,7 @@ def create_content_routes(db):
         return magazine or {}
 
 
-    @router.post("/admin/magazine")
+    @admin_router.post("/admin/magazine")
     async def upload_magazine(data: dict):
         await db.magazine.delete_many({})
         doc = {
@@ -197,7 +199,7 @@ def create_content_routes(db):
         return {"message": "Magazine uploaded successfully", "id": doc["id"]}
 
 
-    @router.delete("/admin/magazine")
+    @admin_router.delete("/admin/magazine")
     async def delete_magazine():
         await db.magazine.delete_many({})
         return {"message": "Magazine deleted"}
@@ -210,7 +212,7 @@ def create_content_routes(db):
         return music or {}
 
 
-    @router.post("/admin/music")
+    @admin_router.post("/admin/music")
     async def upload_music(data: dict):
         await db.music.delete_many({})
         doc = {
@@ -225,7 +227,7 @@ def create_content_routes(db):
         return {"message": "Music uploaded successfully", "id": doc["id"]}
 
 
-    @router.delete("/admin/music")
+    @admin_router.delete("/admin/music")
     async def delete_music():
         await db.music.delete_many({})
         return {"message": "Music deleted"}
@@ -238,7 +240,7 @@ def create_content_routes(db):
         return video or {}
 
 
-    @router.post("/admin/video")
+    @admin_router.post("/admin/video")
     async def upload_video(data: dict):
         await db.homepage_video.delete_many({})
         doc = {
@@ -253,7 +255,7 @@ def create_content_routes(db):
         return {"message": "Video uploaded successfully", "id": doc["id"]}
 
 
-    @router.delete("/admin/video")
+    @admin_router.delete("/admin/video")
     async def delete_video():
         await db.homepage_video.delete_many({})
         return {"message": "Video deleted"}
@@ -266,13 +268,13 @@ def create_content_routes(db):
         return events
 
 
-    @router.get("/admin/party-events")
+    @admin_router.get("/admin/party-events")
     async def get_all_party_events():
         events = await db.party_events.find({}, {"_id": 0}).sort("created_at", -1).to_list(50)
         return events
 
 
-    @router.post("/admin/party-events")
+    @admin_router.post("/admin/party-events")
     async def create_party_event(data: PartyEventCreate):
         event_id = str(uuid.uuid4())
         doc = {
@@ -293,7 +295,7 @@ def create_content_routes(db):
         return {"message": "Party event created", "id": event_id}
 
 
-    @router.put("/admin/party-events/{event_id}")
+    @admin_router.put("/admin/party-events/{event_id}")
     async def update_party_event(event_id: str, data: PartyEventUpdate):
         update_data = {k: v for k, v in data.model_dump().items() if v is not None}
         if update_data:
@@ -301,12 +303,13 @@ def create_content_routes(db):
         return {"message": "Party event updated"}
 
 
-    @router.delete("/admin/party-events/{event_id}")
+    @admin_router.delete("/admin/party-events/{event_id}")
     async def delete_party_event(event_id: str):
         result = await db.party_events.delete_one({"id": event_id})
         if result.deleted_count == 0:
             raise HTTPException(status_code=404, detail="Party event not found")
         return {"message": "Party event deleted"}
 
-    
+
+    router.include_router(admin_router, dependencies=[Depends(get_current_admin)])
     return router

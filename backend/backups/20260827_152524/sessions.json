@@ -1,0 +1,70 @@
+[
+  {
+    "_id": "697a08ecb2187efc3ecaf6b9",
+    "token": "ef71068ef7980d51780c222610e754b78ff4362b1743611d2a6cc6affe8f31c8",
+    "user_id": "652c883b-89e8-41de-a409-2a8fca4df835",
+    "created_at": "2026-01-28T13:02:36.829536+00:00",
+    "remember_me": true
+  },
+  {
+    "_id": "697a0b86b2187efc3ecaf6bc",
+    "token": "be2aef34c47658d2f3d505608eba751cefe39cb2f937058c47e98589ab4c445f",
+    "user_id": "b736028c-71fb-48c7-a584-901c0c99dd85",
+    "created_at": "2026-01-28T13:13:42.714720+00:00",
+    "remember_me": false
+  },
+  {
+    "_id": "697a1c5d4393dced2069d41e",
+    "token": "d1d03d82a46ab18a35fba1edb3761b3e02772a4694d376223bdfd8f2fd80b7e2",
+    "user_id": "ecbb6f94-64ab-422a-b102-c6cdc0c90769",
+    "created_at": "2026-01-28T14:25:33.997475+00:00",
+    "remember_me": false
+  },
+  {
+    "_id": "697a1c994393dced2069d41f",
+    "token": "badaaab3b386e92153ae3f6866225a2f29066f94d0529faf68ebae0fa4257630",
+    "user_id": "ecbb6f94-64ab-422a-b102-c6cdc0c90769",
+    "created_at": "2026-01-28T14:26:33.068964+00:00",
+    "remember_me": false
+  },
+  {
+    "_id": "697a634c783d423dc6bd4fa3",
+    "token": "baff50e88662b375e248b76040bd5c7f7bc88c54318761bb64edbfc24cc81fd4",
+    "user_id": "ecbb6f94-64ab-422a-b102-c6cdc0c90769",
+    "user_type": "user",
+    "created_at": "2026-01-28T19:28:12.683363+00:00",
+    "remember_me": false
+  },
+  {
+    "_id": "697a635c783d423dc6bd4fa4",
+    "token": "44be00ed90f54ce635341648054d6f6252130684b865a816a66e296c2368ebbe",
+    "user_id": "ecbb6f94-64ab-422a-b102-c6cdc0c90769",
+    "user_type": "user",
+    "created_at": "2026-01-28T19:28:28.760995+00:00",
+    "remember_me": false
+  },
+  {
+    "_id": "697a63c2783d423dc6bd4fa7",
+    "token": "3534b5bb55783ee406e49048497945991d8831160e6e17030eb6ad57dd4b2551",
+    "user_id": "be6c50ee-d4cf-4e9e-a300-948e8a9227c1",
+    "user_type": "user",
+    "created_at": "2026-01-28T19:30:10.796557+00:00",
+    "remember_me": false
+  },
+  {
+    "_id": "697a63c2783d423dc6bd4fa8",
+    "token": "97ef4d2225770690e9d1bebeabda93f433e0352306d9013d0e6894fd02b1eefc",
+    "user_id": "299148f6-5564-462b-862e-1e72cfd9ba8d",
+    "user_type": "user",
+    "created_at": "2026-01-28T19:30:10.846795+00:00",
+    "remember_me": true
+  },
+  {
+    "_id": "697a63c2783d423dc6bd4faa",
+    "token": "2dbb7fc2cbecf3f144bf097ff84b6d3316ae30ccd11705361557c4de9361f6f4",
+    "user_id": "5f8777f9-3860-4174-ae2c-bf135e7d032a",
+    "user_type": "talent",
+    "created_at": "2026-01-28T19:30:10.974687+00:00",
+    "remember_me": false
+  }
+]

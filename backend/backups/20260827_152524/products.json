@@ -1,0 +1,22 @@
+[
+  {
+    "_id": "69a0135b3a0fff8e4d4ebbaa",
+    "id": "cd446973-43bc-4573-bad5-ab9ae722a071",
+    "name": "Elegant Silk Saree",
+    "description": "A beautiful handwoven silk saree with golden zari work",
+    "size": "Free Size",
+    "material": "Pure Silk",
+    "price": 25000.0,
+    "shipping_info": "Free shipping across India",
+    "images": [
+      "https://via.placeholder.com/400x500",
+      "https://via.placeholder.com/400x501"
+    ],
+    "designer_id": "d0f88886-0101-452b-8139-38a636938110",
+    "designer_name": "Test Store Designer",
+    "is_active": true,
+    "created_at": "2026-02-26T09:33:15.573293+00:00",
+    "discount_percent": 20,
+    "discounted_price": 20000.0
+  }
+]

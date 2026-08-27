@@ -1,6 +1,12 @@
 User-agent: *
 Allow: /
 Disallow: /admin
+Disallow: /admin/
 Disallow: /talent-dashboard
+Disallow: /login
+Disallow: /talent-login
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /api/
 
-Sitemap: https://bangalorefashionmagazine.com/sitemap.xml
+Sitemap: https://bangalorefashionmagazine.com/api/sitemap.xml

@@ -2,31 +2,34 @@
 SEO Management Routes
 Handles sitemap generation, robots.txt, and SEO metadata
 """
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Response, Depends
 from fastapi.responses import PlainTextResponse
 from datetime import datetime, timezone
 from typing import Optional
 import logging
+
+from dependencies.auth import get_current_admin
 
 logger = logging.getLogger(__name__)
 
 
 def create_seo_routes(db, app_url: str = "https://bangalorefashionmagazine.com"):
     router = APIRouter()
+    admin_router = APIRouter()
 
     # ============== XML Sitemap ==============
-    
+
     @router.get("/sitemap.xml", response_class=PlainTextResponse)
     async def get_sitemap():
         """Generate XML sitemap dynamically from approved talents and content"""
         now = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-        
+
         # Start XML
         xml_parts = [
             '<?xml version="1.0" encoding="UTF-8"?>',
             '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
         ]
-        
+
         # Homepage
         xml_parts.append(f'''
   <url>
@@ -35,7 +38,7 @@ def create_seo_routes(db, app_url: str = "https://bangalorefashionmagazine.com")
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>''')
-        
+
         # Static pages
         static_pages = [
             ("/about", "weekly", "0.8"),
@@ -57,7 +60,7 @@ def create_seo_routes(db, app_url: str = "https://bangalorefashionmagazine.com")
             ("/magazine/talent-spotlight", "weekly", "0.8"),
             ("/magazine/editorials", "weekly", "0.7"),
         ]
-        
+
         for path, freq, priority in static_pages:
             xml_parts.append(f'''
   <url>
@@ -66,13 +69,13 @@ def create_seo_routes(db, app_url: str = "https://bangalorefashionmagazine.com")
     <changefreq>{freq}</changefreq>
     <priority>{priority}</priority>
   </url>''')
-        
+
         # Approved talent profiles
         talents = await db.talents.find(
             {"is_approved": True},
             {"_id": 0, "id": 1, "name": 1, "created_at": 1}
         ).to_list(1000)
-        
+
         for talent in talents:
             talent_date = talent.get("created_at", now)[:10] if talent.get("created_at") else now
             xml_parts.append(f'''
@@ -82,13 +85,13 @@ def create_seo_routes(db, app_url: str = "https://bangalorefashionmagazine.com")
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>''')
-        
+
         xml_parts.append('</urlset>')
-        
+
         return "\n".join(xml_parts)
 
     # ============== Robots.txt ==============
-    
+
     @router.get("/robots.txt", response_class=PlainTextResponse)
     async def get_robots():
         """Generate robots.txt"""
@@ -116,7 +119,7 @@ Sitemap: {app_url}/api/sitemap.xml
 """
 
     # ============== SEO Metadata Endpoints ==============
-    
+
     @router.get("/seo/page/{path:path}")
     async def get_page_seo(path: str):
         """Get SEO metadata for a specific page"""
@@ -127,15 +130,15 @@ Sitemap: {app_url}/api/sitemap.xml
             "keywords": "bangalore fashion, fashion magazine, bangalore models, fashion photographers, designers bangalore, bfm",
             "og_title": "Bangalore Fashion Magazine",
             "og_description": "Discover and connect with professional fashion talent in Bangalore",
-            "og_image": f"{app_url}/api/static/bfm-og-image.jpg",
+            "og_image": f"{app_url}/bfm-og-image.jpg",
             "twitter_card": "summary_large_image"
         }
-        
+
         # Check for custom SEO settings
         seo_settings = await db.seo_settings.find_one({"path": path}, {"_id": 0})
         if seo_settings:
             return {**default_meta, **seo_settings}
-        
+
         # Auto-generate for talent profiles
         if path.startswith("talent/"):
             talent_id = path.replace("talent/", "")
@@ -150,7 +153,7 @@ Sitemap: {app_url}/api/sitemap.xml
                     "og_image": f"{app_url}/api/talent/{talent_id}/thumb",
                     "twitter_card": "summary_large_image"
                 }
-        
+
         # Auto-generate for category pages
         category_seo = {
             "talents/Models – Male": {
@@ -179,37 +182,37 @@ Sitemap: {app_url}/api/sitemap.xml
                 "keywords": "makeup artists bangalore, mua bangalore, bridal makeup india, fashion makeup, bfm makeup artists"
             }
         }
-        
+
         if path in category_seo:
             return {**default_meta, **category_seo[path]}
-        
+
         return default_meta
 
-    @router.put("/admin/seo/page")
+    @admin_router.put("/admin/seo/page")
     async def update_page_seo(seo_data: dict):
         """Update SEO metadata for a specific page"""
         path = seo_data.get("path")
         if not path:
             return {"error": "Path is required"}
-        
+
         seo_data["updated_at"] = datetime.now(timezone.utc).isoformat()
-        
+
         await db.seo_settings.update_one(
             {"path": path},
             {"$set": seo_data},
             upsert=True
         )
-        
+
         return {"message": "SEO settings updated"}
 
-    @router.get("/admin/seo/settings")
+    @admin_router.get("/admin/seo/settings")
     async def get_all_seo_settings():
         """Get all custom SEO settings"""
         settings = await db.seo_settings.find({}, {"_id": 0}).to_list(500)
         return settings
 
     # ============== Structured Data ==============
-    
+
     @router.get("/seo/schema/organization")
     async def get_organization_schema():
         """Get Organization structured data"""
@@ -219,7 +222,7 @@ Sitemap: {app_url}/api/sitemap.xml
             "name": "Bangalore Fashion Magazine",
             "alternateName": "BFM",
             "url": app_url,
-            "logo": f"{app_url}/api/static/bfm-logo.png",
+            "logo": f"{app_url}/bfm-logo.jpeg",
             "description": "Bangalore Fashion Magazine is a premier fashion platform showcasing talented models, designers, photographers, and fashion professionals in Bangalore, India.",
             "address": {
                 "@type": "PostalAddress",
@@ -239,10 +242,10 @@ Sitemap: {app_url}/api/sitemap.xml
             {"id": talent_id, "is_approved": True},
             {"_id": 0}
         )
-        
+
         if not talent:
             return {"error": "Talent not found"}
-        
+
         return {
             "@context": "https://schema.org",
             "@type": "Person",
@@ -266,17 +269,17 @@ Sitemap: {app_url}/api/sitemap.xml
     async def get_breadcrumb_schema(path: str):
         """Get BreadcrumbList structured data"""
         items = [{"name": "Home", "url": app_url}]
-        
+
         path_parts = path.strip("/").split("/")
         current_url = app_url
-        
+
         for part in path_parts:
             if part:
                 current_url += f"/{part}"
                 # Decode URL-encoded parts for display
                 display_name = part.replace("%20", " ").replace("-", " ").title()
                 items.append({"name": display_name, "url": current_url})
-        
+
         return {
             "@context": "https://schema.org",
             "@type": "BreadcrumbList",
@@ -291,4 +294,5 @@ Sitemap: {app_url}/api/sitemap.xml
             ]
         }
 
+    router.include_router(admin_router, dependencies=[Depends(get_current_admin)])
     return router

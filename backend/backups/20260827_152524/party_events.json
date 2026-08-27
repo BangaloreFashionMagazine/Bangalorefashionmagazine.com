@@ -1,0 +1,30 @@
+[
+  {
+    "_id": "698b2fab96182ed387760fcf",
+    "id": "bffeaa36-31ef-4de4-b923-b0f46dbd3db4",
+    "title": "Test Party Event",
+    "venue": "Test Venue",
+    "event_date": "Jan 15, 2026",
+    "description": "This is a test event to verify delete functionality",
+    "image": "",
+    "entry_code": "TEST123",
+    "booking_info": "Test booking info",
+    "contact": "1234567890",
+    "is_active": true,
+    "created_at": "2026-02-10T13:16:27.719628+00:00"
+  },
+  {
+    "_id": "698b345096182ed387760fd0",
+    "id": "8eb4a284-b889-40b6-a84f-3e75ab59bf25",
+    "title": "BFM Fashion Night 2026",
+    "venue": "JW Marriott, Bangalore",
+    "event_date": "Feb 20, 2026",
+    "description": "Join us for an exclusive fashion night with top models and designers",
+    "image": "",
+    "entry_code": "BFM2026",
+    "booking_info": "Book tables at +91 9876543210 or via our website",
+    "contact": "+91 9876543210",
+    "is_active": true,
+    "created_at": "2026-02-10T13:36:16.801142+00:00"
+  }
+]

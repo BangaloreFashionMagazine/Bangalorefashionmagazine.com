@@ -1,0 +1,88 @@
+[
+  {
+    "_id": "697a08a20b1badea6b2e2b64",
+    "id": "72f70321-b829-4be0-b998-6bb4921882a0",
+    "name": "Fashion Model",
+    "email": "newmodel@bangalore.com",
+    "password_hash": "ca50abe8ac3da77e61fdbeec692ad286:2740c279d088d8ca8a83e264ff6feaed3162d9eec42c6a768da982bdd9be03b3",
+    "created_at": "2026-01-28T13:01:22.625054+00:00",
+    "is_active": true
+  },
+  {
+    "_id": "697a08a20b1badea6b2e2b65",
+    "id": "bf33d731-2568-4432-89d6-7f7d1eb73196",
+    "name": "Another User",
+    "email": "test@example.com",
+    "password_hash": "bdb901149f2dbfa08c39267c57f7a9d5:e430272d8a2ca084c4c8136562eeae85861430fc9bba6017fd09f0a3c1d0480b",
+    "created_at": "2026-01-28T13:01:22.788611+00:00",
+    "is_active": true
+  },
+  {
+    "_id": "697a08ecb2187efc3ecaf6b8",
+    "id": "652c883b-89e8-41de-a409-2a8fca4df835",
+    "name": "Test User",
+    "email": "test-4e9863a3@example.com",
+    "password_hash": "03bfc93ccf9a828095bf1ef03a4f7d6b:833f4eccc655bf7f94ee27c960a0b8dc36895b8c64fcd80d3e31a3084e9252e0",
+    "created_at": "2026-01-28T13:02:36.789290+00:00",
+    "is_active": true
+  },
+  {
+    "_id": "697a0b86b2187efc3ecaf6bb",
+    "id": "b736028c-71fb-48c7-a584-901c0c99dd85",
+    "name": "Health Check User",
+    "email": "healthcheck@test.com",
+    "password_hash": "ab9477343ea3fcbdde2df0f242105e30:0114d921069ed3b01bff7116e2fb2eb48132d8bea7c36e916907aee77acd7422",
+    "created_at": "2026-01-28T13:13:42.400313+00:00",
+    "is_active": true
+  },
+  {
+    "_id": "697a12f64393dced2069d41c",
+    "id": "2849fead-1e39-4ec8-8411-56109548b089",
+    "name": "Deploy Test",
+    "email": "deploy1769607926@test.com",
+    "password_hash": "d60649a9278f03ded7c01d716931dfc5:09c3aa78eaa8b6027f71897c165e9739d1d31c754cc9512ab7bfc9293b3ecc57",
+    "created_at": "2026-01-28T13:45:26.171557+00:00",
+    "is_active": true
+  },
+  {
+    "_id": "697a1c564393dced2069d41d",
+    "id": "ecbb6f94-64ab-422a-b102-c6cdc0c90769",
+    "name": "Admin",
+    "email": "admin@bangalorefashionmag.com",
+    "password_hash": "1085293a32f9acf9c21713c641b41be7:7adba27b2eb374b15c981ccf253d559d28b500402df639a2f80705fb311faf45",
+    "created_at": "2026-01-28T14:25:26.836728+00:00",
+    "is_active": true,
+    "is_admin": true,
+    "password": "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/X4.qV7H5p0gF5bZ2e"
+  },
+  {
+    "_id": "697a63c2783d423dc6bd4fa5",
+    "id": "299148f6-5564-462b-862e-1e72cfd9ba8d",
+    "name": "Regular User",
+    "email": "user@bangalorefashion.com",
+    "password_hash": "104cddfcc718a53c85f243e3fcee93e6:0ee5a99563fa79f3a3fc89ef4dfdb1dad990f5b57689ab92b23747c96644bb86",
+    "is_admin": false,
+    "created_at": "2026-01-28T19:30:10.703127+00:00",
+    "is_active": true
+  },
+  {
+    "_id": "697a63c2783d423dc6bd4fa6",
+    "id": "be6c50ee-d4cf-4e9e-a300-948e8a9227c1",
+    "name": "Admin User",
+    "email": "admin@bangalorefashion.com",
+    "password_hash": "1390a6e2d2550fe7b2f69ed24a24728f:7b19b034cf75c3ab13ad42610e0b9dc690a604559b7e8d54d3f87624ec16945e",
+    "is_admin": true,
+    "created_at": "2026-01-28T19:30:10.751647+00:00",
+    "is_active": true
+  },
+  {
+    "_id": "69e2266dc2b3d324f01cf388",
+    "id": "7db4baf8-3015-480e-ab1c-7da2cf83211c",
+    "name": "HackerAdmin",
+    "email": "hacker_test_diagnostic@test.com",
+    "password_hash": "da7fc12c024d0735d1aafc476d552db9:daade885e41d35993695f8499240c10011661a552287d8ffc65f760056e93ad5",
+    "is_admin": true,
+    "created_at": "2026-04-17T12:24:13.376398+00:00",
+    "is_active": true
+  }
+]

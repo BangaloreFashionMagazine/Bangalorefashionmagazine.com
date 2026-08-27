@@ -1,6 +1,14 @@
 import hashlib
 import secrets
-from datetime import datetime, timezone
+import os
+import time
+import logging
+from collections import defaultdict
+from datetime import datetime, timezone, timedelta
+
+import jwt as pyjwt
+
+logger = logging.getLogger(__name__)
 
 
 def hash_password(password: str) -> str:
@@ -19,16 +27,61 @@ def verify_password(password: str, stored_hash: str) -> bool:
         return False
 
 
-def generate_token(user_id: str) -> str:
-    """Generate a unique token for user authentication."""
-    token_data = f"{user_id}:{secrets.token_hex(32)}:{datetime.now(timezone.utc).isoformat()}"
-    return hashlib.sha256(token_data.encode()).hexdigest()
+# ============== JWT session tokens ==============
+JWT_ALGORITHM = "HS256"
+JWT_EXPIRY_HOURS = 24
+
+JWT_SECRET = os.environ.get("JWT_SECRET")
+if not JWT_SECRET:
+    JWT_SECRET = secrets.token_hex(32)
+    logger.warning(
+        "JWT_SECRET is not set in the environment. Using a randomly generated secret for this process "
+        "only - all issued sessions will be invalidated on every restart. Set JWT_SECRET in .env before "
+        "deploying to production."
+    )
 
 
-# Talent Categories - Old names (stored in database)
+def create_access_token(subject: str, is_admin: bool = False, token_type: str = "admin") -> str:
+    """Create a signed, expiring JWT for a user or talent session."""
+    now = datetime.now(timezone.utc)
+    payload = {
+        "sub": subject,
+        "is_admin": is_admin,
+        "type": token_type,
+        "iat": now,
+        "exp": now + timedelta(hours=JWT_EXPIRY_HOURS),
+    }
+    return pyjwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+
+def decode_access_token(token: str) -> dict:
+    """Decode and validate a JWT. Raises jwt.PyJWTError subclasses on failure."""
+    return pyjwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+
+
+# ============== Lightweight in-memory rate limiting ==============
+# Single-process, in-memory sliding window keyed by (bucket, client ip).
+# Sufficient for this app's single-instance deployment (no horizontal scaling).
+_RATE_LIMIT_HITS = defaultdict(list)
+
+
+def check_rate_limit(bucket: str, key: str, max_requests: int, window_seconds: int) -> bool:
+    """Returns True if the request is allowed, False if the caller should be throttled."""
+    now = time.monotonic()
+    hits = _RATE_LIMIT_HITS[(bucket, key)]
+    cutoff = now - window_seconds
+    while hits and hits[0] < cutoff:
+        hits.pop(0)
+    if len(hits) >= max_requests:
+        return False
+    hits.append(now)
+    return True
+
+
+# Talent Categories - storage format (as saved in the database)
 TALENT_CATEGORIES = [
     "female model",
-    "male model", 
+    "male model",
     "designers",
     "photographers",
     "Model - Female",
@@ -46,7 +99,8 @@ TALENT_CATEGORIES = [
     "Other"
 ]
 
-# New category names (displayed in UI)
+# Display category names (shown in UI) - must stay in sync with
+# frontend/src/lib/config.js TALENT_CATEGORIES/CATEGORY_DB
 NEW_TALENT_CATEGORIES = [
     "All Talents",
     "Models – Male",
@@ -62,7 +116,7 @@ NEW_TALENT_CATEGORIES = [
     "Featured Talents"
 ]
 
-# Map new names to old database names (supports multiple variations)
+# Map display names to storage names (supports multiple variations)
 # IMPORTANT: Must match EXACTLY what's in the production database
 CATEGORY_TO_DB = {
     "All Talents": "All",
@@ -80,9 +134,10 @@ CATEGORY_TO_DB = {
     "Designer Store": "Designer Store"
 }
 
-# All valid categories (both old and new)
+# All valid categories (both storage and display forms)
 ALL_VALID_CATEGORIES = TALENT_CATEGORIES + NEW_TALENT_CATEGORIES
 
+
 def normalize_category(category):
-    """Convert new category name to old database name if needed"""
+    """Convert a display category name to its storage (database) name if needed. Idempotent."""
     return CATEGORY_TO_DB.get(category, category)

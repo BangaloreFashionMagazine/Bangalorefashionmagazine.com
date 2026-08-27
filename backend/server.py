@@ -6,7 +6,9 @@ from fastapi import FastAPI, APIRouter
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
+from datetime import datetime, timezone
 import os
+import secrets
 import logging
 from pathlib import Path
 
@@ -80,7 +82,7 @@ async def get_homepage_data():
         music = await db.music.find_one({}, {"_id": 0})
         video = await db.video.find_one({}, {"_id": 0})
         party_events = await db.party_events.find({"is_active": {"$ne": False}}, {"_id": 0}).sort("event_date", -1).to_list(10)
-        
+
         return {
             "hero_images": hero_images or [],
             "awards": awards or [],
@@ -147,10 +149,19 @@ api_router.include_router(seo_routes)
 app.include_router(api_router)
 
 # CORS middleware
+_cors_origins_raw = os.environ.get('CORS_ORIGINS', '')
+_cors_origins = [o.strip() for o in _cors_origins_raw.split(',') if o.strip()]
+if not _cors_origins or '*' in _cors_origins:
+    logger.warning(
+        "CORS_ORIGINS is unset or contains '*' - falling back to no cross-origin credentialed access. "
+        "Set CORS_ORIGINS in .env to an explicit comma-separated list of allowed origins."
+    )
+    _cors_origins = []
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_origins=_cors_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -158,36 +169,37 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup_ensure_admin():
-    """Ensure admin user exists with correct password on startup"""
-    import hashlib
-    import secrets as sec
-    
-    def hash_pw(password: str) -> str:
-        salt = sec.token_hex(16)
-        password_hash = hashlib.sha256((password + salt).encode()).hexdigest()
-        return f'{salt}:{password_hash}'
-    
-    admin_email = "admin@bangalorefashionmag.com"
-    admin_password = "Rilrocky@9295BFM"
-    
-    existing = await db.users.find_one({"email": admin_email})
-    if not existing:
-        # Create admin user
-        await db.users.insert_one({
-            "id": str(uuid.uuid4()),
-            "name": "Admin",
-            "email": admin_email,
-            "password_hash": hash_pw(admin_password),
-            "is_admin": True
-        })
-        print(f"✅ Admin user created: {admin_email}")
-    else:
-        # Update password to ensure it's correct
-        await db.users.update_one(
-            {"email": admin_email},
-            {"$set": {"password_hash": hash_pw(admin_password)}}
+    """Ensure an admin user exists. Only creates one if none exists yet - never
+    overwrites an existing admin's password, so a password change made through
+    the app or the database survives every restart/deploy."""
+    import uuid as _uuid
+    from services import hash_password
+
+    admin_email = os.environ.get("ADMIN_EMAIL", "admin@bangalorefashionmag.com")
+    admin_password = os.environ.get("ADMIN_PASSWORD")
+
+    existing = await db.users.find_one({"is_admin": True})
+    if existing:
+        return
+
+    if not admin_password:
+        admin_password = secrets.token_urlsafe(16)
+        logger.warning(
+            f"No admin account exists and ADMIN_PASSWORD is not set. Creating {admin_email} "
+            f"with a generated one-time password - check the server logs to retrieve it, then "
+            f"change it immediately. Set ADMIN_EMAIL/ADMIN_PASSWORD in .env to control this."
         )
-        print(f"✅ Admin password updated: {admin_email}")
+        logger.warning(f"Generated admin password for {admin_email}: {admin_password}")
+
+    await db.users.insert_one({
+        "id": str(_uuid.uuid4()),
+        "name": "Admin",
+        "email": admin_email,
+        "password_hash": hash_password(admin_password),
+        "is_admin": True,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+    print(f"✅ Admin user created: {admin_email}")
 
 
 @app.on_event("shutdown")

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import StreamingResponse
 from datetime import datetime, timezone
 from typing import List
@@ -8,6 +8,7 @@ import csv
 
 from models import TalentResponse
 from services import hash_password
+from dependencies.auth import get_current_admin
 
 import logging
 logger = logging.getLogger(__name__)
@@ -15,8 +16,9 @@ logger = logging.getLogger(__name__)
 
 def create_admin_routes(db):
     router = APIRouter()
-    
-    @router.get("/admin/talents/pending", response_model=List[TalentResponse])
+    admin_router = APIRouter()
+
+    @admin_router.get("/admin/talents/pending", response_model=List[TalentResponse])
     async def get_pending_talents():
         talents = await db.talents.find({"is_approved": False}, {"_id": 0}).to_list(1000)
         return [
@@ -30,7 +32,7 @@ def create_admin_routes(db):
         ]
 
 
-    @router.get("/admin/talent/{talent_id}/full")
+    @admin_router.get("/admin/talent/{talent_id}/full")
     async def get_talent_full_details(talent_id: str):
         talent = await db.talents.find_one({"id": talent_id}, {"_id": 0})
         if not talent:
@@ -39,7 +41,6 @@ def create_admin_routes(db):
             "id": talent["id"],
             "name": talent["name"],
             "email": talent["email"],
-            "password": talent.get("password_plain", "Not available"),
             "phone": talent["phone"],
             "instagram_id": talent.get("instagram_id", ""),
             "category": talent["category"],
@@ -56,7 +57,7 @@ def create_admin_routes(db):
         }
 
 
-    @router.put("/admin/talent/{talent_id}/approve")
+    @admin_router.put("/admin/talent/{talent_id}/approve")
     async def approve_talent(talent_id: str):
         result = await db.talents.update_one({"id": talent_id}, {"$set": {"is_approved": True}})
         if result.modified_count == 0:
@@ -64,7 +65,7 @@ def create_admin_routes(db):
         return {"message": "Talent approved"}
 
 
-    @router.put("/admin/talent/{talent_id}/reject")
+    @admin_router.put("/admin/talent/{talent_id}/reject")
     async def reject_talent(talent_id: str):
         result = await db.talents.update_one({"id": talent_id}, {"$set": {"is_approved": False}})
         if result.modified_count == 0:
@@ -72,7 +73,7 @@ def create_admin_routes(db):
         return {"message": "Talent rejected"}
 
 
-    @router.put("/admin/talent/{talent_id}/rank")
+    @admin_router.put("/admin/talent/{talent_id}/rank")
     async def update_talent_rank(talent_id: str, rank: int):
         result = await db.talents.update_one({"id": talent_id}, {"$set": {"rank": rank}})
         if result.modified_count == 0:
@@ -80,7 +81,7 @@ def create_admin_routes(db):
         return {"message": f"Rank updated to {rank}"}
 
 
-    @router.put("/admin/talent/{talent_id}/featured")
+    @admin_router.put("/admin/talent/{talent_id}/featured")
     async def toggle_talent_featured(talent_id: str, featured: bool):
         """Toggle talent's featured status for Magazine Talent Spotlight section"""
         result = await db.talents.update_one({"id": talent_id}, {"$set": {"is_featured": featured}})
@@ -89,15 +90,15 @@ def create_admin_routes(db):
         return {"message": f"Featured status set to {featured}", "is_featured": featured}
 
 
-    @router.put("/admin/talent/{talent_id}/password")
+    @admin_router.put("/admin/talent/{talent_id}/password")
     async def admin_reset_talent_password(talent_id: str, data: dict):
         password = data.get("password")
         if not password or len(password) < 6:
             raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
-        
+
         result = await db.talents.update_one(
-            {"id": talent_id}, 
-            {"$set": {"password_hash": hash_password(password), "password_plain": password}}
+            {"id": talent_id},
+            {"$set": {"password_hash": hash_password(password)}, "$unset": {"password_plain": ""}}
         )
         if result.modified_count == 0:
             raise HTTPException(status_code=404, detail="Talent not found")
@@ -105,7 +106,7 @@ def create_admin_routes(db):
         return {"message": "Password updated"}
 
 
-    @router.delete("/admin/talent/{talent_id}")
+    @admin_router.delete("/admin/talent/{talent_id}")
     async def delete_talent(talent_id: str):
         result = await db.talents.delete_one({"id": talent_id})
         if result.deleted_count == 0:
@@ -113,14 +114,14 @@ def create_admin_routes(db):
         return {"message": "Talent deleted"}
 
 
-    @router.get("/admin/talents/export")
+    @admin_router.get("/admin/talents/export")
     async def export_talents():
         talents = await db.talents.find({}, {"_id": 0}).to_list(1000)
-        
+
         output = io.StringIO()
         writer = csv.writer(output)
         writer.writerow(["Name", "Email", "Phone", "Instagram", "Category", "Status", "Rank", "Votes", "Registered Date"])
-        
+
         for t in talents:
             writer.writerow([
                 t.get("name", ""), t.get("email", ""), t.get("phone", ""),
@@ -129,14 +130,14 @@ def create_admin_routes(db):
                 t.get("rank", 999), t.get("votes", 0),
                 t.get("created_at", "")[:10] if t.get("created_at") else ""
             ])
-        
+
         output.seek(0)
         return StreamingResponse(
             iter([output.getvalue()]),
             media_type="text/csv",
             headers={"Content-Disposition": "attachment; filename=talents_export.csv"}
         )
-    
+
     # Track talent share
     @router.post("/track-share")
     async def track_share(data: dict):
@@ -144,10 +145,10 @@ def create_admin_routes(db):
         talent_id = data.get("talent_id")
         talent_name = data.get("talent_name", "Unknown")
         share_type = data.get("share_type", "whatsapp")  # whatsapp, story, feed
-        
+
         if not talent_id:
             raise HTTPException(status_code=400, detail="talent_id required")
-        
+
         share_record = {
             "id": str(uuid.uuid4()),
             "talent_id": talent_id,
@@ -155,24 +156,24 @@ def create_admin_routes(db):
             "share_type": share_type,
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
-        
+
         await db.shares.insert_one(share_record)
-        
+
         # Also update talent's share count
         await db.talents.update_one(
             {"id": talent_id},
             {"$inc": {f"share_count_{share_type}": 1, "total_shares": 1}}
         )
-        
+
         return {"success": True}
-    
+
     # Get share analytics
-    @router.get("/admin/share-analytics")
+    @admin_router.get("/admin/share-analytics")
     async def get_share_analytics():
         """Get share analytics for admin dashboard"""
         # Get all shares
         shares = await db.shares.find({}, {"_id": 0}).sort("timestamp", -1).to_list(500)
-        
+
         # Get share counts by type
         pipeline = [
             {"$group": {
@@ -181,7 +182,7 @@ def create_admin_routes(db):
             }}
         ]
         type_counts = await db.shares.aggregate(pipeline).to_list(10)
-        
+
         # Get top shared talents
         talent_pipeline = [
             {"$group": {
@@ -195,7 +196,7 @@ def create_admin_routes(db):
             {"$limit": 20}
         ]
         top_talents = await db.shares.aggregate(talent_pipeline).to_list(20)
-        
+
         return {
             "total_shares": len(shares),
             "by_type": {item["_id"]: item["count"] for item in type_counts},
@@ -211,15 +212,15 @@ def create_admin_routes(db):
             ],
             "recent_shares": shares[:50]  # Last 50 shares
         }
-    
+
     # Share settings
-    @router.get("/admin/share-settings")
+    @admin_router.get("/admin/share-settings")
     async def get_share_settings():
         """Get share settings"""
         settings = await db.settings.find_one({"type": "share_settings"}, {"_id": 0})
         return settings or {"share_enabled": True}
-    
-    @router.post("/admin/share-settings")
+
+    @admin_router.post("/admin/share-settings")
     async def update_share_settings(data: dict):
         """Update share settings"""
         await db.settings.update_one(
@@ -228,9 +229,9 @@ def create_admin_routes(db):
             upsert=True
         )
         return {"success": True}
-    
+
     # Get paid talents with payment details
-    @router.get("/admin/paid-talents")
+    @admin_router.get("/admin/paid-talents")
     async def get_paid_talents():
         """Get all talents who have completed payment with their payment details"""
         # Get all paid payment orders
@@ -238,16 +239,16 @@ def create_admin_routes(db):
             {"status": "paid"},
             {"_id": 0}
         ).sort("paid_at", -1).to_list(500)
-        
+
         # Get talent details for each paid order
         paid_talents = []
         seen_talent_ids = set()
-        
+
         for order in paid_orders:
             talent_id = order.get("talent_id")
             if talent_id and talent_id not in seen_talent_ids:
                 seen_talent_ids.add(talent_id)
-                
+
                 # Get talent info
                 talent = await db.talents.find_one({"id": talent_id}, {"_id": 0})
                 if talent:
@@ -264,49 +265,49 @@ def create_admin_routes(db):
                         "paid_at": order.get("paid_at", ""),
                         "order_id": order.get("razorpay_order_id", "")
                     })
-        
+
         return {
             "total_paid": len(paid_talents),
             "talents": paid_talents
         }
-    
+
     # Track view from shared link
     @router.post("/track-share-view")
     async def track_share_view(data: dict):
         """Track when someone views a profile via shared link"""
         talent_id = data.get("talent_id")
         ref = data.get("ref", "share")
-        
+
         if not talent_id:
             return {"success": False}
-        
+
         view_record = {
             "id": str(uuid.uuid4()),
             "talent_id": talent_id,
             "ref": ref,
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
-        
+
         await db.share_views.insert_one(view_record)
-        
+
         # Update talent's share view count
         await db.talents.update_one(
             {"id": talent_id},
             {"$inc": {"share_views": 1}}
         )
-        
+
         return {"success": True}
-    
+
     # Get share stats for a specific talent (for talent dashboard)
     @router.get("/talent/{talent_id}/share-stats")
     async def get_talent_share_stats(talent_id: str):
         """Get share statistics for a talent"""
         # Get share count by type
         shares = await db.shares.find({"talent_id": talent_id}, {"_id": 0}).to_list(100)
-        
+
         # Get view count from shares
         views = await db.share_views.count_documents({"talent_id": talent_id})
-        
+
         # Calculate stats
         stats = {
             "total_shares": len(shares),
@@ -317,9 +318,9 @@ def create_admin_routes(db):
                 "feed": sum(1 for s in shares if s.get("share_type") == "feed")
             }
         }
-        
+
         return stats
-    
+
     # Get share history for a talent
     @router.get("/talent/{talent_id}/share-history")
     async def get_talent_share_history(talent_id: str):
@@ -328,9 +329,9 @@ def create_admin_routes(db):
             {"talent_id": talent_id},
             {"_id": 0}
         ).sort("timestamp", -1).to_list(50)
-        
+
         return {"shares": shares}
-    
+
     # Track referral when someone signs up via shared link
     @router.post("/track-referral")
     async def track_referral(data: dict):
@@ -338,10 +339,10 @@ def create_admin_routes(db):
         referrer_id = data.get("referrer_id")
         new_talent_id = data.get("new_talent_id")
         new_talent_name = data.get("new_talent_name", "Unknown")
-        
+
         if not referrer_id or not new_talent_id:
             return {"success": False}
-        
+
         # Record the referral
         referral_record = {
             "id": str(uuid.uuid4()),
@@ -350,17 +351,17 @@ def create_admin_routes(db):
             "new_talent_name": new_talent_name,
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
-        
+
         await db.referrals.insert_one(referral_record)
-        
+
         # Update referrer's referral count
         await db.talents.update_one(
             {"id": referrer_id},
             {"$inc": {"referral_count": 1}}
         )
-        
+
         return {"success": True}
-    
+
     # Get referral stats for a talent
     @router.get("/talent/{talent_id}/referral-stats")
     async def get_talent_referral_stats(talent_id: str):
@@ -369,12 +370,12 @@ def create_admin_routes(db):
             {"referrer_id": talent_id},
             {"_id": 0}
         ).sort("timestamp", -1).to_list(50)
-        
+
         return {
             "total_referrals": len(referrals),
             "referrals": referrals
         }
-    
+
     # Get share leaderboard (top shared talents)
     @router.get("/share-leaderboard")
     async def get_share_leaderboard():
@@ -389,9 +390,9 @@ def create_admin_routes(db):
             {"$sort": {"total_shares": -1}},
             {"$limit": 10}
         ]
-        
+
         leaderboard = await db.shares.aggregate(pipeline).to_list(10)
-        
+
         # Get full talent details for each
         result = []
         for item in leaderboard:
@@ -408,7 +409,8 @@ def create_admin_routes(db):
                     "total_shares": item["total_shares"],
                     "votes": talent.get("votes", 0)
                 })
-        
+
         return {"leaderboard": result}
-    
+
+    router.include_router(admin_router, dependencies=[Depends(get_current_admin)])
     return router
