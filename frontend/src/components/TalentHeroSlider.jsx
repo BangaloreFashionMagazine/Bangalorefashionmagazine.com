@@ -161,7 +161,7 @@ const TalentHeroSlider = () => {
                   "object-cover"
                 }`}
                 style={{ 
-                  objectPosition: `${slide.focal_point_x || 50}% ${slide.focal_point_y || 25}%`
+                  objectPosition: `${slide.focal_point_x || 50}% ${slide.focal_point_y || 30}%`
                 }}
               />
               

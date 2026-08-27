@@ -3,7 +3,7 @@ import axios from "axios";
 import { Users, Star, Award, Image, Download, Check, X, Phone, Mail, Trash2, ExternalLink, Music, Video, Upload, BarChart3, TrendingUp, Eye, MousePointer, ShoppingBag, Package, MapPin, Calendar, BookOpen, Settings, IndianRupee, Layers, FileText, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ImageUploadWithCrop from "@/components/ImageUploadWithCrop";
-import { API, BFM_LOGO, TALENT_CATEGORIES, STORE_CATEGORIES, CATEGORY_DB } from "@/lib/config";
+import { API, BFM_LOGO, TALENT_CATEGORIES, STORE_CATEGORIES, getCategoryDisplay, getCategoryForDB } from "@/lib/config";
 import { autoCompressImage } from "@/lib/imageOptimization";
 import { QRCodeSVG } from "qrcode.react";
 import { jsPDF } from "jspdf";
@@ -555,12 +555,9 @@ const AdminDashboard = () => {
 
   const saveTalentEdit = async () => {
     try {
-      // Convert display category to database format before saving
-      const dataToSave = {
-        ...editData,
-        category: CATEGORY_DB[editData.category] || editData.category
-      };
-      await axios.put(`${API}/talent/${selectedTalent.id}`, dataToSave);
+      // editData.category is already stored in database format (see the
+      // Category <select> above, which converts display <-> db form on change).
+      await axios.put(`${API}/talent/${selectedTalent.id}`, editData);
       toast({ title: "Talent updated!" });
       fetchAllTalents();
       setSelectedTalent(null);
@@ -2788,11 +2785,11 @@ const AdminDashboard = () => {
                     <div>
                       <label className="text-[#A0A5B0] text-sm">Category</label>
                       {editMode ? (
-                        <select value={editData.category || ""} onChange={e => setEditData({...editData, category: e.target.value})} className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]">
+                        <select value={getCategoryDisplay(editData.category) || ""} onChange={e => setEditData({...editData, category: getCategoryForDB(e.target.value)})} className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]">
                           {TALENT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                       ) : (
-                        <p className="text-[#D4AF37]">{editData.category}</p>
+                        <p className="text-[#D4AF37]">{getCategoryDisplay(editData.category)}</p>
                       )}
                     </div>
 

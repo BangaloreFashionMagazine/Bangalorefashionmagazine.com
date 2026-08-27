@@ -560,6 +560,11 @@ const HeroManagement = () => {
                     <option value="contain">Contain</option>
                     <option value="original">Original</option>
                   </select>
+                  <p className="text-[#A0A5B0] text-xs mt-1">
+                    Smart Fit and Cover both crop to fill the frame using the focal point you set below -
+                    there's no automatic face detection, so drag the focal point onto the face/subject
+                    to avoid cropping it out.
+                  </p>
                 </div>
               )}
             </div>
@@ -826,6 +831,10 @@ const HeroManagement = () => {
                   <option value="contain">Contain</option>
                   <option value="original">Original</option>
                 </select>
+                <p className="text-[#A0A5B0] text-xs mt-1">
+                  Smart Fit and Cover both crop to fill the frame using the focal point above - there's
+                  no automatic face detection, so make sure the focal point is on the face/subject.
+                </p>
               </div>
 
               {/* Preview */}

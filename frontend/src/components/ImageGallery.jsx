@@ -104,7 +104,7 @@ const ImageGallery = ({ images, initialIndex = 0, onClose }) => {
                 i === currentIndex ? 'border-[#D4AF37]' : 'border-transparent opacity-60 hover:opacity-100'
               }`}
             >
-              <img src={img} alt={`Thumb ${i + 1}`} className="w-full h-full object-cover" />
+              <img src={img} alt={`Thumb ${i + 1}`} className="w-full h-full object-cover" style={{ objectPosition: "50% 15%" }} />
             </button>
           ))}
         </div>

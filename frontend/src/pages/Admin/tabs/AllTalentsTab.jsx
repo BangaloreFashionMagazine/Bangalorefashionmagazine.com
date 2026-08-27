@@ -1,12 +1,12 @@
 import { Download } from "lucide-react";
-import { API, TALENT_CATEGORIES } from "@/lib/config";
+import { API, getCategoryDisplay } from "@/lib/config";
 
-const AllTalentsTab = ({ 
-  allTalents, 
-  loading, 
-  categoryFilter, 
-  setCategoryFilter, 
-  talentSearchAdmin, 
+const AllTalentsTab = ({
+  allTalents,
+  loading,
+  categoryFilter,
+  setCategoryFilter,
+  talentSearchAdmin,
   setTalentSearchAdmin,
   openTalentDetail,
   updateRank,
@@ -14,7 +14,12 @@ const AllTalentsTab = ({
   fetchAllTalents,
   toast
 }) => {
-  const filteredTalents = allTalents.filter(t => 
+  // Options are derived from the categories actually present on fetched talents
+  // (raw database form), so the filter value always matches real talent.category
+  // values - never from the display-name list, which uses different strings.
+  const availableCategories = [...new Set(allTalents.map(t => t.category).filter(Boolean))].sort();
+
+  const filteredTalents = allTalents.filter(t =>
     (!categoryFilter || t.category === categoryFilter) &&
     (!talentSearchAdmin || t.name.toLowerCase().includes(talentSearchAdmin.toLowerCase()))
   );
@@ -25,8 +30,25 @@ const AllTalentsTab = ({
       await axios.put(`${API}/admin/talent/${talent.id}/featured?featured=${!talent.is_featured}`);
       toast({ title: talent.is_featured ? "Removed from Featured" : "Added to Featured!" });
       fetchAllTalents();
-    } catch (err) { 
-      toast({ title: "Failed to update", variant: "destructive" }); 
+    } catch (err) {
+      toast({ title: "Failed to update", variant: "destructive" });
+    }
+  };
+
+  const exportTalents = async () => {
+    try {
+      const axios = (await import('axios')).default;
+      const res = await axios.get(`${API}/admin/talents/export`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'talents_export.csv');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      toast({ title: "Export failed", variant: "destructive" });
     }
   };
 
@@ -37,7 +59,7 @@ const AllTalentsTab = ({
         <div className="flex gap-2 items-center flex-wrap">
           {/* Search Box */}
           <div className="relative">
-            <input 
+            <input
               type="text"
               placeholder="Search by name..."
               value={talentSearchAdmin}
@@ -48,40 +70,40 @@ const AllTalentsTab = ({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
-          <select 
-            value={categoryFilter} 
+          <select
+            value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
             className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-sm"
           >
             <option value="">All Categories</option>
-            {TALENT_CATEGORIES.map(cat => (
-              <option key={cat} value={cat}>{cat}</option>
+            {availableCategories.map(cat => (
+              <option key={cat} value={cat}>{getCategoryDisplay(cat)}</option>
             ))}
           </select>
           {(talentSearchAdmin || categoryFilter) && (
-            <button 
+            <button
               onClick={() => { setTalentSearchAdmin(''); setCategoryFilter(''); }}
               className="px-3 py-2 text-[#A0A5B0] hover:text-[#D4AF37] text-sm"
             >
               Clear
             </button>
           )}
-          <a href={`${API}/admin/talents/export`} download 
+          <button onClick={exportTalents}
             className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded text-sm font-bold flex items-center gap-2">
             <Download size={16} /> Export
-          </a>
+          </button>
         </div>
       </div>
-      
+
       {/* Filter Results Info */}
       {(talentSearchAdmin || categoryFilter) && (
         <div className="mb-4 text-[#A0A5B0] text-sm">
           Showing {filteredTalents.length} of {allTalents.length} talents
           {talentSearchAdmin && <span className="text-[#D4AF37]"> matching "{talentSearchAdmin}"</span>}
-          {categoryFilter && <span className="text-[#D4AF37]"> in {categoryFilter}</span>}
+          {categoryFilter && <span className="text-[#D4AF37]"> in {getCategoryDisplay(categoryFilter)}</span>}
         </div>
       )}
-      
+
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#D4AF37] border-t-transparent mr-3"></div>
@@ -103,12 +125,12 @@ const AllTalentsTab = ({
                   {t.is_featured && <span className="text-xs px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded">⭐ Featured</span>}
                   {t.rank && <span className="text-xs px-2 py-0.5 bg-[#D4AF37]/20 text-[#D4AF37] rounded">Rank #{t.rank}</span>}
                 </div>
-                <p className="text-[#D4AF37] text-sm">{t.category}</p>
+                <p className="text-[#D4AF37] text-sm">{getCategoryDisplay(t.category)}</p>
                 <p className="text-[#A0A5B0] text-xs truncate">{t.email} {t.phone ? `• ${t.phone}` : ""}</p>
               </div>
               <div className="flex items-center gap-2 flex-wrap md:flex-nowrap">
-                <button 
-                  onClick={(e) => { e.stopPropagation(); toggleFeatured(t); }} 
+                <button
+                  onClick={(e) => { e.stopPropagation(); toggleFeatured(t); }}
                   className={`px-2 py-1 rounded text-xs ${t.is_featured ? "bg-purple-500/30 text-purple-400" : "bg-[#0A1628] text-[#A0A5B0] hover:text-purple-400"}`}
                   title={t.is_featured ? "Remove from Spotlight" : "Add to Talent Spotlight"}
                 >
