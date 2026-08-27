@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import "@/App.css";
-import { BrowserRouter, Routes, Route, Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { EffectFade, Autoplay, Pagination, Navigation } from 'swiper/modules';
@@ -48,6 +48,26 @@ axios.interceptors.request.use((config) => {
   }
   return config;
 });
+
+// If an admin-only request comes back unauthorized (missing/expired token),
+// the previous behavior was to fail silently and just show empty data with
+// no explanation. Clear the stale session and send the admin to log back in
+// instead of leaving them staring at a dashboard that looks broken/empty.
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error?.response?.status;
+    const url = error?.config?.url || "";
+    if ((status === 401 || status === 403) && url.includes("/admin/") && window.location.pathname.startsWith("/admin")) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      if (!window.location.pathname.startsWith("/login")) {
+        window.location.href = "/login?expired=1";
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 // Welcome Splash Screen (auto-dismisses after 1 second)
 const WelcomeSplash = ({ onClose }) => {
@@ -1289,9 +1309,26 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true, leade
                         <span className="flex-1">Insta Feed (4:5)</span>
                         <span className="text-[#A0A5B0] text-xs">Preview →</span>
                       </button>
+                      <button
+                        onClick={() => {
+                          const link = `${window.location.origin}/talent/${talent.id}`;
+                          navigator.clipboard.writeText(link).then(() => {
+                            toast({ title: "Profile link copied!" });
+                          }).catch(() => {
+                            toast({ title: "Could not copy link", variant: "destructive" });
+                          });
+                          setShowShareMenu(false);
+                        }}
+                        className="w-full px-3 py-2 text-left text-[#F5F5F0] hover:bg-[#D4AF37]/20 rounded-lg flex items-center gap-2 text-sm border border-[#D4AF37]/10"
+                      >
+                        <span className="w-6 h-6 bg-[#D4AF37]/20 rounded-full flex items-center justify-center text-[#D4AF37]">
+                          <ExternalLink size={12} />
+                        </span>
+                        <span className="flex-1">Copy Profile Link</span>
+                      </button>
                     </div>
-                    
-                    <button 
+
+                    <button
                       onClick={() => setShowShareMenu(false)}
                       className="w-full mt-3 py-1 text-[#A0A5B0] text-xs hover:text-[#F5F5F0]"
                     >
@@ -2002,6 +2039,14 @@ const LoginPage = ({ onLogin }) => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get("expired") === "1") {
+      toast({ title: "Session expired", description: "Please log in again.", variant: "destructive" });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -3325,7 +3370,7 @@ function App() {
           <Route path="/talents/:category" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><TalentsPage ads={ads} shareEnabled={shareEnabled} /></>} />
           <Route path="/magazine/:section" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><MagazinePage /></>} />
           <Route path="/talent-dashboard" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><TalentDashboard talent={talent} onUpdate={setTalent} /></>} />
-          <Route path="/admin" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><AdminDashboard /></>} />
+          <Route path="/admin" element={user ? (<><Navbar user={user} talent={talent} onLogout={handleLogout} /><AdminDashboard /></>) : (<Navigate to="/login" replace />)} />
         </Routes>
         <Toaster />
       </BrowserRouter>

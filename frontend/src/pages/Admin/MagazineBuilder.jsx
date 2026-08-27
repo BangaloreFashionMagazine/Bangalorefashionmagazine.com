@@ -3559,17 +3559,18 @@ const MagazineBuilder = () => {
                             </div>
                           )}
                           {el.type === 'image' && el.content && (
-                            <img 
-                              src={el.content} 
-                              alt="" 
-                              className="w-full h-full" 
-                              style={{ 
-                                objectFit: el.style?.objectFit || 'cover', 
+                            <img
+                              src={el.content}
+                              alt=""
+                              className="w-full h-full"
+                              style={{
+                                objectFit: el.style?.objectFit || 'cover',
                                 objectPosition: el.style?.objectPosition || 'center',
                                 borderRadius: el.style?.borderRadius || '0',
                                 transform: el.style?.transform || 'none',
-                                opacity: el.style?.opacity ?? 1
-                              }} 
+                                opacity: el.style?.opacity ?? 1,
+                                filter: el.style?.filter || 'none'
+                              }}
                             />
                           )}
                           {el.type === 'logo' && (
@@ -3589,15 +3590,16 @@ const MagazineBuilder = () => {
                                 maxHeight: '100%'
                               }}
                             >
-                              <img 
-                                src={el.content} 
-                                alt="BFM Logo" 
-                                style={{ 
-                                  width: '100%', 
-                                  height: '100%', 
-                                  objectFit: 'contain', 
-                                  borderRadius: '50%' 
-                                }} 
+                              <img
+                                src={el.content}
+                                alt="BFM Logo"
+                                style={{
+                                  width: '100%',
+                                  height: '100%',
+                                  objectFit: 'contain',
+                                  borderRadius: '50%',
+                                  filter: el.style?.filter || 'none'
+                                }}
                               />
                             </div>
                           )}

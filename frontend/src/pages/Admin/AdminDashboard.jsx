@@ -979,15 +979,23 @@ const AdminDashboard = () => {
                           ))}
                           {customImages.length < 5 && (
                             <label className="w-20 h-24 border-2 border-dashed border-[#D4AF37]/30 rounded flex items-center justify-center cursor-pointer hover:border-[#D4AF37]">
-                              <input 
-                                type="file" 
-                                accept="image/*" 
+                              <input
+                                type="file"
+                                accept="image/*"
                                 className="hidden"
-                                onChange={async (e) => {
+                                onChange={(e) => {
                                   const file = e.target.files[0];
                                   if (!file) return;
-                                  const compressed = await autoCompressImage(file);
-                                  setCustomImages(prev => [...prev, compressed].slice(0, 5));
+                                  const reader = new FileReader();
+                                  reader.onloadend = async () => {
+                                    try {
+                                      const compressed = await autoCompressImage(reader.result);
+                                      setCustomImages(prev => [...prev, compressed].slice(0, 5));
+                                    } catch (err) {
+                                      toast({ title: "Failed to upload image", variant: "destructive" });
+                                    }
+                                  };
+                                  reader.readAsDataURL(file);
                                 }}
                               />
                               <span className="text-[#D4AF37] text-2xl">+</span>
@@ -1122,15 +1130,23 @@ const AdminDashboard = () => {
                           ))}
                           {customImages.length < 5 && (
                             <label className="w-20 h-24 border-2 border-dashed border-[#D4AF37]/30 rounded flex items-center justify-center cursor-pointer hover:border-[#D4AF37]">
-                              <input 
-                                type="file" 
-                                accept="image/*" 
+                              <input
+                                type="file"
+                                accept="image/*"
                                 className="hidden"
-                                onChange={async (e) => {
+                                onChange={(e) => {
                                   const file = e.target.files[0];
                                   if (!file) return;
-                                  const compressed = await autoCompressImage(file);
-                                  setCustomImages(prev => [...prev, compressed].slice(0, 5));
+                                  const reader = new FileReader();
+                                  reader.onloadend = async () => {
+                                    try {
+                                      const compressed = await autoCompressImage(reader.result);
+                                      setCustomImages(prev => [...prev, compressed].slice(0, 5));
+                                    } catch (err) {
+                                      toast({ title: "Failed to upload image", variant: "destructive" });
+                                    }
+                                  };
+                                  reader.readAsDataURL(file);
                                 }}
                               />
                               <span className="text-[#D4AF37] text-2xl">+</span>
@@ -1177,7 +1193,7 @@ const AdminDashboard = () => {
                               {/* NO tint overlay - only gradient on text area at bottom */}
                               <div className="absolute inset-0">
                                 {/* Text area at bottom only - minimal overlay */}
-                                <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 via-black/40 to-transparent" style={{height: '45%'}}>
+                                <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 via-black/40 to-transparent" style={{height: '58%'}}>
                                   {/* BFM Logo & Branding */}
                                   <div className="flex items-center gap-2 mb-2">
                                     <img src={BFM_LOGO} alt="BFM" className="w-10 h-10 rounded-full object-cover border border-[#D4AF37]" />
@@ -1277,7 +1293,7 @@ const AdminDashboard = () => {
                               {/* Story Overlay - NO tint, only bottom text area */}
                               <div className="absolute inset-0">
                                 {/* Text area at bottom only */}
-                                <div className="absolute bottom-0 left-0 right-0 text-center p-2 bg-gradient-to-t from-black/80 via-black/50 to-transparent" style={{height: '40%'}}>
+                                <div className="absolute bottom-0 left-0 right-0 text-center p-2 bg-gradient-to-t from-black/80 via-black/50 to-transparent" style={{height: '58%'}}>
                                   {/* BFM Logo */}
                                   <img src={BFM_LOGO} alt="BFM" className="w-6 h-6 mx-auto rounded-full border border-[#D4AF37] mb-0.5" />
                                   <div className="text-[#D4AF37] text-[6px] font-bold tracking-wider">BANGALORE FASHION MAGAZINE</div>
