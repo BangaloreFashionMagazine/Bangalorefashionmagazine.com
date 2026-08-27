@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import QRCode from "qrcode";
 import ImageUploadWithCrop from "@/components/ImageUploadWithCrop";
+import MagazineViewer from "@/components/MagazineViewer";
 import TalentHeroSlider from "@/components/TalentHeroSlider";
 import { API, BFM_LOGO, TALENT_CATEGORIES, MAGAZINE_CATEGORIES, CATEGORY_DISPLAY, CATEGORY_DB, getCategoryDisplay, getCategoryForDB, DEFAULT_SLIDES, STORE_SUBCATEGORIES } from "@/lib/config";
 import { autoCompressImage } from "@/lib/imageOptimization";
@@ -2832,6 +2833,7 @@ const MagazinePage = () => {
   const [editorials, setEditorials] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedTalent, setSelectedTalent] = useState(null);
+  const [viewingMagazine, setViewingMagazine] = useState(null);
   const { toast } = useToast();
   const { leaderboard } = useShareLeaderboard();
   
@@ -2915,15 +2917,23 @@ const MagazinePage = () => {
                             <p className="text-[#A0A5B0] text-sm">{mag.file_name || "Latest Edition"}</p>
                           </div>
                         </div>
-                        <div className="p-4">
+                        <div className="p-4 space-y-2">
                           {mag.file_data && (
-                            <a 
-                              href={mag.file_data} 
-                              download={mag.file_name || "magazine.pdf"}
-                              className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-[#D4AF37] text-[#050A14] rounded-lg font-bold hover:bg-[#F5F5F0] transition-colors"
-                            >
-                              <Download size={18} /> Download PDF
-                            </a>
+                            <>
+                              <button
+                                onClick={() => setViewingMagazine(mag)}
+                                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-[#D4AF37] text-[#050A14] rounded-lg font-bold hover:bg-[#F5F5F0] transition-colors"
+                              >
+                                <Image size={18} /> View Pages
+                              </button>
+                              <a
+                                href={mag.file_data}
+                                download={mag.file_name || "magazine.pdf"}
+                                className="flex items-center justify-center gap-2 w-full px-4 py-3 border border-[#D4AF37] text-[#D4AF37] rounded-lg font-bold hover:bg-[#D4AF37]/10 transition-colors"
+                              >
+                                <Download size={18} /> Download PDF
+                              </a>
+                            </>
                           )}
                         </div>
                       </div>
@@ -2987,11 +2997,20 @@ const MagazinePage = () => {
 
       {/* Talent Detail Modal */}
       {selectedTalent && (
-        <TalentDetailModal 
-          talent={selectedTalent} 
-          onClose={() => setSelectedTalent(null)} 
-          onVote={handleVote} 
+        <TalentDetailModal
+          talent={selectedTalent}
+          onClose={() => setSelectedTalent(null)}
+          onVote={handleVote}
           leaderboard={leaderboard}
+        />
+      )}
+
+      {viewingMagazine && (
+        <MagazineViewer
+          fileData={viewingMagazine.file_data}
+          fileName={viewingMagazine.file_name}
+          title={viewingMagazine.title}
+          onClose={() => setViewingMagazine(null)}
         />
       )}
     </div>
@@ -3025,6 +3044,7 @@ const AboutPage = () => (
 // Home Page
 const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine, video, partyEvents }) => {
   const [enlargedAd, setEnlargedAd] = useState(null);
+  const [showMagazineViewer, setShowMagazineViewer] = useState(false);
   
   const handleAdClick = (e, ad) => {
     e.preventDefault();
@@ -3096,19 +3116,31 @@ const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine, v
           </div>
         )}
 
-        {/* Magazine Download Section - Right below hero */}
+        {/* Magazine Section - Right below hero */}
         {magazine && magazine.file_data && (
           <div className="bg-[#0A1628] py-4 border-b border-[#D4AF37]/20">
             <div className="container mx-auto px-4">
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                <h3 className="text-[#D4AF37] font-serif text-base">{magazine.title || "Download Our Magazine"}</h3>
-                <a href={magazine.file_data} download={magazine.file_name || "magazine.pdf"}
+                <h3 className="text-[#D4AF37] font-serif text-base">{magazine.title || "Our Latest Magazine"}</h3>
+                <button onClick={() => setShowMagazineViewer(true)}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded-lg font-bold hover:bg-[#F5F5F0] transition-colors text-sm">
+                  <Image size={16} /> View Pages
+                </button>
+                <a href={magazine.file_data} download={magazine.file_name || "magazine.pdf"}
+                  className="inline-flex items-center gap-2 px-4 py-2 border border-[#D4AF37] text-[#D4AF37] rounded-lg font-bold hover:bg-[#D4AF37]/10 transition-colors text-sm">
                   <Download size={16} /> Download PDF
                 </a>
               </div>
             </div>
           </div>
+        )}
+        {showMagazineViewer && magazine && (
+          <MagazineViewer
+            fileData={magazine.file_data}
+            fileName={magazine.file_name}
+            title={magazine.title}
+            onClose={() => setShowMagazineViewer(false)}
+          />
         )}
         
         {/* Party Updates Section - Can have N number of parties */}
