@@ -26,6 +26,29 @@ import { ShareBadgeSmall, ShareBadgeLarge, useShareLeaderboard } from "@/compone
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
+// Attach the right bearer token to every outgoing request based on its URL,
+// so admin-only and talent-owned endpoints authenticate correctly without
+// touching every individual axios call site.
+axios.interceptors.request.use((config) => {
+  const url = config.url || "";
+  if (url.includes("/admin/")) {
+    const adminToken = localStorage.getItem("token");
+    if (adminToken) {
+      config.headers = config.headers || {};
+      config.headers.Authorization = `Bearer ${adminToken}`;
+    }
+  } else if (/\/talent\/[^/]+\/?$/.test(url) && (config.method || "get").toLowerCase() === "put") {
+    const talentToken = localStorage.getItem("talentToken");
+    const adminToken = localStorage.getItem("token");
+    const token = talentToken || adminToken;
+    if (token) {
+      config.headers = config.headers || {};
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+  return config;
+});
+
 // Welcome Splash Screen (auto-dismisses after 1 second)
 const WelcomeSplash = ({ onClose }) => {
   useEffect(() => {
@@ -1188,10 +1211,11 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true, leade
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {allImages.map((img, i) => (
                   <div key={i} className="relative">
-                    <img 
-                      src={img} 
-                      alt={`${talent.name} - Photo ${i + 1}`} 
+                    <img
+                      src={img}
+                      alt={`${talent.name} - Photo ${i + 1}`}
                       className="w-full aspect-[3/4] object-cover rounded-lg cursor-pointer hover:opacity-80 hover:scale-[1.02] transition-all"
+                      style={{ objectPosition: "50% 15%" }}
                       onClick={() => openGallery(i)}
                     />
                     <LogoWatermark size="small" position="bottom-right" />
@@ -1616,10 +1640,11 @@ const TalentCard = ({ talent, onVote, onClick }) => {
       data-testid={`talent-card-${talent.id}`}
     >
       <div className="aspect-[3/4] w-full overflow-hidden relative">
-        <img 
-          src={getImageSrc()} 
-          alt={talent.name} 
+        <img
+          src={getImageSrc()}
+          alt={talent.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          style={{ objectPosition: "50% 15%" }}
           onError={() => setImgError(true)}
           loading="lazy"
         />
@@ -1678,10 +1703,11 @@ const TalentCardSmall = ({ talent, onVote, onClick, leaderboard = [] }) => {
       <ShareBadgeSmall talentId={talent.id} leaderboard={leaderboard} />
       
       <div className="aspect-[3/4] w-full overflow-hidden relative">
-        <img 
-          src={getImageSrc()} 
-          alt={talent.name} 
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+        <img
+          src={getImageSrc()}
+          alt={talent.name}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          style={{ objectPosition: "50% 15%" }}
           loading="lazy"
           onError={() => setImgError(true)}
         />
