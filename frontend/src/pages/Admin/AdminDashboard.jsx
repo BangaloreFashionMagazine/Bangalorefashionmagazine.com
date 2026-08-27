@@ -106,6 +106,76 @@ const AdminDashboard = () => {
   const [paymentHistory, setPaymentHistory] = useState([]);
   const [savingPaymentSettings, setSavingPaymentSettings] = useState(false);
 
+  // Tab visibility (which tabs show in the tab bar)
+  const [hiddenTabs, setHiddenTabs] = useState([]);
+  const [savingTabSettings, setSavingTabSettings] = useState(false);
+
+  const fetchTabSettings = async () => {
+    try {
+      const res = await axios.get(`${API}/admin/tab-settings`);
+      setHiddenTabs(res.data.hidden_tabs || []);
+    } catch (err) { /* default: all tabs visible */ }
+  };
+
+  const toggleTabVisible = (tabId) => {
+    setHiddenTabs(prev => prev.includes(tabId) ? prev.filter(t => t !== tabId) : [...prev, tabId]);
+  };
+
+  const saveTabSettings = async () => {
+    setSavingTabSettings(true);
+    try {
+      await axios.put(`${API}/admin/tab-settings`, { hidden_tabs: hiddenTabs });
+      toast({ title: "Tab visibility saved!" });
+    } catch (err) {
+      toast({ title: "Failed to save tab settings", variant: "destructive" });
+    }
+    setSavingTabSettings(false);
+  };
+
+  useEffect(() => { fetchTabSettings(); }, []);
+
+  // Category management (built-in + admin-added custom categories)
+  const [categoryOptions, setCategoryOptions] = useState(TALENT_CATEGORIES);
+  const [customCategories, setCustomCategories] = useState([]);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [savingCategory, setSavingCategory] = useState(false);
+
+  const fetchCategories = async () => {
+    try {
+      const res = await axios.get(`${API}/categories/all`);
+      const names = (res.data.categories || []).map(c => c.display_name);
+      setCategoryOptions([...new Set([...TALENT_CATEGORIES, ...names])]);
+      setCustomCategories((res.data.categories || []).filter(c => c.is_custom));
+    } catch (err) { /* fall back to built-in defaults already in state */ }
+  };
+
+  useEffect(() => { fetchCategories(); }, []);
+
+  const addCategory = async () => {
+    const name = newCategoryName.trim();
+    if (!name) return;
+    setSavingCategory(true);
+    try {
+      await axios.post(`${API}/admin/categories`, { display_name: name });
+      setNewCategoryName("");
+      toast({ title: "Category added!" });
+      fetchCategories();
+    } catch (err) {
+      toast({ title: "Error", description: err.response?.data?.detail || "Failed to add category", variant: "destructive" });
+    }
+    setSavingCategory(false);
+  };
+
+  const deleteCategory = async (id) => {
+    try {
+      await axios.delete(`${API}/admin/categories/${id}`);
+      toast({ title: "Category deleted" });
+      fetchCategories();
+    } catch (err) {
+      toast({ title: "Error", description: err.response?.data?.detail || "Failed to delete category", variant: "destructive" });
+    }
+  };
+
   // Tab-specific data fetchers
   const fetchPending = async () => {
     setLoading(true);
@@ -690,6 +760,79 @@ const AdminDashboard = () => {
     }
   };
 
+  // Get Featured in Magazine (admin review)
+  const [featuredSubmissions, setFeaturedSubmissions] = useState([]);
+  const [featuredLoading, setFeaturedLoading] = useState(false);
+  const [featuredCategoryFilter, setFeaturedCategoryFilter] = useState("");
+  const [featuredPaymentFilter, setFeaturedPaymentFilter] = useState("");
+  const [selectedSubmission, setSelectedSubmission] = useState(null);
+  const [featuredSettings, setFeaturedSettings] = useState({ enabled: true, fee: 999 });
+  const [savingFeaturedSettings, setSavingFeaturedSettings] = useState(false);
+
+  const fetchFeaturedSubmissions = async () => {
+    setFeaturedLoading(true);
+    try {
+      const params = {};
+      if (featuredCategoryFilter) params.category = featuredCategoryFilter;
+      if (featuredPaymentFilter) params.payment_status = featuredPaymentFilter;
+      const res = await axios.get(`${API}/admin/magazine-features`, { params });
+      setFeaturedSubmissions(res.data || []);
+    } catch (err) { toast({ title: "Failed to load submissions", variant: "destructive" }); }
+    setFeaturedLoading(false);
+  };
+
+  const fetchFeaturedSettings = async () => {
+    try {
+      const res = await axios.get(`${API}/magazine-feature-settings`);
+      setFeaturedSettings(res.data);
+    } catch (err) { /* defaults already in state */ }
+  };
+
+  const saveFeaturedSettings = async () => {
+    setSavingFeaturedSettings(true);
+    try {
+      await axios.put(`${API}/admin/magazine-feature-settings`, featuredSettings);
+      toast({ title: "Feature price updated!" });
+    } catch (err) {
+      toast({ title: "Failed to update price", variant: "destructive" });
+    }
+    setSavingFeaturedSettings(false);
+  };
+
+  const updateSubmissionReview = async (id, updates) => {
+    try {
+      await axios.put(`${API}/admin/magazine-features/${id}`, updates);
+      toast({ title: "Updated!" });
+      fetchFeaturedSubmissions();
+      setSelectedSubmission(null);
+    } catch (err) {
+      toast({ title: "Update failed", variant: "destructive" });
+    }
+  };
+
+  const deleteSubmission = async (id) => {
+    if (!window.confirm("Delete this submission?")) return;
+    try {
+      await axios.delete(`${API}/admin/magazine-features/${id}`);
+      toast({ title: "Deleted" });
+      fetchFeaturedSubmissions();
+      setSelectedSubmission(null);
+    } catch (err) {
+      toast({ title: "Delete failed", variant: "destructive" });
+    }
+  };
+
+  const downloadFile = (dataUrl, filename) => {
+    const link = document.createElement('a');
+    link.href = dataUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
+
+  useEffect(() => { if (tab === "get-featured") { fetchFeaturedSubmissions(); fetchFeaturedSettings(); } }, [tab, featuredCategoryFilter, featuredPaymentFilter]);
+
   // Payment Settings
   const fetchPaymentSettings = async () => {
     try {
@@ -728,6 +871,7 @@ const AdminDashboard = () => {
     { id: "instagram", label: "Instagram Promo", icon: Image },
     { id: "analytics", label: "Analytics", icon: BarChart3 },
     { id: "events", label: "Events & Payments", icon: IndianRupee },
+    { id: "get-featured", label: "Get Featured", icon: Award },
     { id: "hero", label: "Hero Images (Legacy)", icon: Image },
     { id: "party", label: "Party Updates", icon: Calendar },
     { id: "video", label: "Featured Video", icon: Video },
@@ -746,7 +890,7 @@ const AdminDashboard = () => {
         <h1 className="text-2xl font-bold text-[#F5F5F0] mb-6">Admin Dashboard</h1>
         
         <div className="flex flex-wrap gap-2 mb-6">
-          {tabs.map(t => (
+          {tabs.filter(t => t.id === "settings" || !hiddenTabs.includes(t.id)).map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
               className={`flex items-center gap-2 px-4 py-2 rounded text-sm ${tab === t.id ? "bg-[#D4AF37] text-[#050A14]" : "bg-[#0A1628] text-[#A0A5B0]"}`}>
               <t.icon size={16} /> {t.label}
@@ -1683,6 +1827,132 @@ const AdminDashboard = () => {
           </div>
         )}
 
+        {/* Get Featured in Magazine - admin review */}
+        {tab === "get-featured" && (
+          <div className="bg-[#0A1628] rounded-xl p-4 md:p-6 border border-[#D4AF37]/20">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 gap-3">
+              <h2 className="text-lg font-bold text-[#F5F5F0]">Get Featured Submissions ({featuredSubmissions.length})</h2>
+              <div className="flex gap-2 items-center flex-wrap">
+                <select value={featuredCategoryFilter} onChange={e => setFeaturedCategoryFilter(e.target.value)}
+                  className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-sm">
+                  <option value="">All Categories</option>
+                  {categoryOptions.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+                <select value={featuredPaymentFilter} onChange={e => setFeaturedPaymentFilter(e.target.value)}
+                  className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-sm">
+                  <option value="">All Payment Status</option>
+                  <option value="paid">Paid</option>
+                  <option value="pending">Payment Pending</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Feature price control */}
+            <div className="mb-4 p-3 bg-[#050A14] rounded-lg border border-[#D4AF37]/10 flex flex-wrap items-center gap-3">
+              <span className="text-[#A0A5B0] text-sm">Feature Fee:</span>
+              <input type="number" min="0" value={featuredSettings.fee}
+                onChange={e => setFeaturedSettings({...featuredSettings, fee: parseInt(e.target.value) || 0})}
+                className="w-28 px-2 py-1 bg-[#0A1628] border border-[#D4AF37]/30 rounded text-[#F5F5F0]" />
+              <label className="flex items-center gap-2 text-sm text-[#A0A5B0]">
+                <input type="checkbox" checked={featuredSettings.enabled}
+                  onChange={e => setFeaturedSettings({...featuredSettings, enabled: e.target.checked})}
+                  className="accent-[#D4AF37]" />
+                Payment required
+              </label>
+              <button onClick={saveFeaturedSettings} disabled={savingFeaturedSettings}
+                className="px-4 py-1.5 bg-[#D4AF37] text-[#050A14] rounded text-sm font-bold disabled:opacity-50">
+                {savingFeaturedSettings ? 'Saving...' : 'Save Price'}
+              </button>
+            </div>
+
+            {featuredLoading ? (
+              <p className="text-[#A0A5B0] text-center py-8">Loading...</p>
+            ) : featuredSubmissions.length === 0 ? (
+              <p className="text-[#A0A5B0] text-center py-8">No submissions found.</p>
+            ) : (
+              <div className="space-y-3">
+                {featuredSubmissions.map(s => (
+                  <div key={s.id} className="bg-[#050A14] rounded-lg p-3 md:p-4 flex flex-col md:flex-row md:items-center gap-3 cursor-pointer hover:bg-[#0D1B2A]" onClick={() => setSelectedSubmission(s)}>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="text-[#F5F5F0] font-bold">{s.name}</p>
+                        <span className={`text-xs px-2 py-0.5 rounded ${s.payment_status === 'paid' ? 'bg-green-500/20 text-green-500' : 'bg-yellow-500/20 text-yellow-500'}`}>
+                          {s.payment_status === 'paid' ? 'Paid' : 'Payment Pending'}
+                        </span>
+                        <span className="text-xs px-2 py-0.5 rounded bg-[#D4AF37]/20 text-[#D4AF37] capitalize">{s.review_status}</span>
+                      </div>
+                      <p className="text-[#D4AF37] text-sm">{s.category}</p>
+                      <p className="text-[#A0A5B0] text-xs">{s.email} • {s.phone} • {s.files?.length || 0} file(s)</p>
+                    </div>
+                    <button onClick={(e) => { e.stopPropagation(); deleteSubmission(s.id); }} className="px-3 py-1 bg-red-500/20 text-red-500 rounded text-sm self-start md:self-center">Delete</button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Detail / review modal */}
+            {selectedSubmission && (
+              <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4" onClick={() => setSelectedSubmission(null)}>
+                <div className="bg-[#0A1628] rounded-xl max-w-2xl w-full max-h-[85vh] overflow-y-auto p-6 border border-[#D4AF37]/30" onClick={e => e.stopPropagation()}>
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="text-[#F5F5F0] font-bold text-lg">{selectedSubmission.name}</h3>
+                    <button onClick={() => setSelectedSubmission(null)} className="text-[#A0A5B0] hover:text-[#F5F5F0]"><X size={20} /></button>
+                  </div>
+                  <div className="space-y-2 text-sm mb-4">
+                    <p className="text-[#A0A5B0]">Category: <span className="text-[#F5F5F0]">{selectedSubmission.category}</span></p>
+                    <p className="text-[#A0A5B0]">Email: <span className="text-[#F5F5F0]">{selectedSubmission.email}</span></p>
+                    <p className="text-[#A0A5B0]">Phone: <span className="text-[#F5F5F0]">{selectedSubmission.phone}</span></p>
+                    {selectedSubmission.notes && <p className="text-[#A0A5B0]">Notes: <span className="text-[#F5F5F0]">{selectedSubmission.notes}</span></p>}
+                  </div>
+
+                  {selectedSubmission.files?.length > 0 && (
+                    <div className="mb-4">
+                      <p className="text-[#A0A5B0] text-sm mb-2">Files ({selectedSubmission.files.length})</p>
+                      <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
+                        {selectedSubmission.files.map((f, i) => (
+                          <div key={i} className="relative group">
+                            <img src={f} alt="" className="w-full aspect-[3/4] object-cover rounded border border-[#D4AF37]/20" />
+                            <button onClick={() => downloadFile(f, `${selectedSubmission.name}-${i + 1}.jpg`)}
+                              className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded transition-opacity">
+                              <Download className="text-[#D4AF37]" size={20} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="mb-4">
+                    <label className="text-[#A0A5B0] text-sm block mb-1">Review Status</label>
+                    <select value={selectedSubmission.review_status}
+                      onChange={e => setSelectedSubmission({...selectedSubmission, review_status: e.target.value})}
+                      className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]">
+                      <option value="submitted">Submitted</option>
+                      <option value="reviewed">Reviewed</option>
+                      <option value="used">Used in Magazine</option>
+                    </select>
+                  </div>
+                  <div className="mb-4">
+                    <label className="text-[#A0A5B0] text-sm block mb-1">Admin Notes</label>
+                    <textarea value={selectedSubmission.admin_notes || ""}
+                      onChange={e => setSelectedSubmission({...selectedSubmission, admin_notes: e.target.value})}
+                      className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] h-20" />
+                  </div>
+                  <button
+                    onClick={() => updateSubmissionReview(selectedSubmission.id, {
+                      review_status: selectedSubmission.review_status,
+                      admin_notes: selectedSubmission.admin_notes
+                    })}
+                    className="w-full py-2 bg-[#D4AF37] text-[#050A14] rounded-lg font-bold"
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Analytics Dashboard */}
         {tab === "analytics" && (
           <AnalyticsTab
@@ -2376,7 +2646,80 @@ const AdminDashboard = () => {
         {tab === "settings" && (
           <div className="bg-[#0A1628] rounded-xl p-6 border border-[#D4AF37]/20">
             <h2 className="text-lg font-bold text-[#F5F5F0] mb-6">Settings</h2>
-            
+
+            {/* Tab Visibility Section */}
+            <div className="mb-8">
+              <div className="flex items-center gap-3 mb-4">
+                <Layers className="text-[#D4AF37]" size={24} />
+                <h3 className="text-[#F5F5F0] font-bold text-lg">Tab Visibility</h3>
+              </div>
+              <div className="bg-[#050A14] rounded-lg p-4 border border-[#D4AF37]/10">
+                <p className="text-[#A0A5B0] text-sm mb-3">Hide tabs you don't use to reduce clutter. Settings always stays visible.</p>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  {tabs.filter(t => t.id !== "settings").map(t => (
+                    <label key={t.id} className="flex items-center gap-2 px-3 py-2 bg-[#0A1628] rounded text-sm cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={!hiddenTabs.includes(t.id)}
+                        onChange={() => toggleTabVisible(t.id)}
+                        className="accent-[#D4AF37]"
+                      />
+                      <span className="text-[#F5F5F0]">{t.label}</span>
+                    </label>
+                  ))}
+                </div>
+                <button
+                  onClick={saveTabSettings}
+                  disabled={savingTabSettings}
+                  className="w-full mt-4 py-2 bg-[#D4AF37] text-[#050A14] rounded-lg font-bold disabled:opacity-50"
+                >
+                  {savingTabSettings ? 'Saving...' : 'Save Tab Visibility'}
+                </button>
+              </div>
+            </div>
+
+            {/* Manage Categories Section */}
+            <div className="mb-8">
+              <div className="flex items-center gap-3 mb-4">
+                <Star className="text-[#D4AF37]" size={24} />
+                <h3 className="text-[#F5F5F0] font-bold text-lg">Manage Categories</h3>
+              </div>
+              <div className="bg-[#050A14] rounded-lg p-4 border border-[#D4AF37]/10">
+                <p className="text-[#A0A5B0] text-sm mb-3">
+                  Add categories beyond the built-in defaults. New/existing talents can select them,
+                  and they immediately work correctly in filtering and search.
+                </p>
+                <div className="flex gap-2 mb-4">
+                  <input
+                    type="text"
+                    value={newCategoryName}
+                    onChange={e => setNewCategoryName(e.target.value)}
+                    placeholder="New category name"
+                    className="flex-1 px-3 py-2 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0]"
+                  />
+                  <button
+                    onClick={addCategory}
+                    disabled={savingCategory || !newCategoryName.trim()}
+                    className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded font-bold disabled:opacity-50"
+                  >
+                    Add
+                  </button>
+                </div>
+                {customCategories.length === 0 ? (
+                  <p className="text-[#A0A5B0] text-sm">No custom categories added yet.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {customCategories.map(c => (
+                      <div key={c.id} className="flex items-center justify-between px-3 py-2 bg-[#0A1628] rounded">
+                        <span className="text-[#F5F5F0]">{c.display_name}</span>
+                        <button onClick={() => deleteCategory(c.id)} className="text-red-500 text-sm hover:underline">Delete</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Payment Settings Section */}
             <div className="mb-8">
               <div className="flex items-center gap-3 mb-4">
@@ -2802,7 +3145,7 @@ const AdminDashboard = () => {
                       <label className="text-[#A0A5B0] text-sm">Category</label>
                       {editMode ? (
                         <select value={getCategoryDisplay(editData.category) || ""} onChange={e => setEditData({...editData, category: getCategoryForDB(e.target.value)})} className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]">
-                          {TALENT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                          {categoryOptions.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                       ) : (
                         <p className="text-[#D4AF37]">{getCategoryDisplay(editData.category)}</p>

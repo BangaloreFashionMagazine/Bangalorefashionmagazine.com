@@ -26,25 +26,19 @@ import { ShareBadgeSmall, ShareBadgeLarge, useShareLeaderboard } from "@/compone
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
-// Attach the right bearer token to every outgoing request based on its URL,
-// so admin-only and talent-owned endpoints authenticate correctly without
-// touching every individual axios call site.
+// Attach whichever session token exists (admin takes precedence over talent)
+// to every outgoing request. This is harmless for public endpoints - they
+// don't look at the header - and means any endpoint we protect later with
+// get_current_admin / get_current_talent_or_admin / get_current_identity
+// authenticates correctly without having to keep a URL-pattern allowlist
+// here in sync with the backend.
 axios.interceptors.request.use((config) => {
-  const url = config.url || "";
-  if (url.includes("/admin/")) {
-    const adminToken = localStorage.getItem("token");
-    if (adminToken) {
-      config.headers = config.headers || {};
-      config.headers.Authorization = `Bearer ${adminToken}`;
-    }
-  } else if (/\/talent\/[^/]+\/?$/.test(url) && (config.method || "get").toLowerCase() === "put") {
-    const talentToken = localStorage.getItem("talentToken");
-    const adminToken = localStorage.getItem("token");
-    const token = talentToken || adminToken;
-    if (token) {
-      config.headers = config.headers || {};
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+  const adminToken = localStorage.getItem("token");
+  const talentToken = localStorage.getItem("talentToken");
+  const token = adminToken || talentToken;
+  if (token) {
+    config.headers = config.headers || {};
+    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
@@ -2337,10 +2331,20 @@ const JoinPage = () => {
   const [paymentSettings, setPaymentSettings] = useState({ payment_enabled: false, registration_fee: 499 });
   const [paymentStep, setPaymentStep] = useState('form'); // 'form', 'payment', 'success'
   const [talentId, setTalentId] = useState(null);
-  
+
+  // Categories - static defaults plus any admin-added custom ones
+  const [categoryOptions, setCategoryOptions] = useState(TALENT_CATEGORIES);
+
   // Fetch payment settings on mount
   useEffect(() => {
     axios.get(`${API}/payment-settings`).then(res => setPaymentSettings(res.data)).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    axios.get(`${API}/categories/all`).then(res => {
+      const names = (res.data.categories || []).map(c => c.display_name);
+      setCategoryOptions([...new Set([...TALENT_CATEGORIES, ...names])]);
+    }).catch(() => {});
   }, []);
   
   // Load Razorpay script
@@ -2634,7 +2638,7 @@ I confirm that I have read, understood, and voluntarily accepted this declaratio
             <select required value={formData.category} onChange={e => setFormData({...formData, category: e.target.value, store_subcategories: []})}
               className="px-4 py-3 bg-[#050A14] border border-[#D4AF37]/20 rounded-lg text-[#F5F5F0]">
               <option value="">Select Category *</option>
-              {TALENT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+              {categoryOptions.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
           

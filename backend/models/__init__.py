@@ -299,3 +299,9 @@ class DesignerStoreSettingsCreate(BaseModel):
     contact_email: str = ""
     contact_phone: str = ""
     contact_instagram: str = ""
+
+class CategoryCreate(BaseModel):
+    display_name: str
+
+class CategoryRename(BaseModel):
+    display_name: str

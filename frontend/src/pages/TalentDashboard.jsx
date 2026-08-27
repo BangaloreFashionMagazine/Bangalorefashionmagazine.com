@@ -555,6 +555,208 @@ const DesignerProductsSection = ({ designerId, designerCategories = [] }) => {
   );
 };
 
+// Get Featured in Magazine - submit details/files, pay, and track status
+const GetFeaturedSection = ({ talent }) => {
+  const { toast } = useToast();
+  const [settings, setSettings] = useState({ enabled: true, fee: 999 });
+  const [submissions, setSubmissions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({
+    name: talent?.name || "", email: talent?.email || "", phone: talent?.phone || "",
+    category: talent?.category || "", notes: "", files: []
+  });
+  const [submitting, setSubmitting] = useState(false);
+
+  const fetchSubmissions = async () => {
+    if (!talent?.id) return;
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API}/magazine-features`, { params: { talent_id: talent.id } });
+      setSubmissions(res.data || []);
+    } catch (err) { /* none yet */ }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    axios.get(`${API}/magazine-feature-settings`).then(res => setSettings(res.data)).catch(() => {});
+    fetchSubmissions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [talent?.id]);
+
+  const handleFileUpload = (e) => {
+    const files = Array.from(e.target.files);
+    if (form.files.length + files.length > 10) {
+      toast({ title: "Max 10 files", variant: "destructive" });
+      return;
+    }
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        try {
+          const compressed = await autoCompressImage(reader.result, 800);
+          setForm(prev => ({ ...prev, files: [...prev.files, compressed].slice(0, 10) }));
+        } catch (err) {
+          toast({ title: "Failed to upload file", variant: "destructive" });
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeFile = (i) => setForm(prev => ({ ...prev, files: prev.files.filter((_, idx) => idx !== i) }));
+
+  const loadRazorpayScript = () => new Promise((resolve) => {
+    if (document.getElementById('razorpay-script')) { resolve(true); return; }
+    const script = document.createElement('script');
+    script.id = 'razorpay-script';
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+
+  const submitAndPay = async () => {
+    if (!form.name || !form.email || !form.phone || !form.category) {
+      toast({ title: "Please fill in all required fields", variant: "destructive" });
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const createRes = await axios.post(`${API}/magazine-features`, { ...form, talent_id: talent.id });
+      const submissionId = createRes.data.id;
+
+      if (!settings.enabled) {
+        toast({ title: "Submission received!" });
+        setShowForm(false);
+        fetchSubmissions();
+        setSubmitting(false);
+        return;
+      }
+
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded) {
+        toast({ title: "Error", description: "Could not load payment gateway", variant: "destructive" });
+        setSubmitting(false);
+        return;
+      }
+
+      const orderRes = await axios.post(`${API}/magazine-features/${submissionId}/create-order`);
+      const options = {
+        key: orderRes.data.key_id,
+        amount: orderRes.data.amount,
+        currency: orderRes.data.currency,
+        name: "Bangalore Fashion Magazine",
+        description: "Get Featured in Magazine",
+        order_id: orderRes.data.order_id,
+        handler: async function(response) {
+          try {
+            await axios.post(`${API}/magazine-features/${submissionId}/verify-payment`, {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature
+            });
+            toast({ title: "Payment successful!", description: "Your submission is with the admin team." });
+            setShowForm(false);
+            fetchSubmissions();
+          } catch (err) {
+            toast({ title: "Payment verification failed", variant: "destructive" });
+          }
+        },
+        prefill: { name: form.name, email: form.email },
+        theme: { color: "#D4AF37" },
+        modal: { ondismiss: function() { toast({ title: "Payment cancelled" }); } }
+      };
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+    } catch (err) {
+      toast({ title: "Error", description: err.response?.data?.detail || "Submission failed", variant: "destructive" });
+    }
+    setSubmitting(false);
+  };
+
+  return (
+    <div className="mt-6 bg-[#0A1628] rounded-2xl p-4 md:p-6 border border-[#D4AF37]/20">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-bold text-[#F5F5F0]">Get Featured in Magazine</h2>
+        {!showForm && (
+          <button onClick={() => setShowForm(true)} className="px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded-lg font-bold text-sm">
+            {submissions.length > 0 ? "New Submission" : "Submit"}
+          </button>
+        )}
+      </div>
+
+      {!showForm && (
+        loading ? <p className="text-[#A0A5B0] text-sm">Loading...</p> :
+        submissions.length === 0 ? (
+          <p className="text-[#A0A5B0] text-sm">
+            Submit your details, images/posters, and pay {settings.enabled ? `₹${settings.fee}` : ""} to be considered for the magazine.
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {submissions.map(s => (
+              <div key={s.id} className="p-3 bg-[#050A14] rounded-lg flex items-center justify-between">
+                <div>
+                  <p className="text-[#F5F5F0] text-sm font-medium">{s.category}</p>
+                  <p className="text-[#A0A5B0] text-xs">{new Date(s.created_at).toLocaleDateString()}</p>
+                </div>
+                <div className="flex gap-2">
+                  <span className={`text-xs px-2 py-0.5 rounded ${s.payment_status === 'paid' ? 'bg-green-500/20 text-green-500' : 'bg-yellow-500/20 text-yellow-500'}`}>
+                    {s.payment_status === 'paid' ? 'Paid' : 'Payment Pending'}
+                  </span>
+                  <span className="text-xs px-2 py-0.5 rounded bg-[#D4AF37]/20 text-[#D4AF37] capitalize">{s.review_status}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )
+      )}
+
+      {showForm && (
+        <div className="space-y-3">
+          <input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})}
+            className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" placeholder="Name *" />
+          <input type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})}
+            className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" placeholder="Email *" />
+          <input type="tel" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})}
+            className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" placeholder="Phone *" />
+          <select value={form.category} onChange={e => setForm({...form, category: e.target.value})}
+            className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]">
+            {TALENT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+          <textarea value={form.notes} onChange={e => setForm({...form, notes: e.target.value})}
+            className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] h-20" placeholder="Notes for the admin team (optional)" />
+
+          <div>
+            <label className="text-[#A0A5B0] text-sm block mb-2">Images / Posters / Files (up to 10)</label>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {form.files.map((f, i) => (
+                <div key={i} className="relative">
+                  <img src={f} alt="" className="w-16 h-20 object-cover rounded border border-[#D4AF37]/20" />
+                  <button onClick={() => removeFile(i)} className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-xs">×</button>
+                </div>
+              ))}
+              {form.files.length < 10 && (
+                <label className="w-16 h-20 border-2 border-dashed border-[#D4AF37]/30 rounded flex items-center justify-center cursor-pointer hover:border-[#D4AF37]">
+                  <input type="file" accept="image/*" multiple className="hidden" onChange={handleFileUpload} />
+                  <span className="text-[#D4AF37] text-2xl">+</span>
+                </label>
+              )}
+            </div>
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button onClick={() => setShowForm(false)} className="flex-1 py-2 border border-[#A0A5B0] text-[#A0A5B0] rounded-lg">Cancel</button>
+            <button onClick={submitAndPay} disabled={submitting} className="flex-1 py-2 bg-[#D4AF37] text-[#050A14] rounded-lg font-bold disabled:opacity-50">
+              {submitting ? "Processing..." : settings.enabled ? `Submit & Pay ₹${settings.fee}` : "Submit"}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const TalentDashboard = ({ talent, onUpdate }) => {
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState(talent || {});
@@ -812,6 +1014,7 @@ const TalentDashboard = ({ talent, onUpdate }) => {
           <h2 className="text-lg font-bold text-[#F5F5F0]">Share Stats & History</h2>
         </div>
         <ShareStatsSection talent={talent} />
+        <GetFeaturedSection talent={talent} />
       </div>
       
       {/* Events & Contests Section - For all talents */}

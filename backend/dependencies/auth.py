@@ -41,3 +41,10 @@ async def get_current_talent_or_admin(talent_id: str = Path(...), authorization:
     if payload.get("type") == "talent" and payload.get("sub") == talent_id:
         return payload
     raise HTTPException(status_code=403, detail="Not authorized to modify this talent")
+
+
+async def get_current_identity(authorization: Optional[str] = Header(None)) -> dict:
+    """Require any valid token (admin or talent) and return its payload, without
+    checking a specific owner up front - use for routes where ownership can only
+    be determined after loading the resource (e.g. a product's designer_id)."""
+    return _decode_bearer(authorization)

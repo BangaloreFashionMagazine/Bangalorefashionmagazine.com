@@ -2,7 +2,7 @@
 Bangalore Fashion Magazine API
 Refactored into modular structure for maintainability
 """
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, Depends
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -43,6 +43,7 @@ from routes import (
 from routes.analytics import create_analytics_routes
 from routes.store import create_store_routes
 from services import TALENT_CATEGORIES
+from dependencies.auth import get_current_admin
 
 
 # ============== Health Check Endpoint ==============
@@ -131,6 +132,12 @@ hero_routes = create_hero_routes(db)
 from routes.seo import create_seo_routes
 seo_routes = create_seo_routes(db)
 
+from routes.categories import create_category_routes
+category_routes = create_category_routes(db)
+
+from routes.magazine_features import create_magazine_feature_routes
+magazine_feature_routes = create_magazine_feature_routes(db)
+
 # Include all routes in the API router
 api_router.include_router(auth_routes)
 api_router.include_router(talent_routes)
@@ -138,12 +145,14 @@ api_router.include_router(admin_routes)
 api_router.include_router(content_routes)
 api_router.include_router(analytics_routes)
 api_router.include_router(store_routes)
-api_router.include_router(instagram_routes)
-api_router.include_router(magazine_builder_routes)
+api_router.include_router(instagram_routes, dependencies=[Depends(get_current_admin)])
+api_router.include_router(magazine_builder_routes, dependencies=[Depends(get_current_admin)])
 api_router.include_router(password_reset_routes)
 api_router.include_router(payments_routes)
 api_router.include_router(hero_routes)
 api_router.include_router(seo_routes)
+api_router.include_router(category_routes)
+api_router.include_router(magazine_feature_routes)
 
 # Include the API router in the main app
 app.include_router(api_router)

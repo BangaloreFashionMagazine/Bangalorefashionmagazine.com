@@ -122,9 +122,11 @@ def create_talent_routes(db):
         if not talent_data.category:
             raise HTTPException(status_code=400, detail="Category is required")
 
-        # Accept both old and new category names
+        # Accept both old and new category names, plus any admin-added custom category
         if talent_data.category not in ALL_VALID_CATEGORIES:
-            raise HTTPException(status_code=400, detail=f"Invalid category. Must be one of: {ALL_VALID_CATEGORIES}")
+            custom = await db.custom_categories.find_one({"display_name": talent_data.category})
+            if not custom:
+                raise HTTPException(status_code=400, detail=f"Invalid category. Must be one of: {ALL_VALID_CATEGORIES}")
 
         # Normalize category to database format (convert new names to old)
         db_category = normalize_category(talent_data.category)

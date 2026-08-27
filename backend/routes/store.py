@@ -1,6 +1,6 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime, timezone
-from typing import List
+from typing import List, Optional
 import uuid
 
 from models import (
@@ -10,9 +10,18 @@ from models import (
     DesignerStoreSettingsCreate,
     STORE_CATEGORIES
 )
+from dependencies.auth import get_current_admin, get_current_identity
 
 import logging
 logger = logging.getLogger(__name__)
+
+
+def _require_owner_or_admin(identity: dict, owner_id: str):
+    if identity.get("is_admin"):
+        return
+    if identity.get("type") == "talent" and identity.get("sub") == owner_id:
+        return
+    raise HTTPException(status_code=403, detail="Not authorized to perform this action")
 
 # Valid store categories
 VALID_STORE_CATEGORIES = ["Everyday Chic", "After Dark", "Heritage Luxe", "Accessories Room"]
@@ -27,7 +36,8 @@ def create_store_routes(db):
     
     # ============== Products ==============
     @router.post("/store/products", response_model=ProductResponse)
-    async def create_product(product: ProductCreate):
+    async def create_product(product: ProductCreate, identity: dict = Depends(get_current_identity)):
+        _require_owner_or_admin(identity, product.designer_id)
         # Validate designer exists
         designer = await db.talents.find_one({"id": product.designer_id})
         if not designer:
@@ -120,11 +130,12 @@ def create_store_routes(db):
         return ProductResponse(**product)
     
     @router.put("/store/products/{product_id}", response_model=ProductResponse)
-    async def update_product(product_id: str, update: ProductUpdate):
+    async def update_product(product_id: str, update: ProductUpdate, identity: dict = Depends(get_current_identity)):
         product = await db.products.find_one({"id": product_id})
         if not product:
             raise HTTPException(status_code=404, detail="Product not found")
-        
+        _require_owner_or_admin(identity, product.get("designer_id"))
+
         update_data = {k: v for k, v in update.dict().items() if v is not None}
         
         # Limit images to 5
@@ -161,10 +172,12 @@ def create_store_routes(db):
         return ProductResponse(**updated)
     
     @router.delete("/store/products/{product_id}")
-    async def delete_product(product_id: str):
-        result = await db.products.delete_one({"id": product_id})
-        if result.deleted_count == 0:
+    async def delete_product(product_id: str, identity: dict = Depends(get_current_identity)):
+        product = await db.products.find_one({"id": product_id})
+        if not product:
             raise HTTPException(status_code=404, detail="Product not found")
+        _require_owner_or_admin(identity, product.get("designer_id"))
+        await db.products.delete_one({"id": product_id})
         return {"message": "Product deleted"}
     
     # ============== Orders ==============
@@ -211,34 +224,41 @@ def create_store_routes(db):
         return OrderResponse(**{k: v for k, v in order_doc.items() if k != "_id"})
     
     @router.get("/store/orders", response_model=List[OrderResponse])
-    async def get_orders(designer_id: str = None, status: str = None):
+    async def get_orders(designer_id: str = None, status: str = None, identity: dict = Depends(get_current_identity)):
+        # Orders contain customer PII (name, email, phone, address) - a designer may
+        # only list their own orders; only an admin may list across all designers.
+        if designer_id:
+            _require_owner_or_admin(identity, designer_id)
+        elif not identity.get("is_admin"):
+            raise HTTPException(status_code=403, detail="Admin access required to list all orders")
+
         query = {}
         if designer_id:
             query["designer_id"] = designer_id
         if status:
             query["status"] = status
-        
+
         orders = await db.orders.find(query, {"_id": 0}).sort("created_at", -1).to_list(500)
         return [OrderResponse(**o) for o in orders]
-    
+
     @router.put("/store/orders/{order_id}/status")
-    async def update_order_status(order_id: str, status: str):
+    async def update_order_status(order_id: str, status: str, _admin=Depends(get_current_admin)):
         valid_statuses = ["pending", "confirmed", "shipped", "delivered", "cancelled"]
         if status not in valid_statuses:
             raise HTTPException(status_code=400, detail=f"Invalid status. Must be one of: {valid_statuses}")
-        
+
         result = await db.orders.update_one({"id": order_id}, {"$set": {"status": status}})
         if result.matched_count == 0:
             raise HTTPException(status_code=404, detail="Order not found")
-        
+
         return {"message": f"Order status updated to {status}"}
-    
+
     @router.delete("/store/orders/{order_id}")
-    async def delete_order(order_id: str):
+    async def delete_order(order_id: str, _admin=Depends(get_current_admin)):
         result = await db.orders.delete_one({"id": order_id})
         if result.deleted_count == 0:
             raise HTTPException(status_code=404, detail="Order not found")
-        
+
         return {"message": "Order deleted successfully"}
     
     # ============== Reviews ==============
@@ -280,7 +300,7 @@ def create_store_routes(db):
         return settings or {"hero_images": [], "contact_email": "", "contact_phone": "", "contact_instagram": ""}
     
     @router.put("/store/settings")
-    async def update_store_settings(settings: DesignerStoreSettingsCreate):
+    async def update_store_settings(settings: DesignerStoreSettingsCreate, _admin=Depends(get_current_admin)):
         # Limit hero images to 5
         settings_dict = settings.dict()
         settings_dict["hero_images"] = (settings_dict.get("hero_images") or [])[:5]

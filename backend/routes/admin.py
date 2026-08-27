@@ -18,6 +18,25 @@ def create_admin_routes(db):
     router = APIRouter()
     admin_router = APIRouter()
 
+    # Which admin dashboard tabs are hidden from the tab bar (pure UI
+    # preference - doesn't affect the underlying data/routes at all).
+    @admin_router.get("/admin/tab-settings")
+    async def get_tab_settings():
+        settings = await db.settings.find_one({"type": "tab_visibility"}, {"_id": 0})
+        return {"hidden_tabs": settings.get("hidden_tabs", []) if settings else []}
+
+    @admin_router.put("/admin/tab-settings")
+    async def update_tab_settings(data: dict):
+        hidden_tabs = data.get("hidden_tabs", [])
+        if not isinstance(hidden_tabs, list):
+            raise HTTPException(status_code=400, detail="hidden_tabs must be a list")
+        await db.settings.update_one(
+            {"type": "tab_visibility"},
+            {"$set": {"type": "tab_visibility", "hidden_tabs": hidden_tabs}},
+            upsert=True
+        )
+        return {"message": "Tab settings updated", "hidden_tabs": hidden_tabs}
+
     @admin_router.get("/admin/talents/pending", response_model=List[TalentResponse])
     async def get_pending_talents():
         talents = await db.talents.find({"is_approved": False}, {"_id": 0}).to_list(1000)

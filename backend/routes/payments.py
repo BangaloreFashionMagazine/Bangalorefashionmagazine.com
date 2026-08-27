@@ -1,10 +1,12 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime, timezone
 import os
 import uuid
 import razorpay
+
+from dependencies.auth import get_current_admin, get_current_talent_or_admin
 
 import logging
 logger = logging.getLogger(__name__)
@@ -57,7 +59,7 @@ def create_payments_router(db):
     
     # Update payment settings (admin only)
     @router.post("/payment-settings")
-    async def update_payment_settings(settings: PaymentSettingsUpdate):
+    async def update_payment_settings(settings: PaymentSettingsUpdate, _admin=Depends(get_current_admin)):
         await db.settings.update_one(
             {"type": "payment_settings"},
             {"$set": {
@@ -181,7 +183,7 @@ def create_payments_router(db):
     
     # Get payment history (admin)
     @router.get("/payment-history")
-    async def get_payment_history():
+    async def get_payment_history(_admin=Depends(get_current_admin)):
         payments = await db.payment_orders.find(
             {"status": "paid"},
             {"_id": 0}
@@ -256,7 +258,7 @@ def create_payments_router(db):
 
     # Create a new event/contest
     @router.post("/events/create")
-    async def create_event(event: EventCreate):
+    async def create_event(event: EventCreate, _admin=Depends(get_current_admin)):
         event_data = {
             "id": str(uuid.uuid4()),
             "title": event.title,
@@ -289,7 +291,7 @@ def create_payments_router(db):
 
     # Update event
     @router.put("/events/{event_id}")
-    async def update_event(event_id: str, event: EventCreate):
+    async def update_event(event_id: str, event: EventCreate, _admin=Depends(get_current_admin)):
         result = await db.events.update_one(
             {"id": event_id},
             {"$set": {
@@ -309,7 +311,7 @@ def create_payments_router(db):
 
     # Delete event
     @router.delete("/events/{event_id}")
-    async def delete_event(event_id: str):
+    async def delete_event(event_id: str, _admin=Depends(get_current_admin)):
         result = await db.events.delete_one({"id": event_id})
         if result.deleted_count == 0:
             raise HTTPException(status_code=404, detail="Event not found")
@@ -429,7 +431,7 @@ def create_payments_router(db):
 
     # Get event participants
     @router.get("/events/{event_id}/participants")
-    async def get_event_participants(event_id: str):
+    async def get_event_participants(event_id: str, _admin=Depends(get_current_admin)):
         payments = await db.event_payments.find(
             {"event_id": event_id, "status": "paid"},
             {"_id": 0}
@@ -438,7 +440,7 @@ def create_payments_router(db):
 
     # Get all event payments (admin)
     @router.get("/events/payments/all")
-    async def get_all_event_payments():
+    async def get_all_event_payments(_admin=Depends(get_current_admin)):
         payments = await db.event_payments.find(
             {},
             {"_id": 0}
@@ -447,7 +449,7 @@ def create_payments_router(db):
 
     # Get talent's event registrations
     @router.get("/events/talent/{talent_id}")
-    async def get_talent_events(talent_id: str):
+    async def get_talent_events(talent_id: str, _auth=Depends(get_current_talent_or_admin)):
         payments = await db.event_payments.find(
             {"talent_id": talent_id, "status": "paid"},
             {"_id": 0}
