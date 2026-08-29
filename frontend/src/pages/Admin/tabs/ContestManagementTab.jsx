@@ -97,14 +97,30 @@ const ContestManagementTab = () => {
     setLoading(false);
   };
 
-  const searchTalents = async () => {
+  const searchTalents = async (query = searchQuery, category = searchCategory) => {
+    if (!query || query.length < 2) {
+      setSearchResults([]);
+      return;
+    }
     try {
-      const res = await adminApi.get(`${API}/admin/talents/search?q=${searchQuery}&category=${searchCategory}`);
+      const res = await adminApi.get(`${API}/admin/talents/search?q=${query}&category=${category}`);
       setSearchResults(res.data);
     } catch (err) {
       toast({ title: "Search failed", variant: "destructive" });
     }
   };
+
+  // Auto-search when typing (with debounce)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchQuery.length >= 2) {
+        searchTalents(searchQuery, searchCategory);
+      } else {
+        setSearchResults([]);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery, searchCategory]);
 
   const createContest = async () => {
     if (!formData.name || !formData.start_date || !formData.end_date) {
@@ -601,7 +617,7 @@ const ContestManagementTab = () => {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search talents..."
+                    placeholder="Type at least 2 characters to search..."
                     className="flex-1 px-3 py-2 bg-[#050A14] border border-[#D4AF37]/30 rounded-lg text-[#F5F5F0] text-sm"
                   />
                   <select
@@ -619,33 +635,41 @@ const ContestManagementTab = () => {
                     <option value="Designer Store">Designer Store</option>
                     <option value="Other">Other</option>
                   </select>
-                  <button
-                    onClick={searchTalents}
-                    className="px-4 py-2 bg-[#D4AF37]/20 text-[#D4AF37] rounded-lg text-sm"
-                  >
-                    <Search size={16} />
-                  </button>
                 </div>
 
-                {/* Search Results */}
-                {searchResults.length > 0 && (
-                  <div className="mb-3 max-h-40 overflow-y-auto bg-[#050A14] rounded-lg p-2 space-y-1">
-                    {searchResults.map(t => (
-                      <div key={t.id} className="flex items-center justify-between p-2 hover:bg-[#0A1628] rounded">
-                        <div className="flex items-center gap-2">
-                          {t.profile_image && <img src={t.profile_image} className="w-8 h-8 rounded-full object-cover" />}
-                          <span className="text-[#F5F5F0] text-sm">{t.name}</span>
-                          <span className="text-[#A0A5B0] text-xs">{t.category}</span>
-                        </div>
-                        <button
-                          onClick={() => addParticipant(t)}
-                          disabled={formData.participant_ids.includes(t.id)}
-                          className="px-2 py-1 bg-[#D4AF37]/20 text-[#D4AF37] rounded text-xs disabled:opacity-30"
-                        >
-                          {formData.participant_ids.includes(t.id) ? "Added" : "Add"}
-                        </button>
+                {/* Search Results - Auto shows when typing */}
+                {searchQuery.length >= 2 && (
+                  <div className="mb-3 max-h-48 overflow-y-auto bg-[#050A14] rounded-lg p-2 border border-[#D4AF37]/20">
+                    {searchResults.length > 0 ? (
+                      <div className="space-y-1">
+                        {searchResults.map(t => (
+                          <div key={t.id} className="flex items-center justify-between p-2 hover:bg-[#0A1628] rounded">
+                            <div className="flex items-center gap-2">
+                              {t.profile_image ? (
+                                <img src={t.profile_image} className="w-10 h-10 rounded-full object-cover" alt={t.name} />
+                              ) : (
+                                <div className="w-10 h-10 rounded-full bg-[#D4AF37]/20 flex items-center justify-center">
+                                  <span className="text-[#D4AF37]">{t.name?.charAt(0)}</span>
+                                </div>
+                              )}
+                              <div>
+                                <span className="text-[#F5F5F0] text-sm font-medium">{t.name}</span>
+                                <span className="text-[#A0A5B0] text-xs ml-2">{t.category}</span>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => addParticipant(t)}
+                              disabled={formData.participant_ids.includes(t.id)}
+                              className="px-3 py-1 bg-[#D4AF37] text-[#050A14] rounded text-sm font-medium disabled:opacity-30 disabled:bg-gray-500"
+                            >
+                              {formData.participant_ids.includes(t.id) ? "Added" : "+ Add"}
+                            </button>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    ) : (
+                      <p className="text-[#A0A5B0] text-sm text-center py-4">No talents found matching "{searchQuery}"</p>
+                    )}
                   </div>
                 )}
 
