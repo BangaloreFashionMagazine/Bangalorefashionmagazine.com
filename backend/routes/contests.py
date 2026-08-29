@@ -13,6 +13,18 @@ from dependencies.auth import get_current_admin as require_admin
 logger = logging.getLogger(__name__)
 
 
+class ShareTemplateSettings(BaseModel):
+    logo_position: str = "bottom"  # top, bottom, top-left, top-right, bottom-left, bottom-right
+    logo_size: int = 120  # pixels
+    text_color: str = "#FFFFFF"
+    overlay_color: str = "rgba(0,0,0,0.5)"
+    overlay_position: str = "bottom"  # top, bottom, full
+    custom_text: str = ""  # Empty means use default "Vote Now!"
+    show_contest_name: bool = True
+    show_vote_count: bool = False
+    font_size: int = 32
+
+
 class ContestCreate(BaseModel):
     name: str
     description: str = ""
@@ -27,6 +39,8 @@ class ContestCreate(BaseModel):
     is_featured: bool = False
     is_visible: bool = True  # Controls public visibility
     participant_ids: List[str] = []
+    share_template_story: Optional[dict] = None
+    share_template_feed: Optional[dict] = None
 
 
 class ContestUpdate(BaseModel):
@@ -44,6 +58,8 @@ class ContestUpdate(BaseModel):
     is_visible: Optional[bool] = None  # Controls public visibility
     participant_ids: Optional[List[str]] = None
     winner_id: Optional[str] = None
+    share_template_story: Optional[dict] = None
+    share_template_feed: Optional[dict] = None
 
 
 class ContestVote(BaseModel):
@@ -86,6 +102,28 @@ def create_contest_routes(db):
             "winner_id": None,
             "winner_announced_at": None,
             "total_votes": 0,
+            "share_template_story": contest.share_template_story or {
+                "logo_position": "bottom",
+                "logo_size": 120,
+                "text_color": "#FFFFFF",
+                "overlay_color": "rgba(0,0,0,0.5)",
+                "overlay_position": "bottom",
+                "custom_text": "Vote Now!",
+                "show_contest_name": True,
+                "show_vote_count": False,
+                "font_size": 32
+            },
+            "share_template_feed": contest.share_template_feed or {
+                "logo_position": "bottom",
+                "logo_size": 100,
+                "text_color": "#FFFFFF",
+                "overlay_color": "rgba(0,0,0,0.5)",
+                "overlay_position": "bottom",
+                "custom_text": "Vote Now!",
+                "show_contest_name": True,
+                "show_vote_count": False,
+                "font_size": 28
+            },
             "created_at": datetime.now(timezone.utc).isoformat(),
             "updated_at": datetime.now(timezone.utc).isoformat()
         }

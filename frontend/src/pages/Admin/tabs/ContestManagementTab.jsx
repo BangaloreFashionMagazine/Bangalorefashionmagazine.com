@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { 
   Trophy, Plus, Edit, Trash2, Eye, EyeOff, Users, Calendar, Clock, 
-  Search, X, Check, Award, Share2, ExternalLink, RefreshCw, Upload, TrendingUp, BarChart3
+  Search, X, Check, Award, Share2, ExternalLink, RefreshCw, Upload, TrendingUp, BarChart3,
+  Image, Palette, Type, Move, Settings2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { API } from "@/lib/config";
@@ -43,11 +44,36 @@ const ContestManagementTab = () => {
     status: "draft",
     is_featured: false,
     is_visible: true,
-    participant_ids: []
+    participant_ids: [],
+    share_template_story: {
+      logo_position: "bottom",
+      logo_size: 120,
+      text_color: "#FFFFFF",
+      overlay_color: "rgba(0,0,0,0.5)",
+      overlay_position: "bottom",
+      custom_text: "Vote Now!",
+      show_contest_name: true,
+      show_vote_count: false,
+      font_size: 32
+    },
+    share_template_feed: {
+      logo_position: "bottom",
+      logo_size: 100,
+      text_color: "#FFFFFF",
+      overlay_color: "rgba(0,0,0,0.5)",
+      overlay_position: "bottom",
+      custom_text: "Vote Now!",
+      show_contest_name: true,
+      show_vote_count: false,
+      font_size: 28
+    }
   });
 
   const [analyticsData, setAnalyticsData] = useState(null);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
+  const [showShareSettings, setShowShareSettings] = useState(false);
+  const [activeShareTab, setActiveShareTab] = useState("story"); // story or feed
+  const previewCanvasRef = useRef(null);
 
   const statusColors = {
     draft: "bg-gray-500/20 text-gray-400",
@@ -129,11 +155,25 @@ const ContestManagementTab = () => {
     }
   };
 
+  const defaultShareTemplate = {
+    logo_position: "bottom",
+    logo_size: 120,
+    text_color: "#FFFFFF",
+    overlay_color: "rgba(0,0,0,0.5)",
+    overlay_position: "bottom",
+    custom_text: "Vote Now!",
+    show_contest_name: true,
+    show_vote_count: false,
+    font_size: 32
+  };
+
   const resetForm = () => {
     setFormData({
       name: "", description: "", banner_image: "", start_date: "", start_time: "00:00",
       end_date: "", end_time: "23:59", rules: "", voting_instructions: "",
-      status: "draft", is_featured: false, is_visible: true, participant_ids: []
+      status: "draft", is_featured: false, is_visible: true, participant_ids: [],
+      share_template_story: { ...defaultShareTemplate },
+      share_template_feed: { ...defaultShareTemplate, logo_size: 100, font_size: 28 }
     });
   };
 
@@ -151,8 +191,10 @@ const ContestManagementTab = () => {
       voting_instructions: contest.voting_instructions || "",
       status: contest.status || "draft",
       is_featured: contest.is_featured || false,
-      is_visible: contest.is_visible !== false, // default true if undefined
-      participant_ids: contest.participant_ids || []
+      is_visible: contest.is_visible !== false,
+      participant_ids: contest.participant_ids || [],
+      share_template_story: contest.share_template_story || { ...defaultShareTemplate },
+      share_template_feed: contest.share_template_feed || { ...defaultShareTemplate, logo_size: 100, font_size: 28 }
     });
     setShowEditModal(true);
   };
@@ -618,6 +660,199 @@ const ContestManagementTab = () => {
                     );
                   })}
                 </div>
+              </div>
+
+              {/* Instagram Share Template Settings */}
+              <div className="border border-[#D4AF37]/30 rounded-lg overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setShowShareSettings(!showShareSettings)}
+                  className="w-full p-4 flex items-center justify-between bg-[#050A14] hover:bg-[#0A1628] transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center">
+                      <Image size={20} className="text-white" />
+                    </div>
+                    <div className="text-left">
+                      <h4 className="text-[#F5F5F0] font-medium">Instagram Share Settings</h4>
+                      <p className="text-[#A0A5B0] text-xs">Customize how voters share on Instagram</p>
+                    </div>
+                  </div>
+                  <Settings2 size={20} className={`text-[#D4AF37] transition-transform ${showShareSettings ? 'rotate-180' : ''}`} />
+                </button>
+
+                {showShareSettings && (
+                  <div className="p-4 border-t border-[#D4AF37]/20 space-y-4">
+                    {/* Story/Feed Tabs */}
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setActiveShareTab("story")}
+                        className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+                          activeShareTab === "story" 
+                            ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white" 
+                            : "bg-[#050A14] text-[#A0A5B0]"
+                        }`}
+                      >
+                        Story (9:16)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveShareTab("feed")}
+                        className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+                          activeShareTab === "feed" 
+                            ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white" 
+                            : "bg-[#050A14] text-[#A0A5B0]"
+                        }`}
+                      >
+                        Feed (4:5)
+                      </button>
+                    </div>
+
+                    {/* Template Settings */}
+                    {(() => {
+                      const templateKey = activeShareTab === "story" ? "share_template_story" : "share_template_feed";
+                      const template = formData[templateKey];
+                      const updateTemplate = (field, value) => {
+                        setFormData(prev => ({
+                          ...prev,
+                          [templateKey]: { ...prev[templateKey], [field]: value }
+                        }));
+                      };
+
+                      return (
+                        <div className="space-y-4">
+                          {/* Logo Position */}
+                          <div>
+                            <label className="text-[#A0A5B0] text-sm flex items-center gap-2 mb-2">
+                              <Move size={14} /> Logo Position
+                            </label>
+                            <div className="grid grid-cols-3 gap-2">
+                              {["top-left", "top", "top-right", "bottom-left", "bottom", "bottom-right"].map(pos => (
+                                <button
+                                  key={pos}
+                                  type="button"
+                                  onClick={() => updateTemplate("logo_position", pos)}
+                                  className={`py-2 px-3 rounded text-xs capitalize ${
+                                    template.logo_position === pos 
+                                      ? "bg-[#D4AF37] text-[#050A14]" 
+                                      : "bg-[#050A14] text-[#A0A5B0]"
+                                  }`}
+                                >
+                                  {pos.replace("-", " ")}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Overlay Position */}
+                          <div>
+                            <label className="text-[#A0A5B0] text-sm flex items-center gap-2 mb-2">
+                              <Palette size={14} /> Overlay Position
+                            </label>
+                            <div className="flex gap-2">
+                              {["top", "bottom", "full"].map(pos => (
+                                <button
+                                  key={pos}
+                                  type="button"
+                                  onClick={() => updateTemplate("overlay_position", pos)}
+                                  className={`flex-1 py-2 rounded text-xs capitalize ${
+                                    template.overlay_position === pos 
+                                      ? "bg-[#D4AF37] text-[#050A14]" 
+                                      : "bg-[#050A14] text-[#A0A5B0]"
+                                  }`}
+                                >
+                                  {pos}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Custom Text */}
+                          <div>
+                            <label className="text-[#A0A5B0] text-sm flex items-center gap-2 mb-2">
+                              <Type size={14} /> Call-to-Action Text
+                            </label>
+                            <input
+                              type="text"
+                              value={template.custom_text}
+                              onChange={(e) => updateTemplate("custom_text", e.target.value)}
+                              placeholder="Vote Now!"
+                              className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/30 rounded-lg text-[#F5F5F0] text-sm"
+                            />
+                          </div>
+
+                          {/* Colors */}
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="text-[#A0A5B0] text-sm block mb-2">Text Color</label>
+                              <div className="flex gap-2">
+                                <input
+                                  type="color"
+                                  value={template.text_color}
+                                  onChange={(e) => updateTemplate("text_color", e.target.value)}
+                                  className="w-10 h-10 rounded cursor-pointer"
+                                />
+                                <input
+                                  type="text"
+                                  value={template.text_color}
+                                  onChange={(e) => updateTemplate("text_color", e.target.value)}
+                                  className="flex-1 px-3 py-2 bg-[#050A14] border border-[#D4AF37]/30 rounded-lg text-[#F5F5F0] text-sm"
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <label className="text-[#A0A5B0] text-sm block mb-2">Font Size</label>
+                              <input
+                                type="number"
+                                value={template.font_size}
+                                onChange={(e) => updateTemplate("font_size", parseInt(e.target.value) || 28)}
+                                min={16}
+                                max={64}
+                                className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/30 rounded-lg text-[#F5F5F0] text-sm"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Toggles */}
+                          <div className="flex flex-wrap gap-4">
+                            <label className="flex items-center gap-2 text-[#F5F5F0] text-sm cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={template.show_contest_name}
+                                onChange={(e) => updateTemplate("show_contest_name", e.target.checked)}
+                                className="w-4 h-4"
+                              />
+                              Show Contest Name
+                            </label>
+                            <label className="flex items-center gap-2 text-[#F5F5F0] text-sm cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={template.show_vote_count}
+                                onChange={(e) => updateTemplate("show_vote_count", e.target.checked)}
+                                className="w-4 h-4"
+                              />
+                              Show Vote Count
+                            </label>
+                          </div>
+
+                          {/* Logo Size */}
+                          <div>
+                            <label className="text-[#A0A5B0] text-sm block mb-2">Logo Size: {template.logo_size}px</label>
+                            <input
+                              type="range"
+                              min={60}
+                              max={200}
+                              value={template.logo_size}
+                              onChange={(e) => updateTemplate("logo_size", parseInt(e.target.value))}
+                              className="w-full"
+                            />
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
               </div>
 
               {/* Submit */}

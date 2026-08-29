@@ -356,17 +356,26 @@ See `/app/memory/test_credentials.md`
 - Backend calculates views from `profile_views` collection
 - Eye icon displayed with animated counter
 
-## August 2026 - Instagram Vote Share Feature (NEW - COMPLETED)
-- **After voting**, users see a share modal with Instagram options
-- **Download for Story (9:16)**: Generates a 1080x1920 image with:
-  - Dark gradient background with gold border
-  - Talent's circular profile photo
-  - "I VOTED FOR" heading with talent name and category
-  - Contest name and vote count
-  - "VOTE NOW!" call-to-action
-  - BFM Magazine branding
-- **Download for Feed (4:5)**: Generates a 1080x1350 image (same styling)
-- Canvas-based image generation using HTML5 Canvas API
-- Images download automatically for sharing on Instagram
-- "Share on Instagram" button persists after page reload (stores voted talent in localStorage)
-- "Copy contest link" option included
+## August 2026 - Instagram Vote Share Feature (ENHANCED - COMPLETED)
+- **Admin Share Template Settings** (in Contest Edit Modal):
+  - Separate templates for **Story (9:16)** and **Feed (4:5)** formats
+  - **Logo Position**: 6 positions (top-left, top, top-right, bottom-left, bottom, bottom-right)
+  - **Overlay Position**: Top, Bottom, Full gradient
+  - **Custom CTA Text**: Default "Vote Now!" or admin-defined
+  - **Text Color** picker with hex input
+  - **Font Size** control (16-64px)
+  - **Toggle options**: Show Contest Name, Show Vote Count
+  - **Logo Size** slider (60-200px)
+
+- **User Share Modal with Cropping**:
+  - **Format tabs**: Story (9:16 Vertical) / Feed (4:5 Portrait)
+  - **Live crop interface**: Drag to adjust image area with aspect ratio lock
+  - Uses `react-image-crop` library for precision cropping
+  - **High quality output**: Full 1080x1920 (Story) or 1080x1350 (Feed) PNG
+  - Cropped image fills entire canvas with contest branding overlay
+  - Template settings from admin applied to overlay (logo position, text, colors)
+  - "Copy contest link to share" option
+
+- **Backend Updates**:
+  - `share_template_story` and `share_template_feed` fields added to Contest schema
+  - Default templates initialized on contest creation

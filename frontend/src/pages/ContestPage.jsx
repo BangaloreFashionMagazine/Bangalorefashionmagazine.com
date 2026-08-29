@@ -1,7 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
-import { Trophy, Calendar, Clock, Users, Share2, ChevronLeft, Award, Vote, Instagram, X, Download } from "lucide-react";
+import ReactCrop from "react-image-crop";
+import "react-image-crop/dist/ReactCrop.css";
+import { Trophy, Calendar, Clock, Users, Share2, ChevronLeft, Award, Vote, Instagram, X, Download, Crop, RotateCcw, ZoomIn, ZoomOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { API } from "@/lib/config";
 
@@ -16,6 +18,14 @@ const ContestPage = () => {
   const [votedTalent, setVotedTalent] = useState(null);
   const [generatingImage, setGeneratingImage] = useState(null);
   const canvasRef = useRef(null);
+  const imgRef = useRef(null);
+  
+  // Cropping state
+  const [crop, setCrop] = useState({ unit: '%', width: 100, height: 100, x: 0, y: 0 });
+  const [completedCrop, setCompletedCrop] = useState(null);
+  const [activeFormat, setActiveFormat] = useState("story"); // story or feed
+  const [zoom, setZoom] = useState(1);
+  const [imgLoaded, setImgLoaded] = useState(false);
 
   useEffect(() => {
     fetchContest();
@@ -119,137 +129,210 @@ const ContestPage = () => {
     }
   };
 
-  // Generate shareable image for Instagram
-  const generateShareImage = async (format) => {
-    if (!votedTalent || !canvasRef.current) return;
+  // Handle image load for cropper
+  const onImageLoad = useCallback((e) => {
+    imgRef.current = e.currentTarget;
+    setImgLoaded(true);
+    // Set initial crop to fill the frame
+    const { width, height } = e.currentTarget;
+    const aspectRatio = activeFormat === "story" ? 9/16 : 4/5;
     
-    setGeneratingImage(format);
+    let cropWidth, cropHeight;
+    if (width / height > aspectRatio) {
+      cropHeight = 100;
+      cropWidth = (height * aspectRatio / width) * 100;
+    } else {
+      cropWidth = 100;
+      cropHeight = (width / aspectRatio / height) * 100;
+    }
+    
+    setCrop({
+      unit: '%',
+      width: Math.min(cropWidth, 100),
+      height: Math.min(cropHeight, 100),
+      x: (100 - Math.min(cropWidth, 100)) / 2,
+      y: (100 - Math.min(cropHeight, 100)) / 2
+    });
+  }, [activeFormat]);
+
+  // Reset crop when format changes
+  useEffect(() => {
+    if (imgRef.current && imgLoaded) {
+      const { width, height } = imgRef.current;
+      const aspectRatio = activeFormat === "story" ? 9/16 : 4/5;
+      
+      let cropWidth, cropHeight;
+      if (width / height > aspectRatio) {
+        cropHeight = 100;
+        cropWidth = (height * aspectRatio / width) * 100;
+      } else {
+        cropWidth = 100;
+        cropHeight = (width / aspectRatio / height) * 100;
+      }
+      
+      setCrop({
+        unit: '%',
+        width: Math.min(cropWidth, 100),
+        height: Math.min(cropHeight, 100),
+        x: (100 - Math.min(cropWidth, 100)) / 2,
+        y: (100 - Math.min(cropHeight, 100)) / 2
+      });
+    }
+  }, [activeFormat, imgLoaded]);
+
+  // Generate shareable image for Instagram with cropping and template
+  const generateShareImage = async () => {
+    if (!votedTalent || !canvasRef.current || !imgRef.current) return;
+    
+    setGeneratingImage(activeFormat);
     
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     
-    // Set dimensions based on format
-    const dimensions = format === "story" 
+    // Get template settings from contest
+    const templateKey = activeFormat === "story" ? "share_template_story" : "share_template_feed";
+    const template = contest[templateKey] || {
+      logo_position: "bottom",
+      logo_size: 120,
+      text_color: "#FFFFFF",
+      overlay_color: "rgba(0,0,0,0.5)",
+      overlay_position: "bottom",
+      custom_text: "Vote Now!",
+      show_contest_name: true,
+      show_vote_count: false,
+      font_size: 32
+    };
+    
+    // Set dimensions based on format (high quality)
+    const dimensions = activeFormat === "story" 
       ? { width: 1080, height: 1920 } // 9:16 Story
       : { width: 1080, height: 1350 }; // 4:5 Feed
     
     canvas.width = dimensions.width;
     canvas.height = dimensions.height;
     
-    // Background gradient
-    const gradient = ctx.createLinearGradient(0, 0, 0, dimensions.height);
-    gradient.addColorStop(0, "#0A1628");
-    gradient.addColorStop(0.5, "#050A14");
-    gradient.addColorStop(1, "#0A1628");
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, dimensions.width, dimensions.height);
+    // Draw cropped talent image as full background
+    const image = imgRef.current;
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
     
-    // Gold border
-    ctx.strokeStyle = "#D4AF37";
-    ctx.lineWidth = 8;
-    ctx.strokeRect(20, 20, dimensions.width - 40, dimensions.height - 40);
+    // Calculate crop coordinates from percentage
+    const cropX = (crop.x / 100) * image.width * scaleX;
+    const cropY = (crop.y / 100) * image.height * scaleY;
+    const cropW = (crop.width / 100) * image.width * scaleX;
+    const cropH = (crop.height / 100) * image.height * scaleY;
     
-    // Inner decorative border
-    ctx.strokeStyle = "rgba(212, 175, 55, 0.3)";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(40, 40, dimensions.width - 80, dimensions.height - 80);
+    // Draw the cropped image to fill the canvas
+    ctx.drawImage(
+      image,
+      cropX, cropY, cropW, cropH,
+      0, 0, dimensions.width, dimensions.height
+    );
     
-    // Load and draw talent image
-    const img = new Image();
-    img.crossOrigin = "anonymous";
+    // Parse overlay color
+    const overlayColor = template.overlay_color || "rgba(0,0,0,0.5)";
     
-    await new Promise((resolve, reject) => {
-      img.onload = resolve;
-      img.onerror = reject;
-      img.src = votedTalent.profile_image || "";
-    }).catch(() => {});
-    
-    if (img.complete && img.naturalWidth > 0) {
-      // Calculate image position
-      const imgSize = format === "story" ? 500 : 450;
-      const imgX = (dimensions.width - imgSize) / 2;
-      const imgY = format === "story" ? 350 : 200;
-      
-      // Gold circle border for image
-      ctx.beginPath();
-      ctx.arc(imgX + imgSize/2, imgY + imgSize/2, imgSize/2 + 10, 0, Math.PI * 2);
-      ctx.strokeStyle = "#D4AF37";
-      ctx.lineWidth = 6;
-      ctx.stroke();
-      
-      // Clip and draw circular image
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(imgX + imgSize/2, imgY + imgSize/2, imgSize/2, 0, Math.PI * 2);
-      ctx.clip();
-      ctx.drawImage(img, imgX, imgY, imgSize, imgSize);
-      ctx.restore();
+    // Draw overlay based on position
+    ctx.fillStyle = overlayColor;
+    if (template.overlay_position === "full") {
+      ctx.fillRect(0, 0, dimensions.width, dimensions.height);
+    } else if (template.overlay_position === "top") {
+      const gradientTop = ctx.createLinearGradient(0, 0, 0, dimensions.height * 0.4);
+      gradientTop.addColorStop(0, overlayColor);
+      gradientTop.addColorStop(1, "transparent");
+      ctx.fillStyle = gradientTop;
+      ctx.fillRect(0, 0, dimensions.width, dimensions.height * 0.4);
+    } else { // bottom
+      const gradientBottom = ctx.createLinearGradient(0, dimensions.height * 0.5, 0, dimensions.height);
+      gradientBottom.addColorStop(0, "transparent");
+      gradientBottom.addColorStop(1, overlayColor);
+      ctx.fillStyle = gradientBottom;
+      ctx.fillRect(0, dimensions.height * 0.5, dimensions.width, dimensions.height * 0.5);
     }
     
-    // "I VOTED FOR" text
-    const baseY = format === "story" ? 920 : 720;
-    ctx.fillStyle = "#D4AF37";
-    ctx.font = "bold 36px system-ui, sans-serif";
+    // Calculate text Y position based on overlay
+    const textY = template.overlay_position === "top" 
+      ? 150 
+      : dimensions.height - 350;
+    
+    // Draw contest name if enabled
     ctx.textAlign = "center";
-    ctx.fillText("✓ I VOTED FOR", dimensions.width / 2, baseY);
+    let currentY = textY;
     
-    // Talent name
-    ctx.fillStyle = "#F5F5F0";
-    ctx.font = "bold 56px system-ui, sans-serif";
-    ctx.fillText(votedTalent.name?.toUpperCase() || "TALENT", dimensions.width / 2, baseY + 70);
+    if (template.show_contest_name) {
+      ctx.fillStyle = template.text_color;
+      ctx.font = `bold ${template.font_size + 8}px system-ui, -apple-system, sans-serif`;
+      ctx.fillText(contest.name, dimensions.width / 2, currentY);
+      currentY += template.font_size + 20;
+    }
     
-    // Category
-    ctx.fillStyle = "#A0A5B0";
-    ctx.font = "32px system-ui, sans-serif";
-    ctx.fillText(votedTalent.category || "", dimensions.width / 2, baseY + 120);
+    // Draw CTA text
+    ctx.fillStyle = template.text_color;
+    ctx.font = `bold ${template.font_size}px system-ui, -apple-system, sans-serif`;
+    ctx.fillText(template.custom_text || "Vote Now!", dimensions.width / 2, currentY);
+    currentY += template.font_size + 15;
     
-    // Contest name
+    // Draw vote count if enabled
+    if (template.show_vote_count) {
+      ctx.font = `${template.font_size - 4}px system-ui, -apple-system, sans-serif`;
+      ctx.fillStyle = "rgba(255,255,255,0.8)";
+      ctx.fillText(`${votedTalent.votes || 0} votes`, dimensions.width / 2, currentY);
+    }
+    
+    // Draw BFM Logo based on position
+    const logoSize = template.logo_size || 120;
+    const padding = 40;
+    
+    let logoX, logoY;
+    switch (template.logo_position) {
+      case "top-left":
+        logoX = padding;
+        logoY = padding;
+        break;
+      case "top":
+        logoX = (dimensions.width - logoSize * 2) / 2;
+        logoY = padding;
+        break;
+      case "top-right":
+        logoX = dimensions.width - logoSize * 2 - padding;
+        logoY = padding;
+        break;
+      case "bottom-left":
+        logoX = padding;
+        logoY = dimensions.height - logoSize - padding;
+        break;
+      case "bottom-right":
+        logoX = dimensions.width - logoSize * 2 - padding;
+        logoY = dimensions.height - logoSize - padding;
+        break;
+      default: // bottom center
+        logoX = (dimensions.width - logoSize * 2) / 2;
+        logoY = dimensions.height - logoSize - padding;
+    }
+    
+    // Draw BFM logo text
+    ctx.textAlign = "left";
     ctx.fillStyle = "#D4AF37";
-    ctx.font = "bold 40px system-ui, sans-serif";
-    const contestY = format === "story" ? 1150 : 900;
-    ctx.fillText(`in ${contest.name}`, dimensions.width / 2, contestY);
+    ctx.font = `bold ${logoSize * 0.5}px system-ui, -apple-system, sans-serif`;
+    ctx.fillText("BFM", logoX, logoY + logoSize * 0.5);
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = `300 ${logoSize * 0.35}px system-ui, -apple-system, sans-serif`;
+    ctx.fillText("Magazine", logoX + logoSize * 0.8, logoY + logoSize * 0.5);
     
-    // Votes count
-    ctx.fillStyle = "#F5F5F0";
-    ctx.font = "bold 48px system-ui, sans-serif";
-    ctx.fillText(`${votedTalent.votes} votes`, dimensions.width / 2, contestY + 70);
-    
-    // Call to action
-    const ctaY = format === "story" ? 1400 : 1080;
-    ctx.fillStyle = "rgba(212, 175, 55, 0.3)";
-    ctx.fillRect(dimensions.width/2 - 250, ctaY - 40, 500, 90);
-    ctx.fillStyle = "#D4AF37";
-    ctx.font = "bold 32px system-ui, sans-serif";
-    ctx.fillText("VOTE NOW!", dimensions.width / 2, ctaY + 15);
-    
-    // BFM Branding at bottom
-    const brandY = format === "story" ? 1700 : 1220;
-    ctx.fillStyle = "#D4AF37";
-    ctx.font = "bold 42px system-ui, sans-serif";
-    ctx.fillText("BFM", dimensions.width / 2 - 80, brandY);
-    ctx.fillStyle = "#F5F5F0";
-    ctx.font = "300 42px system-ui, sans-serif";
-    ctx.fillText("Magazine", dimensions.width / 2 + 50, brandY);
-    
-    // Website
-    ctx.fillStyle = "#A0A5B0";
-    ctx.font = "24px system-ui, sans-serif";
-    ctx.fillText("bangalorefashionmag.com", dimensions.width / 2, brandY + 45);
-    
-    // Convert to blob and download
+    // Convert to blob and download (PNG for high quality)
     canvas.toBlob((blob) => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `bfm-vote-${format}-${votedTalent.name?.replace(/\s+/g, "-").toLowerCase() || "share"}.png`;
+      a.download = `bfm-vote-${activeFormat}-${votedTalent.name?.replace(/\s+/g, "-").toLowerCase() || "share"}.png`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       
       setGeneratingImage(null);
-      toast({ title: `${format === "story" ? "Story" : "Feed"} image downloaded! Share it on Instagram.` });
-    }, "image/png");
+      toast({ title: `${activeFormat === "story" ? "Story" : "Feed"} image downloaded! Share it on Instagram.` });
+    }, "image/png", 1.0); // Max quality
   };
 
   if (loading) {
@@ -462,10 +545,10 @@ const ContestPage = () => {
         </div>
       </div>
 
-      {/* Instagram Share Modal */}
+      {/* Instagram Share Modal with Cropper */}
       {showShareModal && votedTalent && (
-        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
-          <div className="bg-[#0A1628] rounded-2xl max-w-md w-full border border-[#D4AF37]/30 overflow-hidden">
+        <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-[#0A1628] rounded-2xl max-w-2xl w-full border border-[#D4AF37]/30 overflow-hidden my-4">
             {/* Modal Header */}
             <div className="p-4 border-b border-[#D4AF37]/20 flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -474,74 +557,110 @@ const ContestPage = () => {
                 </div>
                 <div>
                   <h3 className="text-[#F5F5F0] font-bold">Share Your Vote!</h3>
-                  <p className="text-[#A0A5B0] text-xs">Download and share on Instagram</p>
+                  <p className="text-[#A0A5B0] text-xs">Crop & customize your share image</p>
                 </div>
               </div>
               <button 
-                onClick={() => setShowShareModal(false)}
+                onClick={() => { setShowShareModal(false); setImgLoaded(false); }}
                 className="p-2 text-[#A0A5B0] hover:text-[#F5F5F0]"
               >
                 <X size={20} />
               </button>
             </div>
 
-            {/* Voted Talent Preview */}
-            <div className="p-6 text-center">
-              <div className="relative inline-block mb-4">
-                {votedTalent.profile_image ? (
-                  <img 
-                    src={votedTalent.profile_image} 
-                    alt={votedTalent.name}
-                    className="w-24 h-24 rounded-full object-cover border-4 border-[#D4AF37]"
-                  />
-                ) : (
-                  <div className="w-24 h-24 rounded-full bg-[#D4AF37]/20 flex items-center justify-center border-4 border-[#D4AF37]">
-                    <span className="text-[#D4AF37] text-3xl">{votedTalent.name?.charAt(0)}</span>
+            {/* Format Selector */}
+            <div className="p-4 border-b border-[#D4AF37]/20">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setActiveFormat("story")}
+                  className={`flex-1 py-3 rounded-xl font-medium transition-all ${
+                    activeFormat === "story"
+                      ? "bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 text-white"
+                      : "bg-[#050A14] text-[#A0A5B0] hover:text-white"
+                  }`}
+                >
+                  <div className="text-center">
+                    <div className="text-lg font-bold">Story</div>
+                    <div className="text-xs opacity-75">9:16 Vertical</div>
                   </div>
-                )}
-                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold">
-                  ✓ Voted
-                </div>
+                </button>
+                <button
+                  onClick={() => setActiveFormat("feed")}
+                  className={`flex-1 py-3 rounded-xl font-medium transition-all ${
+                    activeFormat === "feed"
+                      ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white"
+                      : "bg-[#050A14] text-[#A0A5B0] hover:text-white"
+                  }`}
+                >
+                  <div className="text-center">
+                    <div className="text-lg font-bold">Feed</div>
+                    <div className="text-xs opacity-75">4:5 Portrait</div>
+                  </div>
+                </button>
               </div>
-              <h4 className="text-[#F5F5F0] font-bold text-lg">{votedTalent.name}</h4>
-              <p className="text-[#A0A5B0] text-sm">{votedTalent.category}</p>
-              <p className="text-[#D4AF37] font-bold mt-2">{votedTalent.votes} votes</p>
             </div>
 
-            {/* Share Buttons */}
-            <div className="p-4 bg-[#050A14] space-y-3">
+            {/* Cropper Area */}
+            <div className="p-4">
               <p className="text-[#A0A5B0] text-sm text-center mb-4">
-                Download an image and share it on Instagram to encourage others to vote!
+                <Crop size={16} className="inline mr-2" />
+                Drag to adjust the crop area. The image will include contest branding overlay.
               </p>
               
-              {/* Instagram Story Button */}
-              <button
-                onClick={() => generateShareImage("story")}
-                disabled={generatingImage === "story"}
-                className="w-full flex items-center justify-center gap-3 py-3 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 text-white rounded-xl font-bold transition-all hover:opacity-90 disabled:opacity-50"
-              >
-                {generatingImage === "story" ? (
-                  <span className="animate-pulse">Generating...</span>
+              <div className="bg-[#050A14] rounded-xl p-4 flex justify-center">
+                {votedTalent.profile_image ? (
+                  <div style={{ maxWidth: activeFormat === "story" ? "200px" : "280px" }}>
+                    <ReactCrop
+                      crop={crop}
+                      onChange={(c) => setCrop(c)}
+                      onComplete={(c) => setCompletedCrop(c)}
+                      aspect={activeFormat === "story" ? 9/16 : 4/5}
+                      className="rounded-lg overflow-hidden"
+                    >
+                      <img
+                        src={votedTalent.profile_image}
+                        alt={votedTalent.name}
+                        onLoad={onImageLoad}
+                        crossOrigin="anonymous"
+                        style={{ maxHeight: "400px", width: "auto" }}
+                        className="rounded-lg"
+                      />
+                    </ReactCrop>
+                  </div>
                 ) : (
-                  <>
-                    <Download size={18} />
-                    Download for Story (9:16)
-                  </>
+                  <div className="w-48 h-64 bg-[#D4AF37]/20 rounded-lg flex items-center justify-center">
+                    <span className="text-[#D4AF37] text-4xl">{votedTalent.name?.charAt(0)}</span>
+                  </div>
                 )}
-              </button>
-              
-              {/* Instagram Feed Button */}
+              </div>
+
+              {/* Preview Info */}
+              <div className="mt-4 text-center">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#050A14] rounded-lg">
+                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                  <span className="text-[#F5F5F0] text-sm font-medium">{votedTalent.name}</span>
+                  <span className="text-[#A0A5B0] text-xs">• {votedTalent.votes} votes</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Download Button */}
+            <div className="p-4 bg-[#050A14] space-y-3">
               <button
-                onClick={() => generateShareImage("feed")}
-                disabled={generatingImage === "feed"}
-                className="w-full flex items-center justify-center gap-3 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold transition-all hover:opacity-90 disabled:opacity-50"
+                onClick={generateShareImage}
+                disabled={generatingImage || !imgLoaded}
+                className={`w-full flex items-center justify-center gap-3 py-4 text-white rounded-xl font-bold text-lg transition-all hover:opacity-90 disabled:opacity-50 ${
+                  activeFormat === "story"
+                    ? "bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500"
+                    : "bg-gradient-to-r from-purple-600 to-pink-600"
+                }`}
               >
-                {generatingImage === "feed" ? (
-                  <span className="animate-pulse">Generating...</span>
+                {generatingImage ? (
+                  <span className="animate-pulse">Generating High Quality Image...</span>
                 ) : (
                   <>
-                    <Download size={18} />
-                    Download for Feed (4:5)
+                    <Download size={20} />
+                    Download {activeFormat === "story" ? "Story" : "Feed"} Image
                   </>
                 )}
               </button>
@@ -554,7 +673,7 @@ const ContestPage = () => {
                 }}
                 className="w-full flex items-center justify-center gap-2 py-2 text-[#D4AF37] text-sm"
               >
-                <Share2 size={16} /> Copy contest link
+                <Share2 size={16} /> Copy contest link to share
               </button>
             </div>
           </div>
