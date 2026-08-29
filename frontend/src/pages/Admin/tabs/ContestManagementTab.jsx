@@ -238,6 +238,19 @@ const ContestManagementTab = () => {
     }
   };
 
+  const addAdminVotes = async (contestId, talentId, talentName, voteCount = 1) => {
+    try {
+      const res = await adminApi.post(`${API}/admin/contests/${contestId}/add-votes`, {
+        talent_id: talentId,
+        vote_count: voteCount
+      });
+      toast({ title: `Added ${voteCount} vote${voteCount > 1 ? 's' : ''} for ${talentName}` });
+      fetchContests(); // Refresh to show updated votes
+    } catch (err) {
+      toast({ title: err.response?.data?.detail || "Failed to add votes", variant: "destructive" });
+    }
+  };
+
   const addParticipant = (talent) => {
     if (!formData.participant_ids.includes(talent.id)) {
       setFormData(prev => ({
@@ -359,6 +372,7 @@ const ContestManagementTab = () => {
                           <th className="p-3 text-left">Rank</th>
                           <th className="p-3 text-left">Talent</th>
                           <th className="p-3 text-center">Votes</th>
+                          <th className="p-3 text-center">Admin Vote</th>
                           <th className="p-3 text-center">Status</th>
                         </tr>
                       </thead>
@@ -377,6 +391,31 @@ const ContestManagementTab = () => {
                               </div>
                             </td>
                             <td className="p-3 text-center text-[#F5F5F0] font-bold">{p.votes || 0}</td>
+                            <td className="p-3 text-center">
+                              <div className="flex items-center justify-center gap-1">
+                                <button
+                                  onClick={() => addAdminVotes(contest.id, p.id, p.name, 1)}
+                                  className="px-2 py-1 bg-green-500/20 text-green-400 rounded text-xs hover:bg-green-500/30"
+                                  title="Add 1 vote"
+                                >
+                                  +1
+                                </button>
+                                <button
+                                  onClick={() => addAdminVotes(contest.id, p.id, p.name, 5)}
+                                  className="px-2 py-1 bg-green-500/20 text-green-400 rounded text-xs hover:bg-green-500/30"
+                                  title="Add 5 votes"
+                                >
+                                  +5
+                                </button>
+                                <button
+                                  onClick={() => addAdminVotes(contest.id, p.id, p.name, 10)}
+                                  className="px-2 py-1 bg-green-500/20 text-green-400 rounded text-xs hover:bg-green-500/30"
+                                  title="Add 10 votes"
+                                >
+                                  +10
+                                </button>
+                              </div>
+                            </td>
                             <td className="p-3 text-center">
                               {idx === 0 && p.votes > 0 && (
                                 <span className="text-green-400 text-xs">Leading</span>

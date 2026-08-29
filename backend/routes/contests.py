@@ -318,6 +318,62 @@ def create_contest_routes(db):
             "winner": winner,
             "votes": max_votes
         }
+
+
+    @router.post("/admin/contests/{contest_id}/add-votes")
+    async def admin_add_votes(
+        contest_id: str, 
+        request: Request,
+        admin: dict = Depends(require_admin)
+    ):
+        """Admin can add votes for a talent - bypasses normal limits"""
+        data = await request.json()
+        talent_id = data.get("talent_id")
+        vote_count = data.get("vote_count", 1)
+        
+        if not talent_id:
+            raise HTTPException(status_code=400, detail="talent_id is required")
+        
+        if vote_count < 1 or vote_count > 100:
+            raise HTTPException(status_code=400, detail="vote_count must be between 1 and 100")
+        
+        contest = await db.contests.find_one({"id": contest_id}, {"_id": 0})
+        if not contest:
+            raise HTTPException(status_code=404, detail="Contest not found")
+        
+        if talent_id not in contest.get("participant_ids", []):
+            raise HTTPException(status_code=400, detail="Talent is not a participant in this contest")
+        
+        # Add votes without any IP/session restrictions
+        votes_to_add = []
+        for i in range(vote_count):
+            vote_doc = {
+                "id": str(uuid.uuid4()),
+                "contest_id": contest_id,
+                "talent_id": talent_id,
+                "client_ip": f"admin-{admin.get('email', 'system')}",
+                "session_id": f"admin-vote-{uuid.uuid4()}",
+                "is_admin_vote": True,
+                "created_at": datetime.now(timezone.utc).isoformat()
+            }
+            votes_to_add.append(vote_doc)
+        
+        if votes_to_add:
+            await db.contest_votes.insert_many(votes_to_add)
+        
+        # Get updated vote count
+        new_vote_count = await db.contest_votes.count_documents({
+            "contest_id": contest_id,
+            "talent_id": talent_id
+        })
+        
+        # Get talent name
+        talent = await db.talents.find_one({"id": talent_id}, {"_id": 0, "name": 1})
+        
+        return {
+            "message": f"Added {vote_count} votes for {talent.get('name', 'talent')}",
+            "total_votes": new_vote_count
+        }
     
     
     @router.get("/admin/talents/search")

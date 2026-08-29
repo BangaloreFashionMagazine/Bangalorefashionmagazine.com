@@ -274,18 +274,19 @@ const HeroManagement = () => {
         <div className="flex justify-center">
           <div className="relative inline-block cursor-crosshair border border-[#D4AF37]/40 rounded-lg overflow-hidden" onClick={handleClick}>
             <img src={image} alt="Focal point" className="max-w-full max-h-[70vh] block" />
-          <div 
-            className="absolute w-8 h-8 border-2 border-[#D4AF37] rounded-full bg-[#D4AF37]/30 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-            style={{ left: `${x}%`, top: `${y}%` }}
-          >
-            <Crosshair className="w-full h-full text-[#D4AF37]" />
+            <div 
+              className="absolute w-8 h-8 border-2 border-[#D4AF37] rounded-full bg-[#D4AF37]/30 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+              style={{ left: `${x}%`, top: `${y}%` }}
+            >
+              <Crosshair className="w-full h-full text-[#D4AF37]" />
+            </div>
+            <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+              Click image to set focal point ({x}%, {y}%)
+            </div>
+            {/* Visual crop guide */}
+            <div className="absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-red-500/20 to-transparent pointer-events-none" />
+            <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-red-500/20 to-transparent pointer-events-none" />
           </div>
-          <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-            Click image to set focal point ({x}%, {y}%)
-          </div>
-          {/* Visual crop guide */}
-          <div className="absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-red-500/20 to-transparent pointer-events-none" />
-          <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-red-500/20 to-transparent pointer-events-none" />
         </div>
         <p className="text-[#A0A5B0] text-xs">
           💡 <strong>Tip:</strong> For portrait photos, use "Face" or "Head & Shoulders" preset. The focal point determines which part of the image stays visible when cropped on different screen sizes.
