@@ -355,3 +355,18 @@ See `/app/memory/test_credentials.md`
 - Monday-Sunday tracking period
 - Backend calculates views from `profile_views` collection
 - Eye icon displayed with animated counter
+
+## August 2026 - Instagram Vote Share Feature (NEW - COMPLETED)
+- **After voting**, users see a share modal with Instagram options
+- **Download for Story (9:16)**: Generates a 1080x1920 image with:
+  - Dark gradient background with gold border
+  - Talent's circular profile photo
+  - "I VOTED FOR" heading with talent name and category
+  - Contest name and vote count
+  - "VOTE NOW!" call-to-action
+  - BFM Magazine branding
+- **Download for Feed (4:5)**: Generates a 1080x1350 image (same styling)
+- Canvas-based image generation using HTML5 Canvas API
+- Images download automatically for sharing on Instagram
+- "Share on Instagram" button persists after page reload (stores voted talent in localStorage)
+- "Copy contest link" option included

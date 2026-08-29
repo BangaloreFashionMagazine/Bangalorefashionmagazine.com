@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
-import { Trophy, Calendar, Clock, Users, Share2, ChevronLeft, Award, Vote } from "lucide-react";
+import { Trophy, Calendar, Clock, Users, Share2, ChevronLeft, Award, Vote, Instagram, X, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { API } from "@/lib/config";
 
@@ -12,6 +12,10 @@ const ContestPage = () => {
   const [loading, setLoading] = useState(true);
   const [voting, setVoting] = useState(null);
   const [hasVoted, setHasVoted] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [votedTalent, setVotedTalent] = useState(null);
+  const [generatingImage, setGeneratingImage] = useState(null);
+  const canvasRef = useRef(null);
 
   useEffect(() => {
     fetchContest();
@@ -19,6 +23,11 @@ const ContestPage = () => {
     const votedContests = JSON.parse(localStorage.getItem("bfm_contest_votes") || "{}");
     if (votedContests[slug]) {
       setHasVoted(true);
+      // Also restore voted talent data if available
+      const votedTalentData = JSON.parse(localStorage.getItem("bfm_voted_talents") || "{}");
+      if (votedTalentData[slug]) {
+        setVotedTalent(votedTalentData[slug]);
+      }
     }
   }, [slug]);
 
@@ -58,6 +67,10 @@ const ContestPage = () => {
         { headers: { "X-Session-ID": sessionId } }
       );
 
+      // Find the voted talent
+      const talent = contest.participants.find(p => p.id === talentId);
+      setVotedTalent({ ...talent, votes: res.data.votes });
+
       // Update local state
       setContest(prev => ({
         ...prev,
@@ -71,9 +84,18 @@ const ContestPage = () => {
       const votedContests = JSON.parse(localStorage.getItem("bfm_contest_votes") || "{}");
       votedContests[slug] = talentId;
       localStorage.setItem("bfm_contest_votes", JSON.stringify(votedContests));
+      
+      // Store voted talent data for share feature
+      const votedTalentData = JSON.parse(localStorage.getItem("bfm_voted_talents") || "{}");
+      votedTalentData[slug] = { ...talent, votes: res.data.votes };
+      localStorage.setItem("bfm_voted_talents", JSON.stringify(votedTalentData));
+      
       setHasVoted(true);
 
       toast({ title: "Vote recorded! Thank you for voting." });
+      
+      // Show share modal
+      setShowShareModal(true);
     } catch (err) {
       toast({ 
         title: err.response?.data?.detail || "Failed to vote", 
@@ -95,6 +117,139 @@ const ContestPage = () => {
       navigator.clipboard.writeText(url);
       toast({ title: "Contest link copied!" });
     }
+  };
+
+  // Generate shareable image for Instagram
+  const generateShareImage = async (format) => {
+    if (!votedTalent || !canvasRef.current) return;
+    
+    setGeneratingImage(format);
+    
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    
+    // Set dimensions based on format
+    const dimensions = format === "story" 
+      ? { width: 1080, height: 1920 } // 9:16 Story
+      : { width: 1080, height: 1350 }; // 4:5 Feed
+    
+    canvas.width = dimensions.width;
+    canvas.height = dimensions.height;
+    
+    // Background gradient
+    const gradient = ctx.createLinearGradient(0, 0, 0, dimensions.height);
+    gradient.addColorStop(0, "#0A1628");
+    gradient.addColorStop(0.5, "#050A14");
+    gradient.addColorStop(1, "#0A1628");
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, dimensions.width, dimensions.height);
+    
+    // Gold border
+    ctx.strokeStyle = "#D4AF37";
+    ctx.lineWidth = 8;
+    ctx.strokeRect(20, 20, dimensions.width - 40, dimensions.height - 40);
+    
+    // Inner decorative border
+    ctx.strokeStyle = "rgba(212, 175, 55, 0.3)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(40, 40, dimensions.width - 80, dimensions.height - 80);
+    
+    // Load and draw talent image
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+      img.src = votedTalent.profile_image || "";
+    }).catch(() => {});
+    
+    if (img.complete && img.naturalWidth > 0) {
+      // Calculate image position
+      const imgSize = format === "story" ? 500 : 450;
+      const imgX = (dimensions.width - imgSize) / 2;
+      const imgY = format === "story" ? 350 : 200;
+      
+      // Gold circle border for image
+      ctx.beginPath();
+      ctx.arc(imgX + imgSize/2, imgY + imgSize/2, imgSize/2 + 10, 0, Math.PI * 2);
+      ctx.strokeStyle = "#D4AF37";
+      ctx.lineWidth = 6;
+      ctx.stroke();
+      
+      // Clip and draw circular image
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(imgX + imgSize/2, imgY + imgSize/2, imgSize/2, 0, Math.PI * 2);
+      ctx.clip();
+      ctx.drawImage(img, imgX, imgY, imgSize, imgSize);
+      ctx.restore();
+    }
+    
+    // "I VOTED FOR" text
+    const baseY = format === "story" ? 920 : 720;
+    ctx.fillStyle = "#D4AF37";
+    ctx.font = "bold 36px system-ui, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("✓ I VOTED FOR", dimensions.width / 2, baseY);
+    
+    // Talent name
+    ctx.fillStyle = "#F5F5F0";
+    ctx.font = "bold 56px system-ui, sans-serif";
+    ctx.fillText(votedTalent.name?.toUpperCase() || "TALENT", dimensions.width / 2, baseY + 70);
+    
+    // Category
+    ctx.fillStyle = "#A0A5B0";
+    ctx.font = "32px system-ui, sans-serif";
+    ctx.fillText(votedTalent.category || "", dimensions.width / 2, baseY + 120);
+    
+    // Contest name
+    ctx.fillStyle = "#D4AF37";
+    ctx.font = "bold 40px system-ui, sans-serif";
+    const contestY = format === "story" ? 1150 : 900;
+    ctx.fillText(`in ${contest.name}`, dimensions.width / 2, contestY);
+    
+    // Votes count
+    ctx.fillStyle = "#F5F5F0";
+    ctx.font = "bold 48px system-ui, sans-serif";
+    ctx.fillText(`${votedTalent.votes} votes`, dimensions.width / 2, contestY + 70);
+    
+    // Call to action
+    const ctaY = format === "story" ? 1400 : 1080;
+    ctx.fillStyle = "rgba(212, 175, 55, 0.3)";
+    ctx.fillRect(dimensions.width/2 - 250, ctaY - 40, 500, 90);
+    ctx.fillStyle = "#D4AF37";
+    ctx.font = "bold 32px system-ui, sans-serif";
+    ctx.fillText("VOTE NOW!", dimensions.width / 2, ctaY + 15);
+    
+    // BFM Branding at bottom
+    const brandY = format === "story" ? 1700 : 1220;
+    ctx.fillStyle = "#D4AF37";
+    ctx.font = "bold 42px system-ui, sans-serif";
+    ctx.fillText("BFM", dimensions.width / 2 - 80, brandY);
+    ctx.fillStyle = "#F5F5F0";
+    ctx.font = "300 42px system-ui, sans-serif";
+    ctx.fillText("Magazine", dimensions.width / 2 + 50, brandY);
+    
+    // Website
+    ctx.fillStyle = "#A0A5B0";
+    ctx.font = "24px system-ui, sans-serif";
+    ctx.fillText("bangalorefashionmag.com", dimensions.width / 2, brandY + 45);
+    
+    // Convert to blob and download
+    canvas.toBlob((blob) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `bfm-vote-${format}-${votedTalent.name?.replace(/\s+/g, "-").toLowerCase() || "share"}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      setGeneratingImage(null);
+      toast({ title: `${format === "story" ? "Story" : "Feed"} image downloaded! Share it on Instagram.` });
+    }, "image/png");
   };
 
   if (loading) {
@@ -294,10 +449,120 @@ const ContestPage = () => {
               <p className="text-[#A0A5B0]">
                 Thank you for voting! You can vote again in 24 hours.
               </p>
+              {votedTalent && (
+                <button
+                  onClick={() => setShowShareModal(true)}
+                  className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg text-sm font-medium"
+                >
+                  <Instagram size={18} /> Share on Instagram
+                </button>
+              )}
             </div>
           )}
         </div>
       </div>
+
+      {/* Instagram Share Modal */}
+      {showShareModal && votedTalent && (
+        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
+          <div className="bg-[#0A1628] rounded-2xl max-w-md w-full border border-[#D4AF37]/30 overflow-hidden">
+            {/* Modal Header */}
+            <div className="p-4 border-b border-[#D4AF37]/20 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center">
+                  <Instagram size={20} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="text-[#F5F5F0] font-bold">Share Your Vote!</h3>
+                  <p className="text-[#A0A5B0] text-xs">Download and share on Instagram</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setShowShareModal(false)}
+                className="p-2 text-[#A0A5B0] hover:text-[#F5F5F0]"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Voted Talent Preview */}
+            <div className="p-6 text-center">
+              <div className="relative inline-block mb-4">
+                {votedTalent.profile_image ? (
+                  <img 
+                    src={votedTalent.profile_image} 
+                    alt={votedTalent.name}
+                    className="w-24 h-24 rounded-full object-cover border-4 border-[#D4AF37]"
+                  />
+                ) : (
+                  <div className="w-24 h-24 rounded-full bg-[#D4AF37]/20 flex items-center justify-center border-4 border-[#D4AF37]">
+                    <span className="text-[#D4AF37] text-3xl">{votedTalent.name?.charAt(0)}</span>
+                  </div>
+                )}
+                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold">
+                  ✓ Voted
+                </div>
+              </div>
+              <h4 className="text-[#F5F5F0] font-bold text-lg">{votedTalent.name}</h4>
+              <p className="text-[#A0A5B0] text-sm">{votedTalent.category}</p>
+              <p className="text-[#D4AF37] font-bold mt-2">{votedTalent.votes} votes</p>
+            </div>
+
+            {/* Share Buttons */}
+            <div className="p-4 bg-[#050A14] space-y-3">
+              <p className="text-[#A0A5B0] text-sm text-center mb-4">
+                Download an image and share it on Instagram to encourage others to vote!
+              </p>
+              
+              {/* Instagram Story Button */}
+              <button
+                onClick={() => generateShareImage("story")}
+                disabled={generatingImage === "story"}
+                className="w-full flex items-center justify-center gap-3 py-3 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 text-white rounded-xl font-bold transition-all hover:opacity-90 disabled:opacity-50"
+              >
+                {generatingImage === "story" ? (
+                  <span className="animate-pulse">Generating...</span>
+                ) : (
+                  <>
+                    <Download size={18} />
+                    Download for Story (9:16)
+                  </>
+                )}
+              </button>
+              
+              {/* Instagram Feed Button */}
+              <button
+                onClick={() => generateShareImage("feed")}
+                disabled={generatingImage === "feed"}
+                className="w-full flex items-center justify-center gap-3 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold transition-all hover:opacity-90 disabled:opacity-50"
+              >
+                {generatingImage === "feed" ? (
+                  <span className="animate-pulse">Generating...</span>
+                ) : (
+                  <>
+                    <Download size={18} />
+                    Download for Feed (4:5)
+                  </>
+                )}
+              </button>
+
+              {/* Copy Link */}
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(window.location.href);
+                  toast({ title: "Contest link copied!" });
+                }}
+                className="w-full flex items-center justify-center gap-2 py-2 text-[#D4AF37] text-sm"
+              >
+                <Share2 size={16} /> Copy contest link
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Hidden canvas for image generation */}
+      <canvas ref={canvasRef} className="hidden" />
     </div>
   );
 };
