@@ -1,6 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import axios from "axios";
-import { Users, Star, Award, Image, Download, Check, X, Phone, Mail, Trash2, ExternalLink, Music, Video, Upload, BarChart3, TrendingUp, Eye, MousePointer, ShoppingBag, Package, MapPin, Calendar, BookOpen, Settings, IndianRupee, Layers, FileText, Share2 } from "lucide-react";
+import { Users, Star, Award, Image, Download, Check, X, Phone, Mail, Trash2, ExternalLink, Music, Video, Upload, BarChart3, TrendingUp, Eye, MousePointer, ShoppingBag, Package, MapPin, Calendar, BookOpen, Settings, IndianRupee, Layers, FileText, Share2, Trophy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ImageUploadWithCrop from "@/components/ImageUploadWithCrop";
 import { API, BFM_LOGO, TALENT_CATEGORIES, STORE_CATEGORIES, getCategoryDisplay, getCategoryForDB } from "@/lib/config";
@@ -9,7 +9,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { jsPDF } from "jspdf";
 
 // Import modular tab components
-import { PendingTab, AllTalentsTab, PaidTalentsTab, AnalyticsTab } from "./tabs";
+import { PendingTab, AllTalentsTab, PaidTalentsTab, AnalyticsTab, ContestManagementTab } from "./tabs";
 
 // Lazy load Magazine Builder for better performance
 const MagazineBuilder = lazy(() => import("./MagazineBuilder"));
@@ -875,7 +875,8 @@ const AdminDashboard = () => {
     { id: "hero", label: "Hero Images (Legacy)", icon: Image },
     { id: "party", label: "Party Updates", icon: Calendar },
     { id: "video", label: "Featured Video", icon: Video },
-    { id: "contests", label: "Contest & Winners", icon: Award },
+    { id: "contests", label: "Contest Management", icon: Trophy },
+    { id: "winners", label: "Winners Gallery", icon: Award },
     { id: "ads", label: "Advertisements", icon: ExternalLink },
     { id: "magazine", label: "Magazine PDF", icon: Download },
     { id: "music", label: "Background Music", icon: Music },
@@ -2089,9 +2090,11 @@ const AdminDashboard = () => {
         )}
 
         {/* Contest & Winners */}
-        {tab === "contests" && (
+        {tab === "contests" && <ContestManagementTab />}
+
+        {tab === "winners" && (
           <div className="bg-[#0A1628] rounded-xl p-4 md:p-6 border border-[#D4AF37]/20">
-            <h2 className="text-lg font-bold text-[#F5F5F0] mb-2">Contest & Winners</h2>
+            <h2 className="text-lg font-bold text-[#F5F5F0] mb-2">Winners Gallery</h2>
             <p className="text-[#A0A5B0] text-sm mb-4">Add contest winners with up to 5 images. Link to a talent profile to make clickable.</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
               <input type="text" placeholder="Contest Title (e.g. Model of the Week)" value={newAward.title} onChange={e => setNewAward({...newAward, title: e.target.value})} className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0]" />

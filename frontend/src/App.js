@@ -22,6 +22,7 @@ import DesignerStorePageComponent from "@/pages/DesignerStorePage";
 import AdminDashboard from "@/pages/Admin/AdminDashboard";
 import TalentDashboard from "@/pages/TalentDashboard";
 import ResetPassword from "@/pages/ResetPassword";
+import ContestPage from "@/pages/ContestPage";
 import { ShareLeaderboard } from "@/components/share";
 import { ShareBadgeSmall, ShareBadgeLarge, useShareLeaderboard } from "@/components/share";
 
@@ -3427,6 +3428,7 @@ function App() {
           <Route path="/talents/:category" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><TalentsPage ads={ads} shareEnabled={shareEnabled} /></>} />
           <Route path="/magazine/:section" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><MagazinePage /></>} />
           <Route path="/talent-dashboard" element={<><Navbar user={user} talent={talent} onLogout={handleLogout} /><TalentDashboard talent={talent} onUpdate={setTalent} /></>} />
+          <Route path="/contest/:slug" element={<ContestPage />} />
           <Route path="/admin" element={user ? (<><Navbar user={user} talent={talent} onLogout={handleLogout} /><AdminDashboard /></>) : (<Navigate to="/login" replace />)} />
         </Routes>
         <Toaster />
