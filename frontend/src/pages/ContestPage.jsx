@@ -1,14 +1,15 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
-import { Trophy, Calendar, Clock, Users, Share2, ChevronLeft, Award, Vote, Instagram, X, Download, Crop, RotateCcw, ZoomIn, ZoomOut } from "lucide-react";
+import { Trophy, Calendar, Clock, Users, Share2, ChevronLeft, Award, Vote, Instagram, X, Download, Crop, RotateCcw, ZoomIn, ZoomOut, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { API } from "@/lib/config";
 
 const ContestPage = () => {
   const { slug } = useParams();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [contest, setContest] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -17,6 +18,7 @@ const ContestPage = () => {
   const [showShareModal, setShowShareModal] = useState(false);
   const [votedTalent, setVotedTalent] = useState(null);
   const [generatingImage, setGeneratingImage] = useState(null);
+  const [selectedTalent, setSelectedTalent] = useState(null); // For profile modal
   const canvasRef = useRef(null);
   const imgRef = useRef(null);
   
@@ -413,6 +415,64 @@ const ContestPage = () => {
               </div>
             </div>
 
+            {/* Small Participant Icons - Like Weekly Top Profiles */}
+            {contest.participants && contest.participants.length > 0 && (
+              <div className="mt-8">
+                <p className="text-[#A0A5B0] text-sm mb-4">Click on a participant to view their profile</p>
+                <div className="flex justify-center items-end gap-3 md:gap-6 flex-wrap">
+                  {contest.participants.slice(0, 5).map((talent, idx) => {
+                    const medals = ["🥇", "🥈", "🥉"];
+                    const ringColors = [
+                      "ring-yellow-400 ring-4",
+                      "ring-gray-300 ring-3", 
+                      "ring-amber-600 ring-2",
+                      "ring-[#D4AF37]/50 ring-2",
+                      "ring-[#D4AF37]/30 ring-2"
+                    ];
+                    const sizes = idx === 0 
+                      ? "w-20 h-20 md:w-24 md:h-24" 
+                      : "w-16 h-16 md:w-20 md:h-20";
+                    
+                    return (
+                      <button
+                        key={talent.id}
+                        onClick={() => setSelectedTalent(talent)}
+                        className={`flex flex-col items-center group transition-transform hover:scale-105 ${idx === 0 ? '-mt-2' : ''}`}
+                      >
+                        <div className="relative">
+                          <div className={`${sizes} rounded-full overflow-hidden ${ringColors[idx]} transition-all group-hover:ring-[#D4AF37] group-hover:ring-4`}>
+                            {talent.profile_image ? (
+                              <img 
+                                src={talent.profile_image} 
+                                alt={talent.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-[#D4AF37]/20 flex items-center justify-center">
+                                <span className="text-[#D4AF37] text-xl">{talent.name?.charAt(0)}</span>
+                              </div>
+                            )}
+                          </div>
+                          {idx < 3 && (
+                            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-lg">{medals[idx]}</div>
+                          )}
+                        </div>
+                        <p className={`mt-3 text-xs font-medium text-center max-w-[80px] truncate ${idx === 0 ? 'text-[#D4AF37]' : 'text-[#F5F5F0]'}`}>
+                          {talent.name?.split(' ')[0]}
+                        </p>
+                        <p className="text-[#A0A5B0] text-xs">{talent.votes || 0} votes</p>
+                      </button>
+                    );
+                  })}
+                </div>
+                {contest.participants.length > 5 && (
+                  <p className="text-center text-[#A0A5B0] text-sm mt-4">
+                    +{contest.participants.length - 5} more participants below
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* Share Button */}
             <button
               onClick={shareContest}
@@ -545,6 +605,82 @@ const ContestPage = () => {
         </div>
       </div>
 
+      {/* Talent Profile Modal */}
+      {selectedTalent && (
+        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-[#0A1628] rounded-2xl max-w-lg w-full border border-[#D4AF37]/30 overflow-hidden my-4">
+            {/* Modal Header */}
+            <div className="p-4 border-b border-[#D4AF37]/20 flex items-center justify-between">
+              <h3 className="text-[#F5F5F0] font-bold">Talent Profile</h3>
+              <button 
+                onClick={() => setSelectedTalent(null)}
+                className="p-2 text-[#A0A5B0] hover:text-[#F5F5F0]"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Profile Content */}
+            <div className="p-6">
+              {/* Profile Image */}
+              <div className="text-center mb-6">
+                {selectedTalent.profile_image ? (
+                  <img 
+                    src={selectedTalent.profile_image} 
+                    alt={selectedTalent.name}
+                    className="w-40 h-40 rounded-full object-cover mx-auto border-4 border-[#D4AF37]"
+                  />
+                ) : (
+                  <div className="w-40 h-40 rounded-full bg-[#D4AF37]/20 flex items-center justify-center mx-auto border-4 border-[#D4AF37]">
+                    <span className="text-[#D4AF37] text-5xl">{selectedTalent.name?.charAt(0)}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Name & Category */}
+              <div className="text-center mb-6">
+                <h2 className="text-[#F5F5F0] text-2xl font-bold mb-1">{selectedTalent.name}</h2>
+                <p className="text-[#D4AF37]">{selectedTalent.category}</p>
+                <p className="text-[#A0A5B0] mt-2">{selectedTalent.votes || 0} votes in this contest</p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="space-y-3">
+                {/* Vote Button */}
+                {contest.status === "live" && !hasVoted && (
+                  <button
+                    onClick={() => {
+                      setSelectedTalent(null);
+                      handleVote(selectedTalent.id);
+                    }}
+                    className="w-full py-3 bg-[#D4AF37] text-[#050A14] rounded-lg font-bold text-lg hover:bg-[#F5F5F0] transition-colors"
+                  >
+                    Vote for {selectedTalent.name?.split(' ')[0]}
+                  </button>
+                )}
+
+                {/* View Full Profile Link */}
+                <Link
+                  to={`/talents/${selectedTalent.slug || selectedTalent.id}`}
+                  className="block w-full py-3 bg-[#D4AF37]/20 text-[#D4AF37] rounded-lg font-medium text-center hover:bg-[#D4AF37]/30 transition-colors"
+                >
+                  <Eye size={18} className="inline mr-2" />
+                  View Full Profile
+                </Link>
+
+                {/* Close Button */}
+                <button
+                  onClick={() => setSelectedTalent(null)}
+                  className="w-full py-3 bg-[#050A14] text-[#A0A5B0] rounded-lg font-medium hover:text-[#F5F5F0] transition-colors"
+                >
+                  Back to Contest
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Instagram Share Modal with Cropper */}
       {showShareModal && votedTalent && (
         <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4 overflow-y-auto">
@@ -561,7 +697,7 @@ const ContestPage = () => {
                 </div>
               </div>
               <button 
-                onClick={() => { setShowShareModal(false); setImgLoaded(false); }}
+                onClick={() => { setShowShareModal(false); setImgLoaded(false); navigate('/'); }}
                 className="p-2 text-[#A0A5B0] hover:text-[#F5F5F0]"
               >
                 <X size={20} />
@@ -674,6 +810,14 @@ const ContestPage = () => {
                 className="w-full flex items-center justify-center gap-2 py-2 text-[#D4AF37] text-sm"
               >
                 <Share2 size={16} /> Copy contest link to share
+              </button>
+
+              {/* Go to Home */}
+              <button
+                onClick={() => navigate('/')}
+                className="w-full flex items-center justify-center gap-2 py-3 mt-2 bg-[#050A14] text-[#A0A5B0] rounded-lg text-sm hover:text-[#F5F5F0]"
+              >
+                <ChevronLeft size={16} /> Back to Home
               </button>
             </div>
           </div>
