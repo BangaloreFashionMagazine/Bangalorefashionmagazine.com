@@ -3,7 +3,7 @@ import axios from "axios";
 import { 
   Trophy, Plus, Edit, Trash2, Eye, EyeOff, Users, Calendar, Clock, 
   Search, X, Check, Award, Share2, ExternalLink, RefreshCw, Upload, TrendingUp, BarChart3,
-  Image, Palette, Type, Move, Settings2
+  Image, Palette, Type, Move, Settings2, Building2, Link2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { API } from "@/lib/config";
@@ -45,6 +45,7 @@ const ContestManagementTab = () => {
     is_featured: false,
     is_visible: true,
     participant_ids: [],
+    sponsors: [],
     share_template_story: {
       logo_position: "bottom",
       logo_size: 120,
@@ -72,6 +73,8 @@ const ContestManagementTab = () => {
   const [analyticsData, setAnalyticsData] = useState(null);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
   const [showShareSettings, setShowShareSettings] = useState(false);
+  const [showSponsorsSettings, setShowSponsorsSettings] = useState(false);
+  const [newSponsor, setNewSponsor] = useState({ name: "", logo: "", website: "" });
   const [activeShareTab, setActiveShareTab] = useState("story"); // story or feed
   const previewCanvasRef = useRef(null);
 
@@ -188,9 +191,11 @@ const ContestManagementTab = () => {
       name: "", description: "", banner_image: "", start_date: "", start_time: "00:00",
       end_date: "", end_time: "23:59", rules: "", voting_instructions: "",
       status: "draft", is_featured: false, is_visible: true, participant_ids: [],
+      sponsors: [],
       share_template_story: { ...defaultShareTemplate },
       share_template_feed: { ...defaultShareTemplate, logo_size: 100, font_size: 28 }
     });
+    setNewSponsor({ name: "", logo: "", website: "" });
   };
 
   const openEditModal = (contest) => {
@@ -209,10 +214,32 @@ const ContestManagementTab = () => {
       is_featured: contest.is_featured || false,
       is_visible: contest.is_visible !== false,
       participant_ids: contest.participant_ids || [],
+      sponsors: contest.sponsors || [],
       share_template_story: contest.share_template_story || { ...defaultShareTemplate },
       share_template_feed: contest.share_template_feed || { ...defaultShareTemplate, logo_size: 100, font_size: 28 }
     });
+    setNewSponsor({ name: "", logo: "", website: "" });
     setShowEditModal(true);
+  };
+
+  const addSponsor = () => {
+    if (!newSponsor.name || !newSponsor.logo) {
+      toast({ title: "Sponsor name and logo are required", variant: "destructive" });
+      return;
+    }
+    setFormData(prev => ({
+      ...prev,
+      sponsors: [...prev.sponsors, { ...newSponsor }]
+    }));
+    setNewSponsor({ name: "", logo: "", website: "" });
+    toast({ title: "Sponsor added" });
+  };
+
+  const removeSponsor = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      sponsors: prev.sponsors.filter((_, i) => i !== index)
+    }));
   };
 
   const fetchAnalytics = async (contestId) => {
@@ -727,6 +754,112 @@ const ContestManagementTab = () => {
                     );
                   })}
                 </div>
+              </div>
+
+              {/* Sponsors Section */}
+              <div className="border border-[#D4AF37]/30 rounded-lg overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setShowSponsorsSettings(!showSponsorsSettings)}
+                  className="w-full p-4 flex items-center justify-between bg-[#050A14] hover:bg-[#0A1628] transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-amber-500 to-yellow-500 flex items-center justify-center">
+                      <Building2 size={20} className="text-white" />
+                    </div>
+                    <div className="text-left">
+                      <h4 className="text-[#F5F5F0] font-medium">Contest Sponsors</h4>
+                      <p className="text-[#A0A5B0] text-xs">
+                        {formData.sponsors.length > 0 
+                          ? `${formData.sponsors.length} sponsor(s) added`
+                          : "Add sponsor logos to display on contest"}
+                      </p>
+                    </div>
+                  </div>
+                  <Settings2 size={20} className={`text-[#D4AF37] transition-transform ${showSponsorsSettings ? 'rotate-180' : ''}`} />
+                </button>
+
+                {showSponsorsSettings && (
+                  <div className="p-4 border-t border-[#D4AF37]/20 space-y-4">
+                    {/* Current Sponsors */}
+                    {formData.sponsors.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-[#A0A5B0] text-sm">Current Sponsors:</p>
+                        <div className="flex flex-wrap gap-3">
+                          {formData.sponsors.map((sponsor, idx) => (
+                            <div key={idx} className="flex items-center gap-2 bg-[#050A14] rounded-lg p-2 pr-3">
+                              <img 
+                                src={sponsor.logo} 
+                                alt={sponsor.name}
+                                className="w-10 h-10 object-contain rounded"
+                                onError={(e) => e.target.style.display = 'none'}
+                              />
+                              <div>
+                                <p className="text-[#F5F5F0] text-sm font-medium">{sponsor.name}</p>
+                                {sponsor.website && (
+                                  <p className="text-[#A0A5B0] text-xs truncate max-w-[120px]">{sponsor.website}</p>
+                                )}
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => removeSponsor(idx)}
+                                className="ml-2 p-1 text-red-400 hover:text-red-300"
+                              >
+                                <X size={14} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Add New Sponsor */}
+                    <div className="space-y-3 pt-2 border-t border-[#D4AF37]/10">
+                      <p className="text-[#F5F5F0] text-sm font-medium">Add New Sponsor</p>
+                      <div className="grid grid-cols-1 gap-3">
+                        <input
+                          type="text"
+                          value={newSponsor.name}
+                          onChange={(e) => setNewSponsor(prev => ({ ...prev, name: e.target.value }))}
+                          placeholder="Sponsor Name *"
+                          className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/30 rounded-lg text-[#F5F5F0] text-sm"
+                        />
+                        <input
+                          type="text"
+                          value={newSponsor.logo}
+                          onChange={(e) => setNewSponsor(prev => ({ ...prev, logo: e.target.value }))}
+                          placeholder="Logo URL * (paste image link)"
+                          className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/30 rounded-lg text-[#F5F5F0] text-sm"
+                        />
+                        <input
+                          type="text"
+                          value={newSponsor.website}
+                          onChange={(e) => setNewSponsor(prev => ({ ...prev, website: e.target.value }))}
+                          placeholder="Website (optional)"
+                          className="w-full px-3 py-2 bg-[#050A14] border border-[#D4AF37]/30 rounded-lg text-[#F5F5F0] text-sm"
+                        />
+                      </div>
+                      {newSponsor.logo && (
+                        <div className="flex items-center gap-2">
+                          <p className="text-[#A0A5B0] text-xs">Preview:</p>
+                          <img 
+                            src={newSponsor.logo} 
+                            alt="Preview"
+                            className="w-12 h-12 object-contain rounded bg-white p-1"
+                            onError={(e) => e.target.style.display = 'none'}
+                          />
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={addSponsor}
+                        className="w-full py-2 bg-[#D4AF37]/20 text-[#D4AF37] rounded-lg text-sm font-medium hover:bg-[#D4AF37]/30"
+                      >
+                        <Plus size={16} className="inline mr-1" /> Add Sponsor
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Instagram Share Template Settings */}

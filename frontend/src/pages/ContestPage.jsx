@@ -439,6 +439,54 @@ const ContestPage = () => {
     ctx.font = `300 ${logoSize * 0.35}px system-ui, -apple-system, sans-serif`;
     ctx.fillText("Magazine", logoX + logoSize * 0.8, logoY + logoSize * 0.5);
     
+    // Draw Sponsor logos if available
+    if (contest.sponsors && contest.sponsors.length > 0) {
+      const sponsorY = template.logo_position.includes("top") 
+        ? dimensions.height - 120 
+        : 60;
+      
+      ctx.fillStyle = "rgba(255,255,255,0.8)";
+      ctx.font = "12px system-ui, -apple-system, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("Sponsored by", dimensions.width / 2, sponsorY);
+      
+      const sponsorLogoSize = 50;
+      const totalSponsors = Math.min(contest.sponsors.length, 4); // Max 4 sponsors on image
+      const sponsorSpacing = 80;
+      const startX = (dimensions.width - (totalSponsors * sponsorSpacing - (sponsorSpacing - sponsorLogoSize))) / 2;
+      
+      // Load and draw sponsor logos
+      for (let i = 0; i < totalSponsors; i++) {
+        const sponsor = contest.sponsors[i];
+        try {
+          const sponsorImg = new window.Image();
+          sponsorImg.crossOrigin = "anonymous";
+          await new Promise((resolve) => {
+            sponsorImg.onload = resolve;
+            sponsorImg.onerror = resolve;
+            sponsorImg.src = sponsor.logo;
+          });
+          
+          if (sponsorImg.complete && sponsorImg.naturalWidth > 0) {
+            // Draw white background for sponsor logo
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillRect(startX + (i * sponsorSpacing), sponsorY + 15, sponsorLogoSize, sponsorLogoSize);
+            
+            // Draw sponsor logo
+            ctx.drawImage(
+              sponsorImg,
+              startX + (i * sponsorSpacing) + 5,
+              sponsorY + 20,
+              sponsorLogoSize - 10,
+              sponsorLogoSize - 10
+            );
+          }
+        } catch (err) {
+          // Skip if sponsor logo fails to load
+        }
+      }
+    }
+    
     // Convert to blob and download (PNG for high quality)
     canvas.toBlob((blob) => {
       const url = URL.createObjectURL(blob);
@@ -532,6 +580,38 @@ const ContestPage = () => {
                 {contest.total_votes || 0} Total Votes
               </div>
             </div>
+
+            {/* Sponsors Section */}
+            {contest.sponsors && contest.sponsors.length > 0 && (
+              <div className="mt-8 pt-6 border-t border-[#D4AF37]/20">
+                <p className="text-[#A0A5B0] text-xs uppercase tracking-wider text-center mb-4">
+                  Sponsored By
+                </p>
+                <div className="flex flex-wrap justify-center items-center gap-6">
+                  {contest.sponsors.map((sponsor, idx) => (
+                    <a
+                      key={idx}
+                      href={sponsor.website || "#"}
+                      target={sponsor.website ? "_blank" : "_self"}
+                      rel="noopener noreferrer"
+                      className="flex flex-col items-center gap-2 group"
+                      onClick={(e) => !sponsor.website && e.preventDefault()}
+                    >
+                      <div className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-xl p-2 flex items-center justify-center group-hover:scale-105 transition-transform shadow-lg">
+                        <img 
+                          src={sponsor.logo} 
+                          alt={sponsor.name}
+                          className="max-w-full max-h-full object-contain"
+                        />
+                      </div>
+                      <span className="text-[#A0A5B0] text-xs group-hover:text-[#D4AF37] transition-colors">
+                        {sponsor.name}
+                      </span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Winner Announcement Section */}
             {contest.status === 'winner_announced' && contest.winner_id && (() => {

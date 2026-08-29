@@ -182,6 +182,15 @@ app.add_middleware(
 
 
 @app.on_event("startup")
+async def startup_ensure_indexes():
+    """Index the fields the public talent listing sorts/filters on, so query
+    performance doesn't degrade as the talent roster grows."""
+    await db.talents.create_index([("rank", 1), ("votes", -1)])
+    await db.talents.create_index("is_approved")
+    await db.talents.create_index("category")
+
+
+@app.on_event("startup")
 async def startup_ensure_admin():
     """Ensure an admin user exists. Only creates one if none exists yet - never
     overwrites an existing admin's password, so a password change made through

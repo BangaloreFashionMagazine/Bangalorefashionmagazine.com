@@ -335,7 +335,9 @@ def create_talent_routes(db):
         lightweight: bool = False,
         featured: bool = False,
         search: Optional[str] = None,
-        location: Optional[str] = None
+        location: Optional[str] = None,
+        skip: int = 0,
+        limit: int = 1000
     ):
         query = {}
         if approved_only:
@@ -364,7 +366,7 @@ def create_talent_routes(db):
             projection["email"] = 0
             projection["phone"] = 0
 
-        talents = await db.talents.find(query, projection).sort([("rank", 1), ("votes", -1)]).to_list(1000)
+        talents = await db.talents.find(query, projection).sort([("rank", 1), ("votes", -1)]).skip(skip).limit(limit).to_list(limit)
 
         return [
             TalentResponse(

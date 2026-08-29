@@ -25,6 +25,12 @@ class ShareTemplateSettings(BaseModel):
     font_size: int = 32
 
 
+class Sponsor(BaseModel):
+    name: str
+    logo: str  # URL to sponsor logo image
+    website: Optional[str] = None
+
+
 class ContestCreate(BaseModel):
     name: str
     description: str = ""
@@ -41,6 +47,7 @@ class ContestCreate(BaseModel):
     participant_ids: List[str] = []
     share_template_story: Optional[dict] = None
     share_template_feed: Optional[dict] = None
+    sponsors: List[dict] = []  # List of {name, logo, website}
 
 
 class ContestUpdate(BaseModel):
@@ -60,6 +67,7 @@ class ContestUpdate(BaseModel):
     winner_id: Optional[str] = None
     share_template_story: Optional[dict] = None
     share_template_feed: Optional[dict] = None
+    sponsors: Optional[List[dict]] = None  # List of {name, logo, website}
 
 
 class ContestVote(BaseModel):
@@ -124,6 +132,7 @@ def create_contest_routes(db):
                 "show_vote_count": False,
                 "font_size": 28
             },
+            "sponsors": contest.sponsors or [],
             "created_at": datetime.now(timezone.utc).isoformat(),
             "updated_at": datetime.now(timezone.utc).isoformat()
         }
