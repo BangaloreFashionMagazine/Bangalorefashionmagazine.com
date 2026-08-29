@@ -610,10 +610,14 @@ const ContestManagementTab = () => {
                     className="px-3 py-2 bg-[#050A14] border border-[#D4AF37]/30 rounded-lg text-[#F5F5F0] text-sm"
                   >
                     <option value="all">All Categories</option>
+                    <option value="Model">Model</option>
                     <option value="Model - Female">Model - Female</option>
                     <option value="Model - Male">Model - Male</option>
-                    <option value="Photographers">Photographers</option>
-                    <option value="Makeup Artists">Makeup Artists</option>
+                    <option value="Photography">Photography</option>
+                    <option value="Makeup & Hair">Makeup & Hair</option>
+                    <option value="Designers">Designers</option>
+                    <option value="Designer Store">Designer Store</option>
+                    <option value="Other">Other</option>
                   </select>
                   <button
                     onClick={searchTalents}
