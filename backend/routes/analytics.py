@@ -35,6 +35,67 @@ def create_analytics_routes(db):
         return {"message": "Tracked"}
 
 
+    # ============== Track Profile View ==============
+    @router.post("/analytics/profile-view")
+    async def track_profile_view(data: dict):
+        """Track a talent profile view - prevents duplicate counting from same session"""
+        talent_id = data.get("talent_id")
+        session_id = data.get("session_id", "")
+        
+        if not talent_id:
+            return {"message": "No talent_id provided"}
+        
+        # Check if this session already viewed this profile in the last hour (prevent refresh spam)
+        one_hour_ago = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
+        existing = await db.profile_views.find_one({
+            "talent_id": talent_id,
+            "session_id": session_id,
+            "created_at": {"$gte": one_hour_ago}
+        })
+        
+        if existing:
+            return {"message": "Already counted", "counted": False}
+        
+        doc = {
+            "id": str(uuid.uuid4()),
+            "talent_id": talent_id,
+            "session_id": session_id,
+            "user_agent": data.get("user_agent", ""),
+            "referrer": data.get("referrer", ""),
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.profile_views.insert_one(doc)
+        return {"message": "Profile view tracked", "counted": True}
+
+
+    # ============== Get Weekly Profile Views (Monday-Sunday) ==============
+    @router.get("/analytics/weekly-profile-views")
+    async def get_weekly_profile_views():
+        """Get total profile views for current week (Monday 00:00 to Sunday 23:59)"""
+        now = datetime.now(timezone.utc)
+        
+        # Calculate Monday 00:00:00 of current week
+        days_since_monday = now.weekday()  # Monday = 0, Sunday = 6
+        monday_start = now.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=days_since_monday)
+        
+        # Calculate Sunday 23:59:59 of current week
+        sunday_end = monday_start + timedelta(days=6, hours=23, minutes=59, seconds=59)
+        
+        # Count profile views within the week
+        weekly_views = await db.profile_views.count_documents({
+            "created_at": {
+                "$gte": monday_start.isoformat(),
+                "$lte": sunday_end.isoformat()
+            }
+        })
+        
+        return {
+            "weekly_profile_views": weekly_views,
+            "week_start": monday_start.isoformat(),
+            "week_end": sunday_end.isoformat()
+        }
+
+
     # ============== Get Analytics Summary ==============
     @admin_router.get("/admin/analytics/summary")
     async def get_analytics_summary():

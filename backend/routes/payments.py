@@ -272,6 +272,8 @@ def create_payments_router(db):
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         await db.events.insert_one(event_data)
+        # Return without _id that was added by MongoDB
+        event_data.pop("_id", None)
         return {"message": "Event created successfully", "event": event_data}
 
     # Get all events

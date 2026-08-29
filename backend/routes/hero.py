@@ -154,6 +154,16 @@ def create_hero_routes(db):
         logger.info(f"Hero slide created for talent {slide.talent_id}")
         return {"id": slide_doc["id"], "message": "Hero slide created"}
 
+    @admin_router.put("/admin/hero-slides/reorder")
+    async def reorder_hero_slides(slide_orders: List[dict]):
+        """Reorder hero slides. Expects: [{"id": "...", "order": 1}, ...]"""
+        for item in slide_orders:
+            await db.hero_slides.update_one(
+                {"id": item["id"]},
+                {"$set": {"order": item["order"]}}
+            )
+        return {"message": "Slides reordered"}
+
     @admin_router.put("/admin/hero-slides/{slide_id}")
     async def update_hero_slide(slide_id: str, update: HeroSlideUpdate):
         """Update a hero slide"""
@@ -179,16 +189,6 @@ def create_hero_routes(db):
         if result.deleted_count == 0:
             raise HTTPException(status_code=404, detail="Slide not found")
         return {"message": "Slide deleted"}
-
-    @admin_router.put("/admin/hero-slides/reorder")
-    async def reorder_hero_slides(slide_orders: List[dict]):
-        """Reorder hero slides. Expects: [{"id": "...", "order": 1}, ...]"""
-        for item in slide_orders:
-            await db.hero_slides.update_one(
-                {"id": item["id"]},
-                {"$set": {"order": item["order"]}}
-            )
-        return {"message": "Slides reordered"}
 
     # ============== Hero Settings ==============
 

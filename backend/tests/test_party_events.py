@@ -22,7 +22,7 @@ class TestPartyEventsAPI:
         for event_id in self.created_event_ids:
             try:
                 requests.delete(f"{BASE_URL}/api/admin/party-events/{event_id}")
-            except:
+            except Exception:
                 pass
 
     def test_api_health(self):

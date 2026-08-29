@@ -116,7 +116,7 @@ Respond ONLY with valid JSON, no other text."""
                         recommendation=data.get("recommendation", "Good photo")[:100],
                         is_recommended=False
                     ))
-                except:
+                except Exception:
                     # Default analysis if AI fails
                     analyses.append(ImageAnalysis(
                         image_index=i,

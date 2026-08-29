@@ -735,6 +735,19 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true, leade
           setFullTalent(talent);
           setLoading(false);
         });
+      
+      // Track profile view (with session ID to prevent duplicate counting)
+      const sessionId = localStorage.getItem('bfm_session_id') || (() => {
+        const newId = `sess_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        localStorage.setItem('bfm_session_id', newId);
+        return newId;
+      })();
+      
+      axios.post(`${API}/analytics/profile-view`, {
+        talent_id: talent.id,
+        session_id: sessionId,
+        referrer: document.referrer || ''
+      }).catch(err => console.error("Failed to track profile view:", err));
     }
   }, [talent?.id]);
   
@@ -1854,8 +1867,16 @@ const TalentsPage = ({ ads, shareEnabled = true }) => {
 
   const handleVote = async (talentId) => {
     try {
-      await axios.post(`${API}/vote`, { talent_id: talentId });
+      const res = await axios.post(`${API}/vote`, { talent_id: talentId });
       toast({ title: "Vote recorded!" });
+      // Update local state with new vote count
+      setTalents(prev => prev.map(t => 
+        t.id === talentId ? { ...t, votes: res.data.votes } : t
+      ));
+      // Also update selectedTalent if it's the same talent
+      setSelectedTalent(prev => 
+        prev && prev.id === talentId ? { ...prev, votes: res.data.votes } : prev
+      );
     } catch (err) {
       toast({ title: "Error", description: err.response?.data?.detail || "Failed to vote", variant: "destructive" });
     }
