@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
+import confetti from "canvas-confetti";
 import { Trophy, Calendar, Clock, Users, Share2, ChevronLeft, Award, Vote, Instagram, X, Download, Crop, RotateCcw, ZoomIn, ZoomOut, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { API } from "@/lib/config";
@@ -51,6 +52,53 @@ const ContestPage = () => {
       toast({ title: "Contest not found", variant: "destructive" });
     }
     setLoading(false);
+  };
+
+  // Confetti celebration animation
+  const triggerCelebration = () => {
+    // First burst - gold confetti from center
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ['#D4AF37', '#FFD700', '#F5F5F0', '#FFA500']
+    });
+
+    // Second burst - from left
+    setTimeout(() => {
+      confetti({
+        particleCount: 50,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+        colors: ['#D4AF37', '#FFD700', '#F5F5F0']
+      });
+    }, 150);
+
+    // Third burst - from right
+    setTimeout(() => {
+      confetti({
+        particleCount: 50,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+        colors: ['#D4AF37', '#FFD700', '#F5F5F0']
+      });
+    }, 300);
+
+    // Stars burst
+    setTimeout(() => {
+      confetti({
+        particleCount: 30,
+        spread: 360,
+        ticks: 60,
+        gravity: 0.5,
+        decay: 0.94,
+        startVelocity: 20,
+        shapes: ['star'],
+        colors: ['#D4AF37', '#FFD700', '#FFA500']
+      });
+    }, 450);
   };
 
   const handleVote = async (talentId) => {
@@ -104,10 +152,15 @@ const ContestPage = () => {
       
       setHasVoted(true);
 
-      toast({ title: "Vote recorded! Thank you for voting." });
+      // Trigger celebration confetti!
+      triggerCelebration();
+
+      toast({ title: "🎉 Vote recorded! Thank you for voting." });
       
-      // Show share modal
-      setShowShareModal(true);
+      // Show share modal after a short delay for confetti
+      setTimeout(() => {
+        setShowShareModal(true);
+      }, 800);
     } catch (err) {
       toast({ 
         title: err.response?.data?.detail || "Failed to vote", 
