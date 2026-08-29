@@ -142,6 +142,10 @@ magazine_feature_routes = create_magazine_feature_routes(db)
 # Contest routes
 contest_routes = create_contest_routes(db)
 
+# Open Graph routes for social media crawlers
+from routes.og_tags import create_og_routes
+og_routes = create_og_routes(db)
+
 # Include all routes in the API router
 api_router.include_router(auth_routes)
 api_router.include_router(talent_routes)
@@ -158,6 +162,7 @@ api_router.include_router(seo_routes)
 api_router.include_router(category_routes)
 api_router.include_router(magazine_feature_routes)
 api_router.include_router(contest_routes)
+api_router.include_router(og_routes)
 
 # Include the API router in the main app
 app.include_router(api_router)

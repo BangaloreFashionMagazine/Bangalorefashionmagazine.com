@@ -3,7 +3,7 @@ import axios from "axios";
 import { 
   Trophy, Plus, Edit, Trash2, Eye, EyeOff, Users, Calendar, Clock, 
   Search, X, Check, Award, Share2, ExternalLink, RefreshCw, Upload, TrendingUp, BarChart3,
-  Image, Palette, Type, Move, Settings2, Building2, Link2
+  Image, Palette, Type, Move, Settings2, Building2, Link2, Wand2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { API } from "@/lib/config";
@@ -77,6 +77,7 @@ const ContestManagementTab = () => {
   const [newSponsor, setNewSponsor] = useState({ name: "", logo: "", website: "" });
   const [activeShareTab, setActiveShareTab] = useState("story"); // story or feed
   const previewCanvasRef = useRef(null);
+  const [migratingSlug, setMigratingSlug] = useState(false);
 
   const statusColors = {
     draft: "bg-gray-500/20 text-gray-400",
@@ -300,6 +301,25 @@ const ContestManagementTab = () => {
     toast({ title: "Contest link copied!" });
   };
 
+  // Migrate slugs for talents without slugs (one-time utility)
+  const migrateSlug = async () => {
+    setMigratingSlug(true);
+    try {
+      const res = await adminApi.post(`${API}/admin/migrate-slugs`);
+      toast({ 
+        title: "Slug Migration Complete", 
+        description: res.data.message || "All talents now have URL-friendly slugs" 
+      });
+    } catch (err) {
+      toast({ 
+        title: "Migration Failed", 
+        description: err.response?.data?.detail || "Failed to migrate slugs", 
+        variant: "destructive" 
+      });
+    }
+    setMigratingSlug(false);
+  };
+
   if (loading) return <div className="text-center py-8 text-[#A0A5B0]">Loading...</div>;
 
   return (
@@ -312,12 +332,23 @@ const ContestManagementTab = () => {
           </h2>
           <p className="text-[#A0A5B0] text-sm">Create and manage voting contests</p>
         </div>
-        <button
-          onClick={() => { resetForm(); setShowCreateModal(true); }}
-          className="flex items-center gap-2 px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded-lg font-bold"
-        >
-          <Plus size={18} /> Create Contest
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={migrateSlug}
+            disabled={migratingSlug}
+            className="flex items-center gap-2 px-3 py-2 bg-[#1A2A44] border border-[#D4AF37]/30 text-[#D4AF37] rounded-lg text-sm hover:bg-[#D4AF37]/10 disabled:opacity-50"
+            title="Generate URL-friendly slugs for all talents (run once after deployment)"
+          >
+            <Wand2 size={16} className={migratingSlug ? "animate-spin" : ""} /> 
+            {migratingSlug ? "Migrating..." : "Migrate Slugs"}
+          </button>
+          <button
+            onClick={() => { resetForm(); setShowCreateModal(true); }}
+            className="flex items-center gap-2 px-4 py-2 bg-[#D4AF37] text-[#050A14] rounded-lg font-bold"
+          >
+            <Plus size={18} /> Create Contest
+          </button>
+        </div>
       </div>
 
       {/* Contest List */}

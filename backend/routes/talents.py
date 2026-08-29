@@ -204,7 +204,8 @@ def create_talent_routes(db):
             profile_image=talent_data.profile_image, portfolio_images=portfolio,
             portfolio_video=talent_doc["portfolio_video"],
             is_approved=False, rank=999, votes=0, created_at=talent_doc["created_at"],
-            agreed_to_terms=talent_doc["agreed_to_terms"], agreed_at=talent_doc["agreed_at"]
+            agreed_to_terms=talent_doc["agreed_to_terms"], agreed_at=talent_doc["agreed_at"],
+            slug=slug
         )
 
 
@@ -324,7 +325,8 @@ def create_talent_routes(db):
             portfolio_images=updated.get("portfolio_images", []), portfolio_video=updated.get("portfolio_video", ""),
             is_approved=updated.get("is_approved", False),
             rank=updated.get("rank", 999), votes=updated.get("votes", 0), created_at=updated.get("created_at", ""),
-            agreed_to_terms=updated.get("agreed_to_terms", False), agreed_at=updated.get("agreed_at", "")
+            agreed_to_terms=updated.get("agreed_to_terms", False), agreed_at=updated.get("agreed_at", ""),
+            slug=updated.get("slug", "")
         )
 
 
@@ -415,7 +417,8 @@ def create_talent_routes(db):
                 rank=t.get("rank", 999), votes=t.get("votes", 0), created_at=t.get("created_at", ""),
                 agreed_to_terms=t.get("agreed_to_terms", False), agreed_at=t.get("agreed_at", ""),
                 store_subcategories=t.get("store_subcategories", []),
-                location=t.get("location", "")
+                location=t.get("location", ""),
+                slug=t.get("slug", "")
             ) for t in talents
         ]
 

@@ -379,3 +379,22 @@ See `/app/memory/test_credentials.md`
 - **Backend Updates**:
   - `share_template_story` and `share_template_feed` fields added to Contest schema
   - Default templates initialized on contest creation
+
+## August 2026 - SEO Meta Tags / Open Graph (NEW - COMPLETED)
+- **Server-Side OG Tags for Crawlers**: FastAPI endpoints serve pre-rendered HTML with Open Graph tags for social media crawlers (WhatsApp, Facebook, Twitter) that don't execute JavaScript
+- **API Endpoints**:
+  - `GET /api/og/talent/{id_or_slug}` - Returns HTML with OG tags for talent profiles
+  - `GET /api/og/contest/{slug}` - Returns HTML with OG tags for contest pages
+  - `GET /api/og/category/{category}` - Returns HTML with OG tags for category pages
+- **OG Tags Include**: `og:title`, `og:description`, `og:image`, `og:url`, `og:type`, Twitter cards
+- **Smart Image Handling**: Uses talent profile images if they're URLs, falls back to default BFM image for base64 images
+- **JavaScript Redirect**: Non-crawler browsers are redirected to the React app automatically
+- **File Created**: `/app/backend/routes/og_tags.py`
+
+## August 2026 - Admin Slug Migration UI (NEW - COMPLETED)
+- **Migrate Slugs Button**: Added to Contest Management tab header
+- **Purpose**: One-click migration to generate URL-friendly slugs for all talents without slugs
+- **Use Case**: Run once after deployment to production to ensure older talents have shareable URLs
+- **Backend Endpoint**: `POST /api/admin/migrate-slugs` (already existed, now wired to UI)
+- **Location**: Top-right of Contest Management tab, next to "Create Contest" button
+- **Bug Fix**: Fixed TalentResponse to include `slug` field in all API responses

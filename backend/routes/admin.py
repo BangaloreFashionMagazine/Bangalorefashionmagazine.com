@@ -52,7 +52,18 @@ def create_admin_routes(db):
     @admin_router.post("/admin/migrate-slugs")
     async def migrate_talent_slugs(admin: dict = Depends(get_current_admin)):
         """One-time migration to generate slugs for all talents without slugs"""
-        talents = await db.talents.find({"$or": [{"slug": None}, {"slug": ""}, {"slug": {"$exists": False}}]}, {"_id": 0, "id": 1, "name": 1}).to_list(1000)
+        # Find talents with missing, null, or empty slugs
+        talents = await db.talents.find(
+            {"$or": [
+                {"slug": {"$exists": False}},
+                {"slug": None},
+                {"slug": ""},
+                {"slug": {"$type": "null"}}
+            ]}, 
+            {"_id": 0, "id": 1, "name": 1}
+        ).to_list(1000)
+        
+        logger.info(f"Found {len(talents)} talents needing slug migration")
         
         updated = 0
         for talent in talents:
@@ -70,6 +81,7 @@ def create_admin_routes(db):
                 {"$set": {"slug": slug}}
             )
             updated += 1
+            logger.info(f"Migrated {talent.get('name')} -> {slug}")
         
         return {"message": f"Generated slugs for {updated} talents"}
 
