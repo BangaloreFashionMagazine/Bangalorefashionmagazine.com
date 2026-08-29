@@ -101,6 +101,71 @@ const ContestPage = () => {
     }, 450);
   };
 
+  // Special winner celebration - grand fireworks
+  const triggerWinnerCelebration = useCallback(() => {
+    const duration = 5 * 1000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100 };
+
+    function randomInRange(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    const interval = setInterval(function() {
+      const timeLeft = animationEnd - Date.now();
+
+      if (timeLeft <= 0) {
+        return clearInterval(interval);
+      }
+
+      const particleCount = 50 * (timeLeft / duration);
+
+      // Fireworks from random positions
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+        colors: ['#D4AF37', '#FFD700', '#FFA500', '#FF6B00']
+      });
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+        colors: ['#D4AF37', '#FFD700', '#FFA500', '#FF6B00']
+      });
+    }, 250);
+
+    // Initial big burst
+    confetti({
+      particleCount: 150,
+      spread: 100,
+      origin: { y: 0.5 },
+      colors: ['#D4AF37', '#FFD700', '#FFFFFF', '#FFA500']
+    });
+
+    // Stars shower
+    setTimeout(() => {
+      confetti({
+        particleCount: 50,
+        spread: 360,
+        shapes: ['star'],
+        colors: ['#D4AF37', '#FFD700'],
+        scalar: 1.5,
+        origin: { y: 0.3 }
+      });
+    }, 500);
+  }, []);
+
+  // Trigger winner celebration on load if winner is announced
+  useEffect(() => {
+    if (contest?.status === 'winner_announced' && contest?.winner_id) {
+      // Small delay for page to render
+      setTimeout(() => {
+        triggerWinnerCelebration();
+      }, 500);
+    }
+  }, [contest?.status, contest?.winner_id, triggerWinnerCelebration]);
+
   const handleVote = async (talentId) => {
     if (hasVoted) {
       toast({ title: "You have already voted in this contest", variant: "destructive" });
@@ -468,8 +533,103 @@ const ContestPage = () => {
               </div>
             </div>
 
+            {/* Winner Announcement Section */}
+            {contest.status === 'winner_announced' && contest.winner_id && (() => {
+              const winner = contest.participants?.find(p => p.id === contest.winner_id);
+              if (!winner) return null;
+              
+              return (
+                <div className="mt-10 mb-6">
+                  {/* Winner Crown Animation */}
+                  <div className="relative">
+                    {/* Glowing background */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-64 h-64 bg-[#D4AF37]/20 rounded-full blur-3xl animate-pulse" />
+                    </div>
+                    
+                    {/* Winner Card */}
+                    <div className="relative bg-gradient-to-b from-[#D4AF37]/20 to-transparent rounded-3xl p-8 border border-[#D4AF37]/40">
+                      {/* Crown */}
+                      <div className="text-center mb-4">
+                        <span className="text-6xl animate-bounce inline-block">👑</span>
+                      </div>
+                      
+                      {/* Winner Text */}
+                      <p className="text-[#D4AF37] text-sm uppercase tracking-widest text-center mb-2">
+                        ✨ Winner Announced ✨
+                      </p>
+                      <h2 className="text-[#F5F5F0] text-3xl md:text-4xl font-bold text-center mb-6">
+                        Congratulations!
+                      </h2>
+                      
+                      {/* Winner Photo */}
+                      <div className="flex justify-center mb-6">
+                        <div className="relative">
+                          {/* Animated ring */}
+                          <div className="absolute inset-0 rounded-full border-4 border-[#D4AF37] animate-ping opacity-30" />
+                          <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden ring-4 ring-[#D4AF37] shadow-lg shadow-[#D4AF37]/30">
+                            {winner.profile_image ? (
+                              <img 
+                                src={winner.profile_image} 
+                                alt={winner.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-[#D4AF37]/20 flex items-center justify-center">
+                                <span className="text-[#D4AF37] text-5xl">{winner.name?.charAt(0)}</span>
+                              </div>
+                            )}
+                          </div>
+                          {/* Trophy badge */}
+                          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-[#D4AF37] text-[#050A14] px-4 py-1 rounded-full text-sm font-bold flex items-center gap-1">
+                            <Trophy size={14} /> WINNER
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Winner Name */}
+                      <h3 className="text-[#D4AF37] text-2xl md:text-3xl font-bold text-center mb-2">
+                        {winner.name}
+                      </h3>
+                      <p className="text-[#A0A5B0] text-center mb-4">{winner.category}</p>
+                      
+                      {/* Winner Stats */}
+                      <div className="flex justify-center gap-8 mb-6">
+                        <div className="text-center">
+                          <p className="text-[#D4AF37] text-3xl font-bold">{winner.votes || 0}</p>
+                          <p className="text-[#A0A5B0] text-sm">Votes</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-[#D4AF37] text-3xl font-bold">🥇</p>
+                          <p className="text-[#A0A5B0] text-sm">1st Place</p>
+                        </div>
+                      </div>
+                      
+                      {/* View Profile Button */}
+                      <div className="flex justify-center">
+                        <Link
+                          to={`/talents/${winner.slug || winner.id}`}
+                          className="inline-flex items-center gap-2 px-6 py-3 bg-[#D4AF37] text-[#050A14] rounded-full font-bold hover:bg-[#F5F5F0] transition-colors"
+                        >
+                          <Eye size={18} /> View Winner's Profile
+                        </Link>
+                      </div>
+                      
+                      {/* Replay celebration button */}
+                      <button
+                        onClick={triggerWinnerCelebration}
+                        className="mt-4 mx-auto block text-[#D4AF37] text-sm hover:underline"
+                      >
+                        🎆 Replay Celebration
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
             {/* Small Participant Icons - Like Weekly Top Profiles */}
-            {contest.participants && contest.participants.length > 0 && (
+            {contest.participants && contest.participants.length > 0 && contest.status !== 'winner_announced' && (
               <div className="mt-8">
                 <p className="text-[#A0A5B0] text-sm mb-4">Click on a participant to view their profile</p>
                 <div className="flex justify-center items-end gap-3 md:gap-6 flex-wrap">
@@ -535,30 +695,6 @@ const ContestPage = () => {
             </button>
           </div>
 
-          {/* Winner Banner */}
-          {contest.winner_id && (
-            <div className="bg-gradient-to-r from-[#D4AF37]/20 to-[#D4AF37]/10 rounded-xl p-6 mb-8 text-center border border-[#D4AF37]/30">
-              <Award className="text-[#D4AF37] mx-auto mb-3" size={48} />
-              <h2 className="text-[#D4AF37] text-2xl font-bold mb-2">Winner</h2>
-              {contest.participants?.find(p => p.id === contest.winner_id) && (
-                <div className="flex items-center justify-center gap-4">
-                  <img 
-                    src={contest.participants.find(p => p.id === contest.winner_id).profile_image}
-                    className="w-20 h-20 rounded-full border-4 border-[#D4AF37]"
-                  />
-                  <div className="text-left">
-                    <p className="text-[#F5F5F0] text-xl font-bold">
-                      {contest.participants.find(p => p.id === contest.winner_id).name}
-                    </p>
-                    <p className="text-[#D4AF37]">
-                      {contest.participants.find(p => p.id === contest.winner_id).votes} votes
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
           {/* Voting Instructions */}
           {contest.voting_instructions && contest.status === "live" && (
             <div className="bg-[#0A1628] rounded-xl p-4 mb-6 border border-[#D4AF37]/20">
@@ -577,7 +713,8 @@ const ContestPage = () => {
 
           {/* Participants */}
           <h2 className="text-2xl font-bold text-[#F5F5F0] mb-6 text-center">
-            {contest.status === "live" ? "Vote for Your Favorite" : "Participants"}
+            {contest.status === "live" ? "Vote for Your Favorite" : 
+             contest.status === "winner_announced" ? "All Participants" : "Participants"}
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
