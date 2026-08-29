@@ -96,6 +96,54 @@ def create_analytics_routes(db):
         }
 
 
+    @router.get("/analytics/top-viewed-talents")
+    async def get_top_viewed_talents():
+        """Get top 3 most viewed talents for current week (public - no view counts shown)"""
+        now = datetime.now(timezone.utc)
+        
+        # Calculate Monday 00:00:00 of current week
+        days_since_monday = now.weekday()
+        monday_start = now.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=days_since_monday)
+        sunday_end = monday_start + timedelta(days=6, hours=23, minutes=59, seconds=59)
+        
+        # Aggregate profile views by talent_id for this week
+        pipeline = [
+            {
+                "$match": {
+                    "created_at": {
+                        "$gte": monday_start.isoformat(),
+                        "$lte": sunday_end.isoformat()
+                    }
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$talent_id",
+                    "view_count": {"$sum": 1}
+                }
+            },
+            {"$sort": {"view_count": -1}},
+            {"$limit": 3}
+        ]
+        
+        top_talent_ids = await db.profile_views.aggregate(pipeline).to_list(3)
+        
+        if not top_talent_ids:
+            return {"top_talents": []}
+        
+        # Fetch talent details (only public info - no view counts)
+        talents = []
+        for item in top_talent_ids:
+            talent = await db.talents.find_one(
+                {"id": item["_id"]},
+                {"_id": 0, "id": 1, "name": 1, "profile_image": 1, "category": 1, "slug": 1}
+            )
+            if talent:
+                talents.append(talent)
+        
+        return {"top_talents": talents}
+
+
     # ============== Get Analytics Summary ==============
     @admin_router.get("/admin/analytics/summary")
     async def get_analytics_summary():
