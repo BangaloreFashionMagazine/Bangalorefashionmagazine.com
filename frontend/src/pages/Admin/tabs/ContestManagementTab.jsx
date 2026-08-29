@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { 
-  Trophy, Plus, Edit, Trash2, Eye, Users, Calendar, Clock, 
-  Search, X, Check, Award, Share2, ExternalLink, RefreshCw
+  Trophy, Plus, Edit, Trash2, Eye, EyeOff, Users, Calendar, Clock, 
+  Search, X, Check, Award, Share2, ExternalLink, RefreshCw, Upload, TrendingUp, BarChart3
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { API } from "@/lib/config";
+import { autoCompressImage } from "@/lib/imageOptimization";
 
 // Create admin axios instance
 const adminApi = axios.create();
@@ -26,6 +27,8 @@ const ContestManagementTab = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchCategory, setSearchCategory] = useState("all");
+  const [showAnalytics, setShowAnalytics] = useState(null);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -39,8 +42,12 @@ const ContestManagementTab = () => {
     voting_instructions: "",
     status: "draft",
     is_featured: false,
+    is_visible: true,
     participant_ids: []
   });
+
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [loadingAnalytics, setLoadingAnalytics] = useState(false);
 
   const statusColors = {
     draft: "bg-gray-500/20 text-gray-400",
@@ -126,7 +133,7 @@ const ContestManagementTab = () => {
     setFormData({
       name: "", description: "", banner_image: "", start_date: "", start_time: "00:00",
       end_date: "", end_time: "23:59", rules: "", voting_instructions: "",
-      status: "draft", is_featured: false, participant_ids: []
+      status: "draft", is_featured: false, is_visible: true, participant_ids: []
     });
   };
 
@@ -144,9 +151,33 @@ const ContestManagementTab = () => {
       voting_instructions: contest.voting_instructions || "",
       status: contest.status || "draft",
       is_featured: contest.is_featured || false,
+      is_visible: contest.is_visible !== false, // default true if undefined
       participant_ids: contest.participant_ids || []
     });
     setShowEditModal(true);
+  };
+
+  const fetchAnalytics = async (contestId) => {
+    setLoadingAnalytics(true);
+    setShowAnalytics(contestId);
+    try {
+      const res = await adminApi.get(`${API}/admin/contests/${contestId}/analytics`);
+      setAnalyticsData(res.data);
+    } catch (err) {
+      toast({ title: "Failed to load analytics", variant: "destructive" });
+    }
+    setLoadingAnalytics(false);
+  };
+
+  const toggleVisibility = async (contest) => {
+    const newVisibility = contest.is_visible === false ? true : false;
+    try {
+      await adminApi.put(`${API}/admin/contests/${contest.id}`, { is_visible: newVisibility });
+      toast({ title: newVisibility ? "Contest is now visible" : "Contest hidden from public" });
+      fetchContests();
+    } catch (err) {
+      toast({ title: "Failed to update visibility", variant: "destructive" });
+    }
   };
 
   const addParticipant = (talent) => {
@@ -219,10 +250,20 @@ const ContestManagementTab = () => {
                       {contest.is_featured && (
                         <span className="px-2 py-0.5 rounded text-xs bg-[#D4AF37]/20 text-[#D4AF37]">Featured</span>
                       )}
+                      {contest.is_visible === false && (
+                        <span className="px-2 py-0.5 rounded text-xs bg-red-500/20 text-red-400">Hidden</span>
+                      )}
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => toggleVisibility(contest)} 
+                    className={`p-2 rounded ${contest.is_visible === false ? 'text-red-400 bg-red-500/10' : 'text-green-400 bg-green-500/10'}`}
+                    title={contest.is_visible === false ? "Hidden - Click to show" : "Visible - Click to hide"}
+                  >
+                    {contest.is_visible === false ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                   <button onClick={() => copyContestLink(contest)} className="p-2 text-[#A0A5B0] hover:text-[#D4AF37]" title="Copy Link">
                     <Share2 size={18} />
                   </button>
@@ -296,7 +337,13 @@ const ContestManagementTab = () => {
                 )}
 
                 {/* Actions */}
-                <div className="mt-4 flex items-center gap-2">
+                <div className="mt-4 flex items-center gap-2 flex-wrap">
+                  <button
+                    onClick={() => fetchAnalytics(contest.id)}
+                    className="px-4 py-2 bg-purple-500/20 text-purple-400 rounded-lg text-sm flex items-center gap-2"
+                  >
+                    <BarChart3 size={16} /> Vote Analytics
+                  </button>
                   {contest.status === "closed" && !contest.winner_id && (
                     <button
                       onClick={() => announceWinner(contest.id)}
@@ -358,14 +405,48 @@ const ContestManagementTab = () => {
 
               {/* Banner Image */}
               <div>
-                <label className="text-[#A0A5B0] text-sm block mb-1">Banner Image URL</label>
-                <input
-                  type="text"
-                  value={formData.banner_image}
-                  onChange={(e) => setFormData({ ...formData, banner_image: e.target.value })}
-                  className="w-full px-4 py-2 bg-[#050A14] border border-[#D4AF37]/30 rounded-lg text-[#F5F5F0]"
-                  placeholder="https://..."
-                />
+                <label className="text-[#A0A5B0] text-sm block mb-1">Banner Image</label>
+                <div className="space-y-2">
+                  {formData.banner_image && (
+                    <div className="relative">
+                      <img src={formData.banner_image} className="w-full h-32 object-cover rounded-lg" alt="Banner" />
+                      <button
+                        onClick={() => setFormData({ ...formData, banner_image: "" })}
+                        className="absolute top-2 right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  )}
+                  <label className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-[#D4AF37]/30 rounded-lg cursor-pointer hover:border-[#D4AF37] text-[#A0A5B0] hover:text-[#D4AF37]">
+                    <Upload size={20} />
+                    <span>{uploadingBanner ? "Uploading..." : "Upload Banner Image"}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={uploadingBanner}
+                      onChange={async (e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        setUploadingBanner(true);
+                        try {
+                          const reader = new FileReader();
+                          reader.onloadend = async () => {
+                            const compressed = await autoCompressImage(reader.result, 1200);
+                            setFormData(prev => ({ ...prev, banner_image: compressed }));
+                            toast({ title: "Banner uploaded!" });
+                            setUploadingBanner(false);
+                          };
+                          reader.readAsDataURL(file);
+                        } catch (err) {
+                          toast({ title: "Upload failed", variant: "destructive" });
+                          setUploadingBanner(false);
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
               </div>
 
               {/* Dates */}
@@ -408,7 +489,7 @@ const ContestManagementTab = () => {
                 </div>
               </div>
 
-              {/* Status */}
+              {/* Status & Visibility */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-[#A0A5B0] text-sm block mb-1">Status</label>
@@ -424,14 +505,25 @@ const ContestManagementTab = () => {
                     <option value="winner_announced">Winner Announced</option>
                   </select>
                 </div>
-                <div className="flex items-center gap-3 pt-6">
-                  <input
-                    type="checkbox"
-                    checked={formData.is_featured}
-                    onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
-                    className="w-4 h-4"
-                  />
-                  <label className="text-[#F5F5F0] text-sm">Featured on Homepage</label>
+                <div className="flex flex-col gap-2 pt-2">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={formData.is_visible}
+                      onChange={(e) => setFormData({ ...formData, is_visible: e.target.checked })}
+                      className="w-4 h-4"
+                    />
+                    <label className="text-[#F5F5F0] text-sm">Visible to Public</label>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={formData.is_featured}
+                      onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
+                      className="w-4 h-4"
+                    />
+                    <label className="text-[#F5F5F0] text-sm">Featured on Homepage</label>
+                  </div>
                 </div>
               </div>
 
@@ -543,6 +635,115 @@ const ContestManagementTab = () => {
                   Cancel
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Analytics Modal */}
+      {showAnalytics && (
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+          <div className="bg-[#0A1628] rounded-xl max-w-2xl w-full border border-[#D4AF37]/20 max-h-[90vh] overflow-y-auto">
+            <div className="p-4 border-b border-[#D4AF37]/20 flex items-center justify-between sticky top-0 bg-[#0A1628] z-10">
+              <h3 className="text-[#F5F5F0] font-bold text-lg flex items-center gap-2">
+                <BarChart3 className="text-purple-400" /> Vote Analytics
+              </h3>
+              <button onClick={() => { setShowAnalytics(null); setAnalyticsData(null); }} className="text-[#A0A5B0] hover:text-[#F5F5F0]">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-6">
+              {loadingAnalytics ? (
+                <div className="text-center py-8 text-[#A0A5B0]">Loading analytics...</div>
+              ) : analyticsData ? (
+                <div className="space-y-6">
+                  {/* Summary */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-[#050A14] rounded-lg p-4 text-center">
+                      <p className="text-[#A0A5B0] text-sm">Total Votes</p>
+                      <p className="text-3xl font-bold text-[#D4AF37]">{analyticsData.total_votes}</p>
+                    </div>
+                    <div className="bg-[#050A14] rounded-lg p-4 text-center">
+                      <p className="text-[#A0A5B0] text-sm">Status</p>
+                      <p className="text-xl font-bold text-[#F5F5F0] capitalize">{analyticsData.status?.replace("_", " ")}</p>
+                    </div>
+                  </div>
+
+                  {/* Daily Votes Chart */}
+                  {analyticsData.daily_votes && analyticsData.daily_votes.length > 0 && (
+                    <div>
+                      <h4 className="text-[#F5F5F0] font-medium mb-3 flex items-center gap-2">
+                        <TrendingUp size={16} className="text-green-400" /> Daily Voting Trend
+                      </h4>
+                      <div className="bg-[#050A14] rounded-lg p-4">
+                        <div className="flex items-end gap-2 h-32">
+                          {analyticsData.daily_votes.map((d, idx) => {
+                            const maxVotes = Math.max(...analyticsData.daily_votes.map(x => x.votes));
+                            const height = maxVotes > 0 ? (d.votes / maxVotes) * 100 : 0;
+                            return (
+                              <div key={idx} className="flex-1 flex flex-col items-center">
+                                <div 
+                                  className="w-full bg-[#D4AF37] rounded-t min-h-[4px]"
+                                  style={{ height: `${height}%` }}
+                                  title={`${d.date}: ${d.votes} votes`}
+                                />
+                                <span className="text-[#A0A5B0] text-xs mt-1 truncate w-full text-center">
+                                  {d.date.slice(5)}
+                                </span>
+                                <span className="text-[#F5F5F0] text-xs font-bold">{d.votes}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Talent Breakdown */}
+                  {analyticsData.talent_votes && analyticsData.talent_votes.length > 0 && (
+                    <div>
+                      <h4 className="text-[#F5F5F0] font-medium mb-3">Votes by Participant</h4>
+                      <div className="space-y-2">
+                        {analyticsData.talent_votes.map((t, idx) => {
+                          const percentage = analyticsData.total_votes > 0 
+                            ? ((t.votes / analyticsData.total_votes) * 100).toFixed(1) 
+                            : 0;
+                          return (
+                            <div key={t.id} className="bg-[#050A14] rounded-lg p-3 flex items-center gap-3">
+                              <span className="text-[#D4AF37] font-bold w-6">{idx + 1}</span>
+                              {t.profile_image && (
+                                <img src={t.profile_image} className="w-10 h-10 rounded-full object-cover" />
+                              )}
+                              <div className="flex-1">
+                                <p className="text-[#F5F5F0] font-medium">{t.name}</p>
+                                <div className="w-full bg-[#0A1628] rounded-full h-2 mt-1">
+                                  <div 
+                                    className="bg-[#D4AF37] h-2 rounded-full transition-all"
+                                    style={{ width: `${percentage}%` }}
+                                  />
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-[#F5F5F0] font-bold">{t.votes}</p>
+                                <p className="text-[#A0A5B0] text-xs">{percentage}%</p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {analyticsData.total_votes === 0 && (
+                    <div className="text-center py-8 text-[#A0A5B0]">
+                      No votes recorded yet for this contest.
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-[#A0A5B0]">No data available</div>
+              )}
             </div>
           </div>
         </div>

@@ -314,3 +314,44 @@ See `/app/memory/test_credentials.md`
   - `/components/share/index.js` - Re-exports for easy imports
 - **App.js** reduced by ~100 lines, improved maintainability
 - **Remaining**: AdminDashboard.jsx (3,300+ lines) still needs modularization
+
+## August 2026 - Contest Management System (NEW - COMPLETED)
+- **Admin Contest Management Tab** (`/pages/Admin/tabs/ContestManagementTab.jsx`):
+  - Create/Edit/Delete contests
+  - Add existing talents as participants
+  - Set start/end dates with times
+  - Set contest status: Draft, Upcoming, Live, Closed, Winner Announced
+  - **Visibility Toggle**: Eye icon to show/hide contest from public (NEW)
+  - **Featured Toggle**: Feature contest on homepage
+  - **Banner Image Upload**: Upload and compress banner images
+  - Announce winner with one click
+  - **Vote Analytics Modal**: View daily voting trends and participant breakdown
+  - Vote table showing participants ranked by votes
+
+- **Public Contest System**:
+  - **Featured Contest Component** on Homepage (`FeaturedContest` in App.js)
+  - Shows top 3 participants with medals (🥇🥈🥉)
+  - "Vote Now" button links to public contest page
+  - Public Contest Page (`/contest/:slug`) with voting functionality
+  - Duplicate vote prevention (IP-based, 24-hour cooldown)
+
+- **Backend Routes** (`/backend/routes/contests.py`):
+  - `POST /api/admin/contests` - Create contest
+  - `GET /api/admin/contests` - List all contests (admin)
+  - `PUT /api/admin/contests/{id}` - Update contest
+  - `DELETE /api/admin/contests/{id}` - Delete contest
+  - `GET /api/admin/contests/{id}/analytics` - Vote analytics (NEW)
+  - `POST /api/admin/contests/{id}/announce-winner` - Announce winner
+  - `GET /api/contests` - Public contests list (filters by `is_visible`)
+  - `GET /api/contests/featured` - Featured contest for homepage
+  - `POST /api/contests/{id}/vote` - Cast vote with rate limiting
+
+- **Database Collections**:
+  - `contests`: {id, slug, name, description, banner_image, dates, status, is_featured, is_visible, participant_ids, winner_id}
+  - `contest_votes`: {id, contest_id, talent_id, client_ip, session_id, created_at}
+
+## August 2026 - Weekly Profile Views (COMPLETED)
+- Replaced "Shares" counter on homepage with "Weekly Profile Views"
+- Monday-Sunday tracking period
+- Backend calculates views from `profile_views` collection
+- Eye icon displayed with animated counter

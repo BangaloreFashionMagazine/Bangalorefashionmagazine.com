@@ -25,6 +25,7 @@ class ContestCreate(BaseModel):
     voting_instructions: str = ""
     status: str = "draft"  # draft, upcoming, live, closed, winner_announced
     is_featured: bool = False
+    is_visible: bool = True  # Controls public visibility
     participant_ids: List[str] = []
 
 
@@ -40,6 +41,7 @@ class ContestUpdate(BaseModel):
     voting_instructions: Optional[str] = None
     status: Optional[str] = None
     is_featured: Optional[bool] = None
+    is_visible: Optional[bool] = None  # Controls public visibility
     participant_ids: Optional[List[str]] = None
     winner_id: Optional[str] = None
 
@@ -79,6 +81,7 @@ def create_contest_routes(db):
             "voting_instructions": contest.voting_instructions,
             "status": contest.status,
             "is_featured": contest.is_featured,
+            "is_visible": contest.is_visible,
             "participant_ids": contest.participant_ids,
             "winner_id": None,
             "winner_announced_at": None,
@@ -189,6 +192,52 @@ def create_contest_routes(db):
         return {"message": "Contest deleted"}
     
     
+    @router.get("/admin/contests/{contest_id}/analytics")
+    async def get_contest_analytics(contest_id: str, admin: dict = Depends(require_admin)):
+        """Get vote analytics for a contest - ADMIN ONLY"""
+        contest = await db.contests.find_one({"id": contest_id}, {"_id": 0})
+        if not contest:
+            raise HTTPException(status_code=404, detail="Contest not found")
+        
+        # Get all votes for this contest
+        votes = await db.contest_votes.find(
+            {"contest_id": contest_id},
+            {"_id": 0, "talent_id": 1, "created_at": 1}
+        ).to_list(10000)
+        
+        # Group votes by day
+        daily_votes = {}
+        for vote in votes:
+            date = vote.get("created_at", "")[:10]  # Get YYYY-MM-DD
+            if date:
+                daily_votes[date] = daily_votes.get(date, 0) + 1
+        
+        # Sort by date
+        sorted_daily = sorted(daily_votes.items())
+        
+        # Get votes per talent
+        talent_votes = {}
+        for vote in votes:
+            tid = vote.get("talent_id")
+            talent_votes[tid] = talent_votes.get(tid, 0) + 1
+        
+        # Get talent names
+        talent_data = []
+        for tid, count in sorted(talent_votes.items(), key=lambda x: x[1], reverse=True):
+            talent = await db.talents.find_one({"id": tid}, {"_id": 0, "id": 1, "name": 1, "profile_image": 1})
+            if talent:
+                talent["votes"] = count
+                talent_data.append(talent)
+        
+        return {
+            "total_votes": len(votes),
+            "daily_votes": [{"date": d, "votes": v} for d, v in sorted_daily],
+            "talent_votes": talent_data,
+            "contest_name": contest.get("name"),
+            "status": contest.get("status")
+        }
+    
+    
     @router.post("/admin/contests/{contest_id}/announce-winner")
     async def announce_winner(contest_id: str, admin: dict = Depends(require_admin)):
         """Calculate and announce winner - ADMIN ONLY"""
@@ -255,9 +304,9 @@ def create_contest_routes(db):
     
     @router.get("/contests")
     async def get_public_contests():
-        """Get public contests (live and upcoming)"""
+        """Get public contests (live and upcoming) - only visible ones"""
         contests = await db.contests.find(
-            {"status": {"$in": ["live", "upcoming", "winner_announced"]}},
+            {"status": {"$in": ["live", "upcoming", "winner_announced"]}, "is_visible": {"$ne": False}},
             {"_id": 0}
         ).sort("created_at", -1).to_list(50)
         
@@ -286,9 +335,9 @@ def create_contest_routes(db):
     
     @router.get("/contests/featured")
     async def get_featured_contest():
-        """Get featured contest for homepage"""
+        """Get featured contest for homepage - only if visible"""
         contest = await db.contests.find_one(
-            {"is_featured": True, "status": {"$in": ["live", "upcoming"]}},
+            {"is_featured": True, "is_visible": {"$ne": False}, "status": {"$in": ["live", "upcoming"]}},
             {"_id": 0}
         )
         

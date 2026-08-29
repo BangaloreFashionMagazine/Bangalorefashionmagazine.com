@@ -707,6 +707,79 @@ const ClickableAdImage = ({ ad, className = "", imgClassName = "" }) => {
   );
 };
 
+// Featured Contest Component for Homepage
+const FeaturedContest = () => {
+  const [contest, setContest] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    axios.get(`${API}/contests/featured`)
+      .then(res => {
+        setContest(res.data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  if (loading || !contest) return null;
+
+  const topParticipants = contest.participants?.slice(0, 3) || [];
+
+  return (
+    <div className="bg-gradient-to-r from-[#0A1628] via-[#050A14] to-[#0A1628] py-10 border-y border-[#D4AF37]/20">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-8">
+          <span className="inline-block px-4 py-1 bg-green-500/20 text-green-400 rounded-full text-sm font-medium mb-3">
+            {contest.status === "live" ? "🔴 Voting Open" : "Coming Soon"}
+          </span>
+          <h2 className="text-3xl md:text-4xl font-bold text-[#F5F5F0] mb-2">{contest.name}</h2>
+          {contest.description && (
+            <p className="text-[#A0A5B0] max-w-2xl mx-auto">{contest.description}</p>
+          )}
+        </div>
+
+        {/* Top 3 Participants */}
+        {topParticipants.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-4 mb-8">
+            {topParticipants.map((talent, idx) => (
+              <div key={talent.id} className="relative bg-[#050A14] rounded-xl p-4 border border-[#D4AF37]/20 w-40 md:w-48 text-center">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-8 h-8 bg-[#D4AF37] rounded-full flex items-center justify-center text-[#050A14] font-bold text-sm">
+                  {idx === 0 ? "🥇" : idx === 1 ? "🥈" : "🥉"}
+                </div>
+                <div className="w-20 h-20 mx-auto rounded-full overflow-hidden border-2 border-[#D4AF37]/30 mt-2 mb-3">
+                  {talent.profile_image ? (
+                    <img src={talent.profile_image} alt={talent.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37] text-2xl">
+                      {talent.name?.charAt(0)}
+                    </div>
+                  )}
+                </div>
+                <p className="text-[#F5F5F0] font-medium text-sm truncate">{talent.name}</p>
+                <p className="text-[#D4AF37] font-bold text-lg">{talent.votes || 0} votes</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Vote Now Button */}
+        <div className="text-center">
+          <button
+            onClick={() => navigate(`/contest/${contest.slug}`)}
+            className="px-8 py-3 bg-[#D4AF37] text-[#050A14] font-bold rounded-lg hover:bg-[#F5F5F0] transition-colors text-lg"
+          >
+            {contest.status === "live" ? "Vote Now" : "View Contest"}
+          </button>
+          <p className="text-[#A0A5B0] text-sm mt-3">
+            {contest.total_votes || 0} total votes • {contest.participants?.length || 0} participants
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Talent Detail Modal
 const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true, leaderboard = [] }) => {
   const [voting, setVoting] = useState(false);
@@ -3197,8 +3270,11 @@ const HomePage = ({ user, talent, onLogout, heroImages, awards, ads, magazine, v
           </div>
         )}
         
-        {/* Share Leaderboard - Top Shared Talents */}
+        {/* Share Leaderboard - Profile Views */}
         <ShareLeaderboard />
+        
+        {/* Featured Contest */}
+        <FeaturedContest />
         
         {/* Contact Section */}
         <div className="bg-[#0A1628] py-6 border-y border-[#D4AF37]/20">
