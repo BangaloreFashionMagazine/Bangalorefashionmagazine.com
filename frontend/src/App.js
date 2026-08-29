@@ -1393,7 +1393,7 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true, leade
                       </button>
                       <button
                         onClick={() => {
-                          const link = `${window.location.origin}/talent/${talent.id}`;
+                          const link = `${window.location.origin}/talent/${talent.slug || talent.id}`;
                           navigator.clipboard.writeText(link).then(() => {
                             toast({ title: "Profile link copied!" });
                           }).catch(() => {

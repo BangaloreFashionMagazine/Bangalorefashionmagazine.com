@@ -77,6 +77,7 @@ class TalentResponse(BaseModel):
     agreed_at: str = ""
     store_subcategories: List[str] = []
     location: str = ""  # City/location for SEO and filtering
+    slug: str = ""  # URL-friendly slug for sharing
 
 class TalentLoginResponse(BaseModel):
     token: str

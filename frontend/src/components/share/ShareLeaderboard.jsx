@@ -48,7 +48,7 @@ const ShareLeaderboard = () => {
           {/* 2nd Place */}
           {topTalents[1] && (
             <Link 
-              to={`/talents/${topTalents[1].slug || topTalents[1].id}`}
+              to={`/talent/${topTalents[1].slug || topTalents[1].id}`}
               className="flex flex-col items-center group"
             >
               <div className="relative">
@@ -77,7 +77,7 @@ const ShareLeaderboard = () => {
           {/* 1st Place - Center & Larger */}
           {topTalents[0] && (
             <Link 
-              to={`/talents/${topTalents[0].slug || topTalents[0].id}`}
+              to={`/talent/${topTalents[0].slug || topTalents[0].id}`}
               className="flex flex-col items-center group -mt-4"
             >
               <div className="relative">
@@ -106,7 +106,7 @@ const ShareLeaderboard = () => {
           {/* 3rd Place */}
           {topTalents[2] && (
             <Link 
-              to={`/talents/${topTalents[2].slug || topTalents[2].id}`}
+              to={`/talent/${topTalents[2].slug || topTalents[2].id}`}
               className="flex flex-col items-center group"
             >
               <div className="relative">

@@ -109,6 +109,21 @@ def _send_otp_email(to_email: str, otp: str) -> bool:
         return False
 
 
+def generate_slug(name: str) -> str:
+    """Generate a URL-friendly slug from a name"""
+    if not name:
+        return "talent"
+    # Convert to lowercase and replace spaces with hyphens
+    slug = name.lower().strip()
+    # Remove special characters except hyphens
+    slug = re.sub(r'[^a-z0-9\s-]', '', slug)
+    # Replace multiple spaces/hyphens with single hyphen
+    slug = re.sub(r'[\s-]+', '-', slug)
+    # Remove leading/trailing hyphens
+    slug = slug.strip('-')
+    return slug or "talent"
+
+
 def create_talent_routes(db):
     router = APIRouter()
 
@@ -149,8 +164,18 @@ def create_talent_routes(db):
         portfolio = (talent_data.portfolio_images or [])[:7]
 
         talent_id = str(uuid.uuid4())
+        base_slug = generate_slug(talent_data.name)
+        
+        # Ensure unique slug by checking if it exists
+        slug = base_slug
+        counter = 1
+        while await db.talents.find_one({"slug": slug}):
+            slug = f"{base_slug}-{counter}"
+            counter += 1
+        
         talent_doc = {
             "id": talent_id,
+            "slug": slug,
             "name": talent_data.name,
             "email": talent_data.email.lower(),
             "password_hash": hash_password(talent_data.password),
@@ -303,13 +328,16 @@ def create_talent_routes(db):
         )
 
 
-    @router.get("/talent/{talent_id}", response_model=TalentResponse)
-    async def get_talent(talent_id: str, include_contact: bool = False):
+    @router.get("/talent/{talent_identifier}", response_model=TalentResponse)
+    async def get_talent(talent_identifier: str, include_contact: bool = False):
         """
-        Get talent details. Phone and email are hidden by default for privacy.
+        Get talent details by ID or slug. Phone and email are hidden by default for privacy.
         Admin dashboard should pass include_contact=true to see contact info.
         """
-        talent = await db.talents.find_one({"id": talent_id}, {"_id": 0})
+        # Try to find by ID first, then by slug
+        talent = await db.talents.find_one({"id": talent_identifier}, {"_id": 0})
+        if not talent:
+            talent = await db.talents.find_one({"slug": talent_identifier}, {"_id": 0})
         if not talent:
             raise HTTPException(status_code=404, detail="Talent not found")
 
@@ -324,7 +352,8 @@ def create_talent_routes(db):
             portfolio_images=talent.get("portfolio_images", []), portfolio_video=talent.get("portfolio_video", ""),
             is_approved=talent.get("is_approved", False),
             rank=talent.get("rank", 999), votes=talent.get("votes", 0), created_at=talent.get("created_at", ""),
-            agreed_to_terms=talent.get("agreed_to_terms", False), agreed_at=talent.get("agreed_at", "")
+            agreed_to_terms=talent.get("agreed_to_terms", False), agreed_at=talent.get("agreed_at", ""),
+            slug=talent.get("slug", "")
         )
 
 

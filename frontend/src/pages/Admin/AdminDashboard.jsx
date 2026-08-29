@@ -1338,7 +1338,7 @@ const AdminDashboard = () => {
                                 {instaSettings.showQR && (
                                   <div className="absolute bottom-4 right-4 w-14 h-14 bg-white rounded-md p-1 flex items-center justify-center">
                                     <QRCodeSVG 
-                                      value={`https://bangalorefashionmagazine.com/talent/${instagramTalent.id}`}
+                                      value={`https://bangalorefashionmagazine.com/talent/${instagramTalent.slug || instagramTalent.id}`}
                                       size={48}
                                       level="M"
                                       includeMargin={false}
@@ -1431,7 +1431,7 @@ const AdminDashboard = () => {
                                   {instaSettings.showQR && (
                                     <div className="mt-1 mx-auto w-8 h-8 bg-white rounded p-0.5 flex items-center justify-center">
                                       <QRCodeSVG 
-                                        value={`https://bangalorefashionmagazine.com/talent/${instagramTalent.id}`}
+                                        value={`https://bangalorefashionmagazine.com/talent/${instagramTalent.slug || instagramTalent.id}`}
                                         size={28}
                                         level="M"
                                         includeMargin={false}

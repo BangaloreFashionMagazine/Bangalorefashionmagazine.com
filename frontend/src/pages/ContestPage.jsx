@@ -688,7 +688,7 @@ const ContestPage = () => {
                       {/* View Profile Button */}
                       <div className="flex justify-center">
                         <Link
-                          to={`/talents/${winner.slug || winner.id}`}
+                          to={`/talent/${winner.slug || winner.id}`}
                           className="inline-flex items-center gap-2 px-6 py-3 bg-[#D4AF37] text-[#050A14] rounded-full font-bold hover:bg-[#F5F5F0] transition-colors"
                         >
                           <Eye size={18} /> View Winner's Profile
@@ -931,7 +931,7 @@ const ContestPage = () => {
 
                 {/* View Full Profile Link */}
                 <Link
-                  to={`/talents/${selectedTalent.slug || selectedTalent.id}`}
+                  to={`/talent/${selectedTalent.slug || selectedTalent.id}`}
                   className="block w-full py-3 bg-[#D4AF37]/20 text-[#D4AF37] rounded-lg font-medium text-center hover:bg-[#D4AF37]/30 transition-colors"
                 >
                   <Eye size={18} className="inline mr-2" />

@@ -5,6 +5,7 @@ from typing import List
 import uuid
 import io
 import csv
+import re
 
 from models import TalentResponse
 from services import hash_password
@@ -12,6 +13,17 @@ from dependencies.auth import get_current_admin
 
 import logging
 logger = logging.getLogger(__name__)
+
+
+def generate_slug(name: str) -> str:
+    """Generate a URL-friendly slug from a name"""
+    if not name:
+        return "talent"
+    slug = name.lower().strip()
+    slug = re.sub(r'[^a-z0-9\s-]', '', slug)
+    slug = re.sub(r'[\s-]+', '-', slug)
+    slug = slug.strip('-')
+    return slug or "talent"
 
 
 def create_admin_routes(db):
@@ -36,6 +48,30 @@ def create_admin_routes(db):
             upsert=True
         )
         return {"message": "Tab settings updated", "hidden_tabs": hidden_tabs}
+
+    @admin_router.post("/admin/migrate-slugs")
+    async def migrate_talent_slugs(admin: dict = Depends(get_current_admin)):
+        """One-time migration to generate slugs for all talents without slugs"""
+        talents = await db.talents.find({"$or": [{"slug": None}, {"slug": ""}, {"slug": {"$exists": False}}]}, {"_id": 0, "id": 1, "name": 1}).to_list(1000)
+        
+        updated = 0
+        for talent in talents:
+            base_slug = generate_slug(talent.get("name", "talent"))
+            slug = base_slug
+            counter = 1
+            
+            # Ensure unique slug
+            while await db.talents.find_one({"slug": slug, "id": {"$ne": talent["id"]}}):
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            
+            await db.talents.update_one(
+                {"id": talent["id"]},
+                {"$set": {"slug": slug}}
+            )
+            updated += 1
+        
+        return {"message": f"Generated slugs for {updated} talents"}
 
     @admin_router.get("/admin/talents/pending", response_model=List[TalentResponse])
     async def get_pending_talents():

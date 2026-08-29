@@ -218,7 +218,7 @@ const TalentHeroSlider = () => {
                 {slide.show_cta_button && (
                   <div className="flex gap-4">
                     <Link 
-                      to={slide.cta_link || `/talent/${slide.talent_id}`}
+                      to={slide.cta_link || `/talent/${slide.talent_slug || slide.talent_id}`}
                       className="px-6 py-3 bg-[#D4AF37] text-[#050A14] font-bold text-sm uppercase tracking-wider rounded hover:bg-[#F5F5F0] transition-colors"
                     >
                       {slide.cta_text || "View Profile"}
