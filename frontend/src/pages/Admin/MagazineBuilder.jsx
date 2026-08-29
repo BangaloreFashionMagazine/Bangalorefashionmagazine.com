@@ -3609,7 +3609,9 @@ const MagazineBuilder = () => {
                               style={{ 
                                 backgroundColor: el.style?.backgroundColor,
                                 borderRadius: el.style?.borderRadius || '0',
-                                border: el.style?.border || 'none'
+                                // Dashed borders are editing-only placeholder guides (e.g. "Image Placeholder",
+                                // "Ad Container") - never render them in preview mode or exported output.
+                                border: (previewMode && el.style?.border?.includes('dashed')) ? 'none' : (el.style?.border || 'none')
                               }} 
                             />
                           )}

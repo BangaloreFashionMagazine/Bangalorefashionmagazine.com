@@ -1123,28 +1123,12 @@ const AdminDashboard = () => {
                             </div>
                           ))}
                           {customImages.length < 5 && (
-                            <label className="w-20 h-24 border-2 border-dashed border-[#D4AF37]/30 rounded flex items-center justify-center cursor-pointer hover:border-[#D4AF37]">
-                              <input
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={(e) => {
-                                  const file = e.target.files[0];
-                                  if (!file) return;
-                                  const reader = new FileReader();
-                                  reader.onloadend = async () => {
-                                    try {
-                                      const compressed = await autoCompressImage(reader.result);
-                                      setCustomImages(prev => [...prev, compressed].slice(0, 5));
-                                    } catch (err) {
-                                      toast({ title: "Failed to upload image", variant: "destructive" });
-                                    }
-                                  };
-                                  reader.readAsDataURL(file);
-                                }}
-                              />
-                              <span className="text-[#D4AF37] text-2xl">+</span>
-                            </label>
+                            <ImageUploadWithCrop
+                              onImageSelect={(img) => setCustomImages(prev => [...prev, img].slice(0, 5))}
+                              aspectRatio={1}
+                              buttonText="+"
+                              className="w-20 h-24"
+                            />
                           )}
                         </div>
                         <p className="text-[#A0A5B0] text-xs">Upload up to 5 custom images for this design</p>
@@ -1274,28 +1258,12 @@ const AdminDashboard = () => {
                             </div>
                           ))}
                           {customImages.length < 5 && (
-                            <label className="w-20 h-24 border-2 border-dashed border-[#D4AF37]/30 rounded flex items-center justify-center cursor-pointer hover:border-[#D4AF37]">
-                              <input
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={(e) => {
-                                  const file = e.target.files[0];
-                                  if (!file) return;
-                                  const reader = new FileReader();
-                                  reader.onloadend = async () => {
-                                    try {
-                                      const compressed = await autoCompressImage(reader.result);
-                                      setCustomImages(prev => [...prev, compressed].slice(0, 5));
-                                    } catch (err) {
-                                      toast({ title: "Failed to upload image", variant: "destructive" });
-                                    }
-                                  };
-                                  reader.readAsDataURL(file);
-                                }}
-                              />
-                              <span className="text-[#D4AF37] text-2xl">+</span>
-                            </label>
+                            <ImageUploadWithCrop
+                              onImageSelect={(img) => setCustomImages(prev => [...prev, img].slice(0, 5))}
+                              aspectRatio={1}
+                              buttonText="+"
+                              className="w-20 h-24"
+                            />
                           )}
                         </div>
                       </div>

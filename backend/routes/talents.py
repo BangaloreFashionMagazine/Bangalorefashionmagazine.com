@@ -378,6 +378,7 @@ def create_talent_routes(db):
                 portfolio_video="",   # Empty for list view
                 is_approved=t.get("is_approved", False),
                 is_featured=t.get("is_featured", False),
+                is_paid_manual=t.get("is_paid_manual", False),
                 hero_enabled=t.get("hero_enabled", False),
                 hero_images=t.get("hero_images", []),
                 rank=t.get("rank", 999), votes=t.get("votes", 0), created_at=t.get("created_at", ""),

@@ -35,6 +35,17 @@ const AllTalentsTab = ({
     }
   };
 
+  const togglePaid = async (talent) => {
+    try {
+      const axios = (await import('axios')).default;
+      await axios.put(`${API}/admin/talent/${talent.id}/mark-paid`, { paid: !talent.is_paid_manual });
+      toast({ title: talent.is_paid_manual ? "Marked as Unpaid" : "Marked as Paid!" });
+      fetchAllTalents();
+    } catch (err) {
+      toast({ title: "Failed to update", variant: "destructive" });
+    }
+  };
+
   const exportTalents = async () => {
     try {
       const axios = (await import('axios')).default;
@@ -123,6 +134,7 @@ const AllTalentsTab = ({
                   <p className="text-[#F5F5F0] font-bold">{t.name}</p>
                   <span className={`text-xs px-2 py-0.5 rounded ${t.is_approved ? "bg-green-500/20 text-green-500" : "bg-yellow-500/20 text-yellow-500"}`}>{t.is_approved ? "Approved" : "Pending"}</span>
                   {t.is_featured && <span className="text-xs px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded">⭐ Featured</span>}
+                  {t.is_paid_manual && <span className="text-xs px-2 py-0.5 bg-green-500/20 text-green-400 rounded">✓ Paid</span>}
                   {t.rank && <span className="text-xs px-2 py-0.5 bg-[#D4AF37]/20 text-[#D4AF37] rounded">Rank #{t.rank}</span>}
                 </div>
                 <p className="text-[#D4AF37] text-sm">{getCategoryDisplay(t.category)}</p>
@@ -135,6 +147,13 @@ const AllTalentsTab = ({
                   title={t.is_featured ? "Remove from Spotlight" : "Add to Talent Spotlight"}
                 >
                   {t.is_featured ? "★ Featured" : "☆ Feature"}
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); togglePaid(t); }}
+                  className={`px-2 py-1 rounded text-xs ${t.is_paid_manual ? "bg-green-500/30 text-green-400" : "bg-[#0A1628] text-[#A0A5B0] hover:text-green-400"}`}
+                  title={t.is_paid_manual ? "Mark as Unpaid" : "Mark as Paid (It's Me)"}
+                >
+                  {t.is_paid_manual ? "✓ Paid" : "Mark Paid"}
                 </button>
                 <input type="number" min="1" max="9999" placeholder="Rank" onClick={(e) => e.stopPropagation()} value={t.rank || ""} onChange={(e) => updateRank(t.id, parseInt(e.target.value) || null)} className="px-2 py-1 bg-[#0A1628] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-sm w-20" />
                 <span className="text-[#A0A5B0] text-sm">{t.votes || 0} votes</span>

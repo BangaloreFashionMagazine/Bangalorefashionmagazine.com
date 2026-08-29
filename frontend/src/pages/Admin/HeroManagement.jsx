@@ -267,9 +267,13 @@ const HeroManagement = () => {
           ))}
         </div>
         
-        {/* Click-to-position image */}
-        <div className="relative cursor-crosshair border border-[#D4AF37]/40 rounded-lg overflow-hidden" onClick={handleClick}>
-          <img src={image} alt="Focal point" className="w-full h-64 object-cover" />
+        {/* Click-to-position image - the wrapper shrink-wraps the image (inline-block, no forced
+            width/height/object-fit) so its bounding box exactly matches the visible image pixels.
+            That way every part of the source photo is visible and clickable, and the click-to-
+            percentage math lines up exactly with the full image objectPosition uses at render time. */}
+        <div className="flex justify-center">
+          <div className="relative inline-block cursor-crosshair border border-[#D4AF37]/40 rounded-lg overflow-hidden" onClick={handleClick}>
+            <img src={image} alt="Focal point" className="max-w-full max-h-[70vh] block" />
           <div 
             className="absolute w-8 h-8 border-2 border-[#D4AF37] rounded-full bg-[#D4AF37]/30 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
             style={{ left: `${x}%`, top: `${y}%` }}

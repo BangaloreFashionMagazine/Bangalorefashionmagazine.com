@@ -67,6 +67,7 @@ class TalentResponse(BaseModel):
     portfolio_video: str = ""  # Video URL/data
     is_approved: bool = False
     is_featured: bool = False
+    is_paid_manual: bool = False
     hero_enabled: bool = False
     hero_images: List[int] = []  # Indices of portfolio images allowed for hero
     rank: int = 999

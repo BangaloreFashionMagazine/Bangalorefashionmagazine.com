@@ -2336,6 +2336,7 @@ const ForgotPasswordPage = () => {
 // Talent Profile Page (for direct links from contest winners)
 const TalentProfilePage = () => {
   const { talentId } = useParams();
+  const navigate = useNavigate();
   const [talent, setTalent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -2392,7 +2393,7 @@ const TalentProfilePage = () => {
         {talent && showModal && (
           <TalentDetailModal 
             talent={talent} 
-            onClose={() => window.history.back()} 
+            onClose={() => navigate(`/talents/${encodeURIComponent(talent.category)}`)} 
             onVote={handleVote} 
             leaderboard={leaderboard} 
           />

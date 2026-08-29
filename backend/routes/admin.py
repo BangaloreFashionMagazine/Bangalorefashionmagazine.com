@@ -109,6 +109,19 @@ def create_admin_routes(db):
         return {"message": f"Featured status set to {featured}", "is_featured": featured}
 
 
+    @admin_router.put("/admin/talent/{talent_id}/mark-paid")
+    async def mark_talent_paid(talent_id: str, data: dict):
+        """Manually mark an existing talent record as paid/claimed (e.g. for talents onboarded outside the normal payment flow)"""
+        paid = data.get("paid", True)
+        update = {"is_paid_manual": paid}
+        if paid:
+            update["paid_manual_at"] = datetime.now(timezone.utc).isoformat()
+        result = await db.talents.update_one({"id": talent_id}, {"$set": update})
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Talent not found")
+        return {"message": f"Talent marked as {'paid' if paid else 'unpaid'}", "is_paid_manual": paid}
+
+
     @admin_router.put("/admin/talent/{talent_id}/password")
     async def admin_reset_talent_password(talent_id: str, data: dict):
         password = data.get("password")
@@ -284,6 +297,27 @@ def create_admin_routes(db):
                         "paid_at": order.get("paid_at", ""),
                         "order_id": order.get("razorpay_order_id", "")
                     })
+
+        # Include talents manually marked as paid by an admin (e.g. onboarded outside the normal payment flow)
+        manual_paid = await db.talents.find(
+            {"is_paid_manual": True, "id": {"$nin": list(seen_talent_ids)}},
+            {"_id": 0}
+        ).to_list(500)
+        for talent in manual_paid:
+            paid_talents.append({
+                "talent_id": talent.get("id"),
+                "name": talent.get("name", "Unknown"),
+                "email": talent.get("email", ""),
+                "phone": talent.get("phone", ""),
+                "category": talent.get("category", ""),
+                "profile_image": talent.get("profile_image", ""),
+                "is_approved": talent.get("is_approved", False),
+                "payment_id": "",
+                "payment_amount": 0,
+                "paid_at": talent.get("paid_manual_at", ""),
+                "order_id": "",
+                "manually_marked": True
+            })
 
         return {
             "total_paid": len(paid_talents),
