@@ -288,6 +288,9 @@ Build a comprehensive fashion talent platform for Bangalore Fashion Magazine (BF
 ## Test Credentials
 See `/app/memory/test_credentials.md`
 
+## Database Collections
+- `talent_referrals`: {id, referrer_id, referrer_name, name, phone, email, instagram_id, category, status, created_at, notes}
+
 ---
 
 ## August 2026 - Share Incentive Badges (NEW - COMPLETED)
@@ -398,3 +401,21 @@ See `/app/memory/test_credentials.md`
 - **Backend Endpoint**: `POST /api/admin/migrate-slugs` (already existed, now wired to UI)
 - **Location**: Top-right of Contest Management tab, next to "Create Contest" button
 - **Bug Fix**: Fixed TalentResponse to include `slug` field in all API responses
+
+## September 2026 - Talent Dashboard Redesign (NEW - COMPLETED)
+- **Stats Section Simplified**: 
+  - Shows only 4 cards: Total Shares, Views This Week, Total Profile Views, Instagram Shares
+  - Removed WhatsApp stat card
+  - Removed Share History section completely
+- **Refer a Talent Feature**:
+  - New form in Talent Dashboard to refer other people to BFM
+  - Fields: Full Name*, Phone Number*, Email (optional), Instagram ID (optional), Category dropdown
+  - Categories include all talent types (Model - Female/Male, Designers, Photographers, etc.)
+  - Backend endpoint: `POST /api/talent/referrals/submit`
+- **Admin Referrals Tab**:
+  - New tab in Admin Dashboard to view all referrals
+  - Filter buttons: All, Pending, Contacted, Approved, Rejected
+  - Shows: Name, phone, email, Instagram, category, submission date, referrer name
+  - Action buttons: Mark as Contacted, Approve, Reject, Delete
+  - Backend endpoints: `GET/PUT/DELETE /api/admin/referrals`
+- **Profile Views Endpoint**: `GET /api/analytics/talent/{id}/views` returns total and weekly views

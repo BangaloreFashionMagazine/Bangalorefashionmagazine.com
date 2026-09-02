@@ -477,5 +477,35 @@ def create_analytics_routes(db):
         )
 
 
+    # ============== Get Talent Profile Views ==============
+    @router.get("/analytics/talent/{talent_id}/views")
+    async def get_talent_views(talent_id: str):
+        """Get total and weekly profile views for a specific talent"""
+        now = datetime.now(timezone.utc)
+        
+        # Calculate Monday 00:00:00 of current week
+        days_since_monday = now.weekday()
+        monday_start = now.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=days_since_monday)
+        sunday_end = monday_start + timedelta(days=6, hours=23, minutes=59, seconds=59)
+        
+        # Total views
+        total_views = await db.profile_views.count_documents({"talent_id": talent_id})
+        
+        # Weekly views
+        weekly_views = await db.profile_views.count_documents({
+            "talent_id": talent_id,
+            "created_at": {
+                "$gte": monday_start.isoformat(),
+                "$lte": sunday_end.isoformat()
+            }
+        })
+        
+        return {
+            "talent_id": talent_id,
+            "total_views": total_views,
+            "weekly_views": weekly_views
+        }
+
+
     router.include_router(admin_router, dependencies=[Depends(get_current_admin)])
     return router

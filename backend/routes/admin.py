@@ -467,15 +467,21 @@ def create_admin_routes(db):
     # Get referral stats for a talent
     @router.get("/talent/{talent_id}/referral-stats")
     async def get_talent_referral_stats(talent_id: str):
-        """Get referral statistics for a talent"""
-        referrals = await db.referrals.find(
+        """Get referral statistics for a talent - shows their submitted referrals"""
+        referrals = await db.talent_referrals.find(
             {"referrer_id": talent_id},
             {"_id": 0}
-        ).sort("timestamp", -1).to_list(50)
+        ).sort("created_at", -1).to_list(50)
 
         return {
             "total_referrals": len(referrals),
-            "referrals": referrals
+            "referrals": [
+                {
+                    "new_talent_name": r.get("name", "Unknown"),
+                    "status": r.get("status", "pending"),
+                    "timestamp": r.get("created_at", "")
+                } for r in referrals
+            ]
         }
 
     # Get share leaderboard (top shared talents)
@@ -513,6 +519,39 @@ def create_admin_routes(db):
                 })
 
         return {"leaderboard": result}
+
+
+    # ============== Admin Referrals Management ==============
+    @admin_router.get("/admin/referrals")
+    async def get_all_referrals():
+        """Get all talent referrals for admin review"""
+        referrals = await db.talent_referrals.find({}, {"_id": 0}).sort("created_at", -1).to_list(500)
+        return referrals
+
+    @admin_router.put("/admin/referrals/{referral_id}/status")
+    async def update_referral_status(referral_id: str, data: dict):
+        """Update referral status (pending, contacted, approved, rejected)"""
+        status = data.get("status", "pending")
+        notes = data.get("notes", "")
+        
+        result = await db.talent_referrals.update_one(
+            {"id": referral_id},
+            {"$set": {"status": status, "notes": notes, "updated_at": datetime.now(timezone.utc).isoformat()}}
+        )
+        
+        if result.modified_count == 0:
+            raise HTTPException(status_code=404, detail="Referral not found")
+        
+        return {"message": "Referral status updated"}
+
+    @admin_router.delete("/admin/referrals/{referral_id}")
+    async def delete_referral(referral_id: str):
+        """Delete a referral"""
+        result = await db.talent_referrals.delete_one({"id": referral_id})
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Referral not found")
+        return {"message": "Referral deleted"}
+
 
     router.include_router(admin_router, dependencies=[Depends(get_current_admin)])
     return router

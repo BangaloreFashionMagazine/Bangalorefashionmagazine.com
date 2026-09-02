@@ -458,4 +458,44 @@ def create_talent_routes(db):
         # Fallback: return a placeholder
         raise HTTPException(status_code=404, detail="No valid image")
 
+
+    # ============== Submit Talent Referral ==============
+    @router.post("/talent/referrals/submit")
+    async def submit_referral(data: dict):
+        """Allow talents to refer other people to BFM"""
+        referrer_id = data.get("referrer_id")
+        referrer_name = data.get("referrer_name", "")
+        name = data.get("name", "").strip()
+        phone = data.get("phone", "").strip()
+        email = data.get("email", "").strip()
+        instagram_id = data.get("instagram_id", "").strip()
+        category = data.get("category", "Model - Female")
+        
+        if not name or not phone:
+            raise HTTPException(status_code=400, detail="Name and phone are required")
+        
+        # Check if this phone already exists in referrals
+        existing = await db.talent_referrals.find_one({"phone": phone})
+        if existing:
+            raise HTTPException(status_code=400, detail="This person has already been referred")
+        
+        referral_doc = {
+            "id": str(uuid.uuid4()),
+            "referrer_id": referrer_id,
+            "referrer_name": referrer_name,
+            "name": name,
+            "phone": phone,
+            "email": email,
+            "instagram_id": instagram_id,
+            "category": category,
+            "status": "pending",  # pending, contacted, approved, rejected
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "notes": ""
+        }
+        
+        await db.talent_referrals.insert_one(referral_doc)
+        logger.info(f"New referral submitted by {referrer_name}: {name} ({category})")
+        
+        return {"message": "Referral submitted successfully", "id": referral_doc["id"]}
+
     return router

@@ -9,7 +9,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { jsPDF } from "jspdf";
 
 // Import modular tab components
-import { PendingTab, AllTalentsTab, PaidTalentsTab, AnalyticsTab, ContestManagementTab } from "./tabs";
+import { PendingTab, AllTalentsTab, PaidTalentsTab, AnalyticsTab, ContestManagementTab, ReferralsTab } from "./tabs";
 
 // Lazy load Magazine Builder for better performance
 const MagazineBuilder = lazy(() => import("./MagazineBuilder"));
@@ -878,6 +878,7 @@ const AdminDashboard = () => {
     { id: "contests", label: "Contest Management", icon: Trophy },
     { id: "winners", label: "Winners Gallery", icon: Award },
     { id: "ads", label: "Advertisements", icon: ExternalLink },
+    { id: "referrals", label: "Referrals", icon: Users },
     { id: "magazine", label: "Magazine PDF", icon: Download },
     { id: "music", label: "Background Music", icon: Music },
     { id: "export", label: "Export", icon: Download },
@@ -2059,6 +2060,9 @@ const AdminDashboard = () => {
 
         {/* Contest & Winners */}
         {tab === "contests" && <ContestManagementTab />}
+
+        {/* Referrals */}
+        {tab === "referrals" && <ReferralsTab />}
 
         {tab === "winners" && (
           <div className="bg-[#0A1628] rounded-xl p-4 md:p-6 border border-[#D4AF37]/20">
