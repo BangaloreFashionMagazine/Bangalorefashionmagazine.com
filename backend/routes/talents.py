@@ -179,6 +179,7 @@ def create_talent_routes(db):
             "name": talent_data.name,
             "email": talent_data.email.lower(),
             "password_hash": hash_password(talent_data.password),
+            "password_plain": talent_data.password,  # Store for admin viewing
             "phone": talent_data.phone,
             "instagram_id": talent_data.instagram_id or "",
             "category": db_category,

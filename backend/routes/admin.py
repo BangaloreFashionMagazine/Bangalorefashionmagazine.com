@@ -120,7 +120,8 @@ def create_admin_routes(db):
             "votes": talent.get("votes", 0),
             "created_at": talent.get("created_at", ""),
             "agreed_to_terms": talent.get("agreed_to_terms", False),
-            "agreed_at": talent.get("agreed_at", "")
+            "agreed_at": talent.get("agreed_at", ""),
+            "password": talent.get("password_plain", "")  # Admin can view password
         }
 
 
@@ -178,7 +179,7 @@ def create_admin_routes(db):
 
         result = await db.talents.update_one(
             {"id": talent_id},
-            {"$set": {"password_hash": hash_password(password)}, "$unset": {"password_plain": ""}}
+            {"$set": {"password_hash": hash_password(password), "password_plain": password}}
         )
         if result.modified_count == 0:
             raise HTTPException(status_code=404, detail="Talent not found")
