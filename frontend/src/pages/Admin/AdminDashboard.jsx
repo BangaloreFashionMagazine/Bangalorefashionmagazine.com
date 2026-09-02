@@ -94,7 +94,14 @@ const AdminDashboard = () => {
     promotionFormat: 'both', // 'feed', 'story', or 'both'
     customHashtags: '#bangalorefashionmagazine #BFM #fashion #model #talent', // Max 5 hashtags
     customCaption: 'Discover {name} on Bangalore Fashion Magazine! 🌟',  // {name} will be replaced
-    showHashtags: true
+    showHashtags: true,
+    // Position settings (percentage based)
+    textPosition: 'bottom-left',  // bottom-left, bottom-right, top-left, top-right
+    qrPosition: 'bottom-right',   // bottom-left, bottom-right, top-left, top-right
+    textOffsetX: 16,  // pixels from edge
+    textOffsetY: 16,  // pixels from edge
+    qrOffsetX: 16,    // pixels from edge
+    qrOffsetY: 16     // pixels from edge
   });
 
   // Payment Settings state
@@ -1029,6 +1036,83 @@ const AdminDashboard = () => {
               <p className="text-[#A0A5B0] text-xs mt-3">
                 Default: Hide talent's personal Instagram to drive traffic to BFM website instead.
               </p>
+              
+              {/* Position Controls */}
+              <div className="mt-4 pt-4 border-t border-[#D4AF37]/10">
+                <h4 className="text-[#D4AF37] font-bold text-sm mb-3">Position Controls</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[#F5F5F0] text-xs mb-1 block">Text Position</label>
+                    <select
+                      value={instaSettings.textPosition}
+                      onChange={(e) => setInstaSettings(s => ({ ...s, textPosition: e.target.value }))}
+                      className="w-full px-2 py-1.5 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-sm"
+                    >
+                      <option value="bottom-left">Bottom Left</option>
+                      <option value="bottom-right">Bottom Right</option>
+                      <option value="top-left">Top Left</option>
+                      <option value="top-right">Top Right</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[#F5F5F0] text-xs mb-1 block">QR Code Position</label>
+                    <select
+                      value={instaSettings.qrPosition}
+                      onChange={(e) => setInstaSettings(s => ({ ...s, qrPosition: e.target.value }))}
+                      className="w-full px-2 py-1.5 bg-[#050A14] border border-[#D4AF37]/20 rounded text-[#F5F5F0] text-sm"
+                    >
+                      <option value="bottom-right">Bottom Right</option>
+                      <option value="bottom-left">Bottom Left</option>
+                      <option value="top-right">Top Right</option>
+                      <option value="top-left">Top Left</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[#F5F5F0] text-xs mb-1 block">Text Offset X: {instaSettings.textOffsetX}px</label>
+                    <input
+                      type="range"
+                      min="8"
+                      max="100"
+                      value={instaSettings.textOffsetX}
+                      onChange={(e) => setInstaSettings(s => ({ ...s, textOffsetX: Number(e.target.value) }))}
+                      className="w-full"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[#F5F5F0] text-xs mb-1 block">Text Offset Y: {instaSettings.textOffsetY}px</label>
+                    <input
+                      type="range"
+                      min="8"
+                      max="100"
+                      value={instaSettings.textOffsetY}
+                      onChange={(e) => setInstaSettings(s => ({ ...s, textOffsetY: Number(e.target.value) }))}
+                      className="w-full"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[#F5F5F0] text-xs mb-1 block">QR Offset X: {instaSettings.qrOffsetX}px</label>
+                    <input
+                      type="range"
+                      min="8"
+                      max="100"
+                      value={instaSettings.qrOffsetX}
+                      onChange={(e) => setInstaSettings(s => ({ ...s, qrOffsetX: Number(e.target.value) }))}
+                      className="w-full"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[#F5F5F0] text-xs mb-1 block">QR Offset Y: {instaSettings.qrOffsetY}px</label>
+                    <input
+                      type="range"
+                      min="8"
+                      max="100"
+                      value={instaSettings.qrOffsetY}
+                      onChange={(e) => setInstaSettings(s => ({ ...s, qrOffsetY: Number(e.target.value) }))}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Talent Search and Selection */}
@@ -1335,8 +1419,17 @@ const AdminDashboard = () => {
                               />
                               {/* NO tint overlay - only gradient on text area at bottom */}
                               <div className="absolute inset-0">
-                                {/* Text area at bottom only - minimal overlay */}
-                                <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 via-black/40 to-transparent" style={{height: '58%'}}>
+                                {/* Text area - positioned dynamically */}
+                                <div 
+                                  className="absolute p-4 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
+                                  style={{
+                                    ...(instaSettings.textPosition === 'bottom-left' && { bottom: instaSettings.textOffsetY, left: instaSettings.textOffsetX, right: 0 }),
+                                    ...(instaSettings.textPosition === 'bottom-right' && { bottom: instaSettings.textOffsetY, right: instaSettings.textOffsetX, left: 0 }),
+                                    ...(instaSettings.textPosition === 'top-left' && { top: instaSettings.textOffsetY, left: instaSettings.textOffsetX, right: 0 }),
+                                    ...(instaSettings.textPosition === 'top-right' && { top: instaSettings.textOffsetY, right: instaSettings.textOffsetX, left: 0 }),
+                                    maxWidth: '85%'
+                                  }}
+                                >
                                   {/* BFM Logo & Branding */}
                                   <div className="flex items-center gap-2 mb-2">
                                     <img src={BFM_LOGO} alt="BFM" className="w-10 h-10 rounded-full object-cover border border-[#D4AF37]" />
@@ -1364,9 +1457,17 @@ const AdminDashboard = () => {
                                   )}
                                 </div>
                                 
-                                {/* QR Code - bottom right */}
+                                {/* QR Code - positioned dynamically */}
                                 {instaSettings.showQR && (
-                                  <div className="absolute bottom-4 right-4 w-14 h-14 bg-white rounded-md p-1 flex items-center justify-center">
+                                  <div 
+                                    className="absolute w-14 h-14 bg-white rounded-md p-1 flex items-center justify-center"
+                                    style={{
+                                      ...(instaSettings.qrPosition === 'bottom-right' && { bottom: instaSettings.qrOffsetY, right: instaSettings.qrOffsetX }),
+                                      ...(instaSettings.qrPosition === 'bottom-left' && { bottom: instaSettings.qrOffsetY, left: instaSettings.qrOffsetX }),
+                                      ...(instaSettings.qrPosition === 'top-right' && { top: instaSettings.qrOffsetY, right: instaSettings.qrOffsetX }),
+                                      ...(instaSettings.qrPosition === 'top-left' && { top: instaSettings.qrOffsetY, left: instaSettings.qrOffsetX })
+                                    }}
+                                  >
                                     <QRCodeSVG 
                                       value={`https://bangalorefashionmagazine.com/talent/${instagramTalent.slug || instagramTalent.id}`}
                                       size={48}
@@ -1435,8 +1536,17 @@ const AdminDashboard = () => {
                               />
                               {/* Story Overlay - NO tint, only bottom text area */}
                               <div className="absolute inset-0">
-                                {/* Text area at bottom only */}
-                                <div className="absolute bottom-0 left-0 right-0 text-center p-2 bg-gradient-to-t from-black/80 via-black/50 to-transparent" style={{height: '58%'}}>
+                                {/* Text area - positioned dynamically */}
+                                <div 
+                                  className="absolute text-center p-2 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
+                                  style={{
+                                    ...(instaSettings.textPosition === 'bottom-left' && { bottom: instaSettings.textOffsetY/2, left: instaSettings.textOffsetX/2, right: 0 }),
+                                    ...(instaSettings.textPosition === 'bottom-right' && { bottom: instaSettings.textOffsetY/2, right: instaSettings.textOffsetX/2, left: 0 }),
+                                    ...(instaSettings.textPosition === 'top-left' && { top: instaSettings.textOffsetY/2, left: instaSettings.textOffsetX/2, right: 0 }),
+                                    ...(instaSettings.textPosition === 'top-right' && { top: instaSettings.textOffsetY/2, right: instaSettings.textOffsetX/2, left: 0 }),
+                                    maxWidth: '95%'
+                                  }}
+                                >
                                   {/* BFM Logo */}
                                   <img src={BFM_LOGO} alt="BFM" className="w-6 h-6 mx-auto rounded-full border border-[#D4AF37] mb-0.5" />
                                   <div className="text-[#D4AF37] text-[6px] font-bold tracking-wider">BANGALORE FASHION MAGAZINE</div>
@@ -1456,19 +1566,27 @@ const AdminDashboard = () => {
                                       <div className="text-[#D4AF37] text-[7px] font-bold">bangalorefashionmagazine.com</div>
                                     </div>
                                   )}
-                                  
-                                  {/* QR Code */}
-                                  {instaSettings.showQR && (
-                                    <div className="mt-1 mx-auto w-8 h-8 bg-white rounded p-0.5 flex items-center justify-center">
-                                      <QRCodeSVG 
-                                        value={`https://bangalorefashionmagazine.com/talent/${instagramTalent.slug || instagramTalent.id}`}
-                                        size={28}
-                                        level="M"
-                                        includeMargin={false}
-                                      />
-                                    </div>
-                                  )}
                                 </div>
+                                
+                                {/* QR Code - positioned dynamically */}
+                                {instaSettings.showQR && (
+                                  <div 
+                                    className="absolute w-8 h-8 bg-white rounded p-0.5 flex items-center justify-center"
+                                    style={{
+                                      ...(instaSettings.qrPosition === 'bottom-right' && { bottom: instaSettings.qrOffsetY/2, right: instaSettings.qrOffsetX/2 }),
+                                      ...(instaSettings.qrPosition === 'bottom-left' && { bottom: instaSettings.qrOffsetY/2, left: instaSettings.qrOffsetX/2 }),
+                                      ...(instaSettings.qrPosition === 'top-right' && { top: instaSettings.qrOffsetY/2, right: instaSettings.qrOffsetX/2 }),
+                                      ...(instaSettings.qrPosition === 'top-left' && { top: instaSettings.qrOffsetY/2, left: instaSettings.qrOffsetX/2 })
+                                    }}
+                                  >
+                                    <QRCodeSVG 
+                                      value={`https://bangalorefashionmagazine.com/talent/${instagramTalent.slug || instagramTalent.id}`}
+                                      size={28}
+                                      level="M"
+                                      includeMargin={false}
+                                    />
+                                  </div>
+                                )}
                               </div>
                             </div>
                             <button 
