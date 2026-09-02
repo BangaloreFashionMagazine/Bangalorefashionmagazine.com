@@ -1,5 +1,109 @@
-import { Eye, Users, TrendingUp, ShoppingBag } from "lucide-react";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { Eye, Users, TrendingUp, ShoppingBag, Globe, Instagram, MessageCircle, Search, Share2 } from "lucide-react";
 import { API } from "@/lib/config";
+
+// Traffic Sources Component
+const TrafficSourcesCard = () => {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [days, setDays] = useState(30);
+
+  useEffect(() => {
+    fetchData();
+  }, [days]);
+
+  const fetchData = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get(`${API}/admin/analytics/traffic-sources?days=${days}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setData(res.data);
+    } catch (err) {
+      console.error("Failed to fetch traffic sources:", err);
+    }
+    setLoading(false);
+  };
+
+  const getSourceIcon = (source) => {
+    switch (source) {
+      case "Instagram": return <div className="w-5 h-5 bg-gradient-to-tr from-[#833AB4] via-[#FD1D1D] to-[#F77737] rounded flex items-center justify-center text-white text-xs font-bold">I</div>;
+      case "Facebook": return <div className="w-5 h-5 bg-[#1877F2] rounded flex items-center justify-center text-white text-xs font-bold">f</div>;
+      case "WhatsApp": return <div className="w-5 h-5 bg-[#25D366] rounded flex items-center justify-center text-white text-xs font-bold">W</div>;
+      case "Google": return <Search size={18} className="text-[#4285F4]" />;
+      case "Twitter/X": return <div className="w-5 h-5 bg-black rounded flex items-center justify-center text-white text-xs font-bold">X</div>;
+      case "Direct": return <Globe size={18} className="text-[#D4AF37]" />;
+      default: return <Share2 size={18} className="text-[#A0A5B0]" />;
+    }
+  };
+
+  const getSourceColor = (source) => {
+    switch (source) {
+      case "Instagram": return "bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#F77737]";
+      case "Facebook": return "bg-[#1877F2]";
+      case "WhatsApp": return "bg-[#25D366]";
+      case "Google": return "bg-[#4285F4]";
+      case "Twitter/X": return "bg-black";
+      case "Direct": return "bg-[#D4AF37]";
+      default: return "bg-[#A0A5B0]";
+    }
+  };
+
+  if (loading) return <div className="text-[#A0A5B0] text-center py-8">Loading traffic sources...</div>;
+
+  return (
+    <div className="bg-[#0A1628] rounded-xl p-4 border border-[#D4AF37]/20">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-[#F5F5F0] font-bold flex items-center gap-2">
+          <Globe className="text-[#D4AF37]" size={20} />
+          Traffic Sources
+        </h3>
+        <select
+          value={days}
+          onChange={(e) => setDays(Number(e.target.value))}
+          className="bg-[#050A14] border border-[#D4AF37]/20 rounded px-2 py-1 text-sm text-[#F5F5F0]"
+        >
+          <option value={7}>Last 7 days</option>
+          <option value={30}>Last 30 days</option>
+          <option value={90}>Last 90 days</option>
+        </select>
+      </div>
+
+      {!data || data.sources.length === 0 ? (
+        <p className="text-[#A0A5B0] text-center py-4">No traffic data yet</p>
+      ) : (
+        <>
+          <p className="text-sm text-[#A0A5B0] mb-4">
+            Total Views: <span className="text-[#F5F5F0] font-bold">{data.total_views.toLocaleString()}</span>
+          </p>
+          
+          <div className="space-y-3">
+            {data.sources.map((source, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <div className="flex-shrink-0">
+                  {getSourceIcon(source.source)}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[#F5F5F0] text-sm font-medium">{source.source}</span>
+                    <span className="text-[#A0A5B0] text-sm">{source.count.toLocaleString()} ({source.percentage}%)</span>
+                  </div>
+                  <div className="w-full h-2 bg-[#050A14] rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full ${getSourceColor(source.source)} rounded-full transition-all duration-500`}
+                      style={{ width: `${source.percentage}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
 
 const AnalyticsTab = ({
   analyticsSummary,
@@ -144,20 +248,22 @@ const AnalyticsTab = ({
               return (
                 <div key={i}>
                   <div className="flex justify-between text-xs mb-1">
-                    <span className="text-[#F5F5F0]">{cat.name}</span>
-                    <span className="text-[#A0A5B0]">{cat.count} ({percentage.toFixed(0)}%)</span>
+                    <span className="text-[#A0A5B0]">{cat._id}</span>
+                    <span className="text-[#F5F5F0]">{cat.count}</span>
                   </div>
                   <div className="w-full bg-[#050A14] rounded-full h-2">
-                    <div className={`${colors[i % colors.length]} h-full rounded-full`} style={{ width: `${percentage}%` }} />
+                    <div className={`${colors[i % colors.length]} h-2 rounded-full`} style={{ width: `${percentage}%` }} />
                   </div>
                 </div>
               );
             })}
-            {categoryBreakdown.length === 0 && (
-              <p className="text-[#A0A5B0] text-sm text-center py-4">No talent data</p>
-            )}
           </div>
         </div>
+      </div>
+
+      {/* Traffic Sources Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TrafficSourcesCard />
       </div>
 
       {/* Popular Content Row */}

@@ -36,11 +36,41 @@ def create_analytics_routes(db):
 
 
     # ============== Track Profile View ==============
+    
+    def categorize_source(referrer: str, user_agent: str = "") -> str:
+        """Categorize traffic source from referrer URL and user agent"""
+        referrer = (referrer or "").lower()
+        user_agent = (user_agent or "").lower()
+        
+        # Check referrer URL patterns
+        if "instagram" in referrer or "instagram" in user_agent:
+            return "Instagram"
+        elif "facebook" in referrer or "fb.com" in referrer or "facebook" in user_agent:
+            return "Facebook"
+        elif "whatsapp" in referrer or "whatsapp" in user_agent:
+            return "WhatsApp"
+        elif "google" in referrer:
+            return "Google"
+        elif "twitter" in referrer or "t.co" in referrer or "x.com" in referrer:
+            return "Twitter/X"
+        elif "linkedin" in referrer:
+            return "LinkedIn"
+        elif "youtube" in referrer:
+            return "YouTube"
+        elif "telegram" in referrer or "telegram" in user_agent:
+            return "Telegram"
+        elif referrer and "bangalorefashionmagazine" not in referrer:
+            return "Other"
+        else:
+            return "Direct"
+    
     @router.post("/analytics/profile-view")
     async def track_profile_view(data: dict):
         """Track a talent profile view - prevents duplicate counting from same session"""
         talent_id = data.get("talent_id")
         session_id = data.get("session_id", "")
+        referrer = data.get("referrer", "")
+        user_agent = data.get("user_agent", "")
         
         if not talent_id:
             return {"message": "No talent_id provided"}
@@ -56,16 +86,20 @@ def create_analytics_routes(db):
         if existing:
             return {"message": "Already counted", "counted": False}
         
+        # Categorize the traffic source
+        source = categorize_source(referrer, user_agent)
+        
         doc = {
             "id": str(uuid.uuid4()),
             "talent_id": talent_id,
             "session_id": session_id,
-            "user_agent": data.get("user_agent", ""),
-            "referrer": data.get("referrer", ""),
+            "user_agent": user_agent,
+            "referrer": referrer,
+            "source": source,  # Categorized source
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         await db.profile_views.insert_one(doc)
-        return {"message": "Profile view tracked", "counted": True}
+        return {"message": "Profile view tracked", "counted": True, "source": source}
 
 
     # ============== Get Weekly Profile Views (Monday-Sunday) ==============
@@ -504,6 +538,84 @@ def create_analytics_routes(db):
             "talent_id": talent_id,
             "total_views": total_views,
             "weekly_views": weekly_views
+        }
+
+
+    # ============== Admin: Traffic Source Analytics ==============
+    @admin_router.get("/admin/analytics/traffic-sources")
+    async def get_traffic_sources(days: int = 30):
+        """Get traffic source breakdown for admin analytics"""
+        now = datetime.now(timezone.utc)
+        start_date = (now - timedelta(days=days)).isoformat()
+        
+        # Aggregate by source
+        pipeline = [
+            {
+                "$match": {
+                    "created_at": {"$gte": start_date}
+                }
+            },
+            {
+                "$group": {
+                    "_id": {"$ifNull": ["$source", "Direct"]},
+                    "count": {"$sum": 1}
+                }
+            },
+            {"$sort": {"count": -1}}
+        ]
+        
+        results = await db.profile_views.aggregate(pipeline).to_list(20)
+        
+        # Calculate total
+        total = sum(r["count"] for r in results)
+        
+        # Format response with percentages
+        sources = []
+        for r in results:
+            source_name = r["_id"] or "Direct"
+            count = r["count"]
+            percentage = round((count / total * 100), 1) if total > 0 else 0
+            sources.append({
+                "source": source_name,
+                "count": count,
+                "percentage": percentage
+            })
+        
+        # Get daily breakdown for chart
+        daily_pipeline = [
+            {
+                "$match": {
+                    "created_at": {"$gte": start_date}
+                }
+            },
+            {
+                "$group": {
+                    "_id": {
+                        "date": {"$substr": ["$created_at", 0, 10]},
+                        "source": {"$ifNull": ["$source", "Direct"]}
+                    },
+                    "count": {"$sum": 1}
+                }
+            },
+            {"$sort": {"_id.date": 1}}
+        ]
+        
+        daily_results = await db.profile_views.aggregate(daily_pipeline).to_list(500)
+        
+        # Organize daily data
+        daily_data = {}
+        for r in daily_results:
+            date = r["_id"]["date"]
+            source = r["_id"]["source"] or "Direct"
+            if date not in daily_data:
+                daily_data[date] = {}
+            daily_data[date][source] = r["count"]
+        
+        return {
+            "total_views": total,
+            "period_days": days,
+            "sources": sources,
+            "daily_breakdown": daily_data
         }
 
 

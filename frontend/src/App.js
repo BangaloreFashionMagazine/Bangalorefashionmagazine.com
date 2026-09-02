@@ -820,7 +820,8 @@ const TalentDetailModal = ({ talent, onClose, onVote, shareEnabled = true, leade
       axios.post(`${API}/analytics/profile-view`, {
         talent_id: talent.id,
         session_id: sessionId,
-        referrer: document.referrer || ''
+        referrer: document.referrer || '',
+        user_agent: navigator.userAgent || ''
       }).catch(err => console.error("Failed to track profile view:", err));
     }
   }, [talent?.id]);
