@@ -1482,18 +1482,20 @@ const AdminDashboard = () => {
                               onClick={() => {
                                 const el = document.getElementById(`feed-design-${idx}`);
                                 import('html2canvas').then(({ default: html2canvas }) => {
-                                  // Export at exact Instagram dimensions: 1080x1350 with HIGH QUALITY
+                                  // Export at exact Instagram dimensions: 1080x1350 with MAXIMUM QUALITY
                                   html2canvas(el, { 
-                                    scale: 3, // Higher scale for better quality
+                                    scale: 4, // Higher scale for maximum quality (1080px * 4 = 4320px)
                                     useCORS: true,
                                     allowTaint: true,
                                     width: el.offsetWidth,
                                     height: el.offsetHeight,
-                                    backgroundColor: null
+                                    backgroundColor: null,
+                                    imageTimeout: 0,
+                                    logging: false
                                   }).then(canvas => {
                                     const link = document.createElement('a');
                                     link.download = `BFM_${instagramTalent.name.replace(/\s+/g, '_')}_Feed_${idx + 1}.png`;
-                                    link.href = canvas.toDataURL('image/png', 1.0); // Full quality PNG
+                                    link.href = canvas.toDataURL('image/png', 1.0); // Full quality PNG - no compression
                                     link.click();
                                   });
                                 });
@@ -1593,18 +1595,20 @@ const AdminDashboard = () => {
                               onClick={() => {
                                 const el = document.getElementById(`story-design-${idx}`);
                                 import('html2canvas').then(({ default: html2canvas }) => {
-                                  // Export at HIGH QUALITY
+                                  // Export at MAXIMUM QUALITY for Instagram Story
                                   html2canvas(el, { 
-                                    scale: 5, // Higher scale for story format
+                                    scale: 6, // Maximum scale for story (1080px * 6 = 6480px)
                                     useCORS: true,
                                     allowTaint: true,
                                     width: el.offsetWidth,
                                     height: el.offsetHeight,
-                                    backgroundColor: null
+                                    backgroundColor: null,
+                                    imageTimeout: 0,
+                                    logging: false
                                   }).then(canvas => {
                                     const link = document.createElement('a');
                                     link.download = `BFM_${instagramTalent.name.replace(/\s+/g, '_')}_Story_${idx + 1}.png`;
-                                    link.href = canvas.toDataURL('image/png', 1.0); // Full quality PNG
+                                    link.href = canvas.toDataURL('image/png', 1.0); // Full quality PNG - no compression
                                     link.click();
                                   });
                                 });
