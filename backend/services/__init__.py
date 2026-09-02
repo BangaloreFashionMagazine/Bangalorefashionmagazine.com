@@ -128,10 +128,11 @@ CATEGORY_TO_DB = {
     "Hair Stylists": "Hair Stylists",
     "Stylists": "Stylists",
     "DJs": "DJs",
-    "Choreographers": "Event Management",
+    "Choreographers": "Choreographers",
     "Casting Coordinators": "Casting Coordinators",
     "Featured Talents": "Featured",
-    "Designer Store": "Designer Store"
+    "Designer Store": "Designer Store",
+    "Event Management": "Event Management"
 }
 
 # All valid categories (both storage and display forms)
