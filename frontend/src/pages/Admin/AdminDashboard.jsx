@@ -1082,9 +1082,38 @@ const AdminDashboard = () => {
                 {/* Talent Info - No Instagram ID by default */}
                 <div className="bg-[#050A14] rounded-lg p-4 flex items-center gap-4">
                   <img src={instagramTalent.profile_image} alt={instagramTalent.name} className="w-20 h-20 rounded-full object-cover border-2 border-[#D4AF37]" />
-                  <div>
+                  <div className="flex-1">
                     <h3 className="text-[#F5F5F0] font-bold text-lg">{instagramTalent.name}</h3>
-                    <p className="text-[#D4AF37]">{instagramTalent.category}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <select
+                        value={instagramTalent.category}
+                        onChange={async (e) => {
+                          const newCategory = e.target.value;
+                          try {
+                            await adminApi.put(`${API}/talent/${instagramTalent.id}`, { category: newCategory });
+                            setInstagramTalent({ ...instagramTalent, category: newCategory });
+                            // Update in allTalents list too
+                            setAllTalents(prev => prev.map(t => t.id === instagramTalent.id ? { ...t, category: newCategory } : t));
+                            toast({ title: "Category updated!" });
+                          } catch (err) {
+                            toast({ title: "Failed to update category", variant: "destructive" });
+                          }
+                        }}
+                        className="px-2 py-1 bg-[#0A1628] border border-[#D4AF37]/30 rounded text-[#D4AF37] text-sm"
+                      >
+                        <option value="Model - Female">Model - Female</option>
+                        <option value="Model - Male">Model - Male</option>
+                        <option value="Designers">Designers</option>
+                        <option value="Photography">Photographers</option>
+                        <option value="Makeup & Hair">Makeup Artists</option>
+                        <option value="Hair Stylists">Hair Stylists</option>
+                        <option value="Stylists">Stylists</option>
+                        <option value="DJs">DJs</option>
+                        <option value="Choreographers">Choreographers</option>
+                        <option value="Casting Coordinators">Casting Coordinators</option>
+                        <option value="Event Management">Event Management</option>
+                      </select>
+                    </div>
                     <p className="text-[#A0A5B0] text-sm">Bangalore Fashion Magazine • Bangalore, India</p>
                   </div>
                 </div>
